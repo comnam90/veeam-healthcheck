@@ -106,7 +106,6 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
             this.ProxyTable();
             this.SobrTable();
             this.ExtentTable();
-            this.PerformanceTierExtentTable();
             this.CapacityTierExtentTable();
             this.ArchiveTierExtentTable();
             this.RepoTable();
@@ -182,7 +181,6 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
 
             this.SobrTable();
             this.ExtentTable();
-            this.PerformanceTierExtentTable();
             this.CapacityTierExtentTable();
             this.ArchiveTierExtentTable();
             this.RepoTable();
@@ -240,11 +238,6 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
         private void ExtentTable()
         {
             this.HTMLSTRING += this.tables.AddSobrExtTable(this.SCRUB);
-        }
-
-        private void PerformanceTierExtentTable()
-        {
-            this.HTMLSTRING += this.tables.AddPerformanceTierExtTable(this.SCRUB);
         }
 
         private void CapacityTierExtentTable()
