@@ -102,6 +102,9 @@ Initialize-VhcModule -ReportPath $ReportPath -VBRServer $VBRServer `
                      -LogLevel $config.LogLevel `
                      -ReportInterval $ReportInterval
 
+# Collector run summary list — each Invoke-VhcCollector call appends a result row.
+$collectorResults = [System.Collections.Generic.List[PSCustomObject]]::new()
+
 # ---------------------------------------------------------------------------
 # Connect to VBR server
 # ---------------------------------------------------------------------------
@@ -143,54 +146,78 @@ if ($RescanHosts) {
 
 # ---------------------------------------------------------------------------
 # TODO Task 4: User roles and server collection
+# NOTE: Get-VhcServer is called DIRECTLY (not via wrapper) — its return value
+#       ($VServers) is required by downstream concurrency collectors.
 # $VServers = Get-VhcServer
 # if ($null -eq $VServers) { throw "[Orchestrator] Get-VhcServer returned null — aborting." }
-# Invoke-VhcCollector -Name 'UserRoles' -Action { Get-VhcUserRoles }
+# $collectorResults.Add((Invoke-VhcCollector -Name 'UserRoles' -Action { Get-VhcUserRoles }))
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # TODO Task 5: Concurrency data and analysis
+# NOTE: Get-VhcConcurrencyData is called DIRECTLY (not via wrapper) — its return
+#       value ($hostRoles) is required by Invoke-VhcConcurrencyAnalysis.
 # $hostRoles = Get-VhcConcurrencyData -VServers $VServers -Config $config -VBRServer $VBRServer -VBRVersion $VBRVersion
-# Invoke-VhcCollector -Name 'ConcurrencyAnalysis' -Action {
+# $collectorResults.Add((Invoke-VhcCollector -Name 'ConcurrencyAnalysis' -Action {
 #     Invoke-VhcConcurrencyAnalysis -HostRoles $hostRoles -Config $config -VBRVersion $VBRVersion -BackupServerName $VBRServer
-# }
+# }))
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # TODO Task 6: EntraId, CapacityTier, ArchiveTier, TrafficRules, Registry, Repository
+# NOTE: Get-VhcRepository is called DIRECTLY (not via wrapper) — its return
+#       value ($RepositoryDetails) is required by Get-VhcJob in Task 7.
 # $RepositoryDetails = Get-VhcRepository -VBRVersion $VBRVersion
-# Invoke-VhcCollector -Name 'EntraId'        -Action { Get-VhcEntraId }
-# Invoke-VhcCollector -Name 'CapacityTier'   -Action { Get-VhcCapacityTier }
-# Invoke-VhcCollector -Name 'ArchiveTier'    -Action { Get-VhcArchiveTier }
-# Invoke-VhcCollector -Name 'TrafficRules'   -Action { Get-VhcTrafficRules }
-# Invoke-VhcCollector -Name 'RegistrySettings' -Action {
+# $collectorResults.Add((Invoke-VhcCollector -Name 'EntraId'          -Action { Get-VhcEntraId }))
+# $collectorResults.Add((Invoke-VhcCollector -Name 'CapacityTier'     -Action { Get-VhcCapacityTier }))
+# $collectorResults.Add((Invoke-VhcCollector -Name 'ArchiveTier'      -Action { Get-VhcArchiveTier }))
+# $collectorResults.Add((Invoke-VhcCollector -Name 'TrafficRules'     -Action { Get-VhcTrafficRules }))
+# $collectorResults.Add((Invoke-VhcCollector -Name 'RegistrySettings' -Action {
 #     Get-VhcRegistrySettings -RemoteExecution $RemoteExecution
-# }
+# }))
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # TODO Task 7: Job collectors (require $RepositoryDetails from Task 6)
-# Invoke-VhcCollector -Name 'Jobs' -Action {
+# $collectorResults.Add((Invoke-VhcCollector -Name 'Jobs' -Action {
 #     Get-VhcJob -RepositoryDetails $RepositoryDetails -VBRVersion $VBRVersion -ReportInterval $ReportInterval
-# }
+# }))
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # TODO Task 8: Malware detection, security compliance, protected workloads
-# Invoke-VhcCollector -Name 'MalwareDetection'    -Action { Get-VhcMalwareDetection -VBRVersion $VBRVersion }
-# Invoke-VhcCollector -Name 'SecurityCompliance'  -Action {
+# $collectorResults.Add((Invoke-VhcCollector -Name 'MalwareDetection'   -Action { Get-VhcMalwareDetection -VBRVersion $VBRVersion }))
+# $collectorResults.Add((Invoke-VhcCollector -Name 'SecurityCompliance' -Action {
 #     Get-VhcSecurityCompliance -VBRVersion $VBRVersion -Config $config
-# }
-# Invoke-VhcCollector -Name 'ProtectedWorkloads'  -Action { Get-VhcProtectedWorkloads }
+# }))
+# $collectorResults.Add((Invoke-VhcCollector -Name 'ProtectedWorkloads' -Action { Get-VhcProtectedWorkloads }))
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # TODO Task 9: WAN accelerators, license, and VBR info
-# Invoke-VhcCollector -Name 'WanAccelerator' -Action { Get-VhcWanAccelerator }
-# Invoke-VhcCollector -Name 'License'        -Action { Get-VhcLicense }
-# Invoke-VhcCollector -Name 'VbrInfo'        -Action { Get-VhcVbrInfo -VBRVersion $VBRVersion }
+# $collectorResults.Add((Invoke-VhcCollector -Name 'WanAccelerator' -Action { Get-VhcWanAccelerator }))
+# $collectorResults.Add((Invoke-VhcCollector -Name 'License'        -Action { Get-VhcLicense }))
+# $collectorResults.Add((Invoke-VhcCollector -Name 'VbrInfo'        -Action { Get-VhcVbrInfo -VBRVersion $VBRVersion }))
 # ---------------------------------------------------------------------------
 
 try { Disconnect-VBRServer -ErrorAction SilentlyContinue } catch {}
+
+# ---------------------------------------------------------------------------
+# Collector run summary
+# ---------------------------------------------------------------------------
+if ($collectorResults.Count -gt 0) {
+    Write-Host "`n[Orchestrator] ===== Collector Summary ====="
+    foreach ($r in $collectorResults) {
+        $status   = if ($r.Success) { "OK  " } else { "FAIL" }
+        $duration = if ($r.Duration) { "$([math]::Round($r.Duration.TotalSeconds, 1))s" } else { "-" }
+        $err      = if ($r.Error)    { " | $($r.Error)" } else { "" }
+        Write-Host "  [$status] $($r.Name.PadRight(30)) $duration$err"
+    }
+    Write-Host "[Orchestrator] ============================="
+    $failed = $collectorResults | Where-Object { -not $_.Success }
+    if ($failed) {
+        Write-LogFile "Run completed with $($failed.Count) failed collector(s): $(($failed.Name) -join ', ')" -LogLevel "WARNING"
+    }
+}
 
 Write-Host "[Orchestrator] Collection complete. Output: $ReportPath"
