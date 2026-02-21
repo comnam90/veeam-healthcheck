@@ -125,10 +125,10 @@ if ($useCreds) {
 }
 
 # ---------------------------------------------------------------------------
-# Version detection (Task 3 — stub)
-# TODO Task 3: Replace $VBRVersion override with Get-VhcMajorVersion call.
+# Version detection — replace parameter-supplied version with detected version
 # ---------------------------------------------------------------------------
-# $VBRVersion = Get-VhcMajorVersion
+$VBRVersion = Get-VhcMajorVersion
+Write-LogFile "VBR Version: $VBRVersion"
 
 # PS edition guard: VBR < 13 is not supported under PowerShell Core.
 if ($VBRVersion -gt 0 -and $VBRVersion -lt 13 -and $PSVersionTable.PSEdition -eq 'Core') {
@@ -194,10 +194,13 @@ if ($RescanHosts) {
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
-# TODO Task 9: WAN accelerators, license, and VBR info
+# TODO Task 9: WAN accelerators and license
 # $collectorResults.Add((Invoke-VhcCollector -Name 'WanAccelerator' -Action { Get-VhcWanAccelerator }))
 # $collectorResults.Add((Invoke-VhcCollector -Name 'License'        -Action { Get-VhcLicense }))
-# $collectorResults.Add((Invoke-VhcCollector -Name 'VbrInfo'        -Action { Get-VhcVbrInfo -VBRVersion $VBRVersion }))
+# ---------------------------------------------------------------------------
+
+# VbrInfo runs last — reads many registry paths that must not block earlier collectors
+$collectorResults.Add((Invoke-VhcCollector -Name 'VbrInfo' -Action { Get-VhcVbrInfo -VBRVersion $VBRVersion }))
 # ---------------------------------------------------------------------------
 
 try { Disconnect-VBRServer -ErrorAction SilentlyContinue } catch {}
