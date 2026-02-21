@@ -146,14 +146,78 @@ The PS5.1 PSSnapIn fallback logic (lines 126–143) must move to the Orchestrato
 
 ---
 
+## Module File Structure
+
+All collector functions live in individual `.ps1` files — one function per file — following the standard split-file PSModule pattern. The `.psm1` root file contains only the dot-sourcing loop and `Export-ModuleMember` call; no function definitions live there. This keeps each unit of logic independently navigable and reviewable, consistent with the DRY/SOLID/KISS objectives of the refactor.
+
+**Public/** contains the 20 functions exported to and called directly by `VBR-Orchestrator.ps1`. **Private/** contains the 19 internal sub-collectors and helpers that are only accessible within the module.
+
+```
+vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/
+├── Get-NasInfo.ps1                                    (existing – unchanged)
+├── Get-VBRConfig.ps1                                  (existing – becomes backward-compat shim, Task 11)
+├── Get-VeeamSessionReport.ps1                         (existing – unchanged)
+├── Get-VeeamSessionReportVersion13.ps1                (existing – unchanged)
+├── VBR-Orchestrator.ps1                               (new – entry point, Task 1)
+├── VbrConfig.json                                     (new – thresholds and config, Task 1)
+└── vHC-VbrConfig/                                     (new – PowerShell module folder, Task 1)
+    ├── vHC-VbrConfig.psd1                             (new – module manifest, Task 1)
+    ├── vHC-VbrConfig.psm1                             (new – dot-sources Public/ and Private/, Task 1)
+    ├── Public/                                        (functions exported to VBR-Orchestrator.ps1)
+    │   ├── Initialize-VhcModule.ps1                   (Task 2)
+    │   ├── Invoke-VhcCollector.ps1                    (Task 2)
+    │   ├── Get-VhcMajorVersion.ps1                    (Task 3)
+    │   ├── Get-VhcVbrInfo.ps1                         (Task 3)
+    │   ├── Get-VhcUserRoles.ps1                       (Task 4)
+    │   ├── Get-VhcServer.ps1                          (Task 4)
+    │   ├── Get-VhcConcurrencyData.ps1                 (Task 5)
+    │   ├── Invoke-VhcConcurrencyAnalysis.ps1          (Task 5)
+    │   ├── Get-VhcEntraId.ps1                         (Task 6)
+    │   ├── Get-VhcCapacityTier.ps1                    (Task 6)
+    │   ├── Get-VhcArchiveTier.ps1                     (Task 6)
+    │   ├── Get-VhcTrafficRules.ps1                    (Task 6)
+    │   ├── Get-VhcRegistrySettings.ps1                (Task 6)
+    │   ├── Get-VhcRepository.ps1                      (Task 6)
+    │   ├── Get-VhcJob.ps1                             (Task 7)
+    │   ├── Get-VhcMalwareDetection.ps1                (Task 8)
+    │   ├── Get-VhcSecurityCompliance.ps1              (Task 8)
+    │   ├── Get-VhcProtectedWorkloads.ps1              (Task 8)
+    │   ├── Get-VhcWanAccelerator.ps1                  (Task 9)
+    │   └── Get-VhcLicense.ps1                         (Task 9)
+    └── Private/                                       (internal sub-collectors and helpers)
+        ├── Export-VhcCsv.ps1                          (Task 2)
+        ├── Write-LogFile.ps1                          (Task 2)
+        ├── ConvertToGB.ps1                            (Task 5)
+        ├── EnsureNonNegative.ps1                      (Task 5)
+        ├── Get-SqlSName.ps1                           (Task 5)
+        ├── SafeValue.ps1                              (Task 5)
+        ├── Get-VhcGpProxy.ps1                         (Task 5)
+        ├── Get-VhcViHvProxy.ps1                       (Task 5)
+        ├── Get-VhcCdpProxy.ps1                        (Task 5)
+        ├── Get-VhcRepoGateway.ps1                     (Task 5)
+        ├── Get-VhcAgentJob.ps1                        (Task 7)
+        ├── Get-VhcCatalystJob.ps1                     (Task 7)
+        ├── Get-VhcTapeInfrastructure.ps1              (Task 7)
+        ├── Get-VhcNasJob.ps1                          (Task 7)
+        ├── Get-VhcPluginAndCdpJob.ps1                 (Task 7)
+        ├── Get-VhcReplication.ps1                     (Task 7)
+        ├── Get-VhcSureBackup.ps1                      (Task 7)
+        ├── Get-VhcCloudConnect.ps1                    (Task 7)
+        └── Get-VhcCredentialsAndNotifications.ps1     (Task 7)
+```
+
+---
+
 ## Implementation Tasks
 
 ### Task 1: Module and Orchestrator Scaffolding
 
 **Files:**
-- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig.psm1`
 - Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1`
 - Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VbrConfig.json`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/` *(module folder)*
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/vHC-VbrConfig.psm1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/vHC-VbrConfig.psd1`
 
 **Step 1: Create `VbrConfig.json`**
 Populate with all concurrency thresholds from lines 299–332 (including `SqlRAMMin`/`SqlCPUMin` at lines 330–332 and `CdpProxyOSCPU`/`CdpProxyOSRAM` which are currently undefined bugs — set to `0`) plus `LogLevel`, `DefaultOutputPath`, `ReportingIntervalDays`, and the `SecurityComplianceRuleNames` mapping (the `$RuleTypes` hashtable from lines 1761–1816). Example structure:
@@ -189,9 +253,46 @@ Populate with all concurrency thresholds from lines 299–332 (including `SqlRAM
 }
 ```
 
-**Step 2: Create `vHC-VbrConfig.psm1`** with a stub exported function. Optionally create a module manifest `vHC-VbrConfig.psd1` in the same directory to declare exported functions and module metadata.
+**Step 2: Create module folder structure**
 
-**Step 3: Create `VBR-Orchestrator.ps1`** with the full parameter block (all 8 parameters listed above), `VbrConfig.json` loading, and module import logic. Include PS5.1/PS7+ Veeam module loading (from lines 126–143).
+Create the `vHC-VbrConfig/` directory with empty `Public/` and `Private/` subfolders. Create the two module root files:
+
+`vHC-VbrConfig/vHC-VbrConfig.psm1` — dot-sourcing root only; no function definitions:
+```powershell
+#Requires -Version 5.1
+
+$Public  = @(Get-ChildItem -Path "$PSScriptRoot\Public\*.ps1"  -ErrorAction SilentlyContinue)
+$Private = @(Get-ChildItem -Path "$PSScriptRoot\Private\*.ps1" -ErrorAction SilentlyContinue)
+
+foreach ($import in ($Public + $Private)) {
+    try {
+        . $import.FullName
+    } catch {
+        Write-Error "Failed to import function from $($import.FullName): $_"
+    }
+}
+
+Export-ModuleMember -Function $Public.BaseName
+```
+
+`vHC-VbrConfig/vHC-VbrConfig.psd1` — module manifest:
+```powershell
+@{
+    ModuleVersion     = '1.0.0'
+    RootModule        = 'vHC-VbrConfig.psm1'
+    PowerShellVersion = '5.1'
+    Description       = 'VBR configuration collector module for Veeam Health Check'
+    Author            = 'Veeam Health Check'
+    FunctionsToExport = @()  # Populate fully in Task 9 once all Public functions exist
+}
+```
+
+> `FunctionsToExport = @()` during scaffolding means no functions are exported until the array is populated. Update it to list all 20 Public function names in Task 9 — this lets PowerShell catalogue exports without fully loading the module, which is a meaningful performance benefit for module-heavy environments.
+
+**Step 3: Create `VBR-Orchestrator.ps1`** with the full parameter block (all 8 parameters listed above), `VbrConfig.json` loading, and module import using the subfolder manifest path. Include PS5.1/PS7+ Veeam module loading (from lines 126–143). The module import must reference the manifest by path:
+```powershell
+Import-Module "$PSScriptRoot\vHC-VbrConfig\vHC-VbrConfig.psd1" -Force
+```
 
 **Step 4: Verification**
 ```powershell
@@ -201,9 +302,7 @@ Expected: Script loads module and exits without error.
 
 **Step 5: Commit**
 ```bash
-git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig.psm1 \
-        vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1 \
-        vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VbrConfig.json
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/
 git commit -m "feat: initial module scaffold for VBR config refactor"
 ```
 
@@ -212,7 +311,10 @@ git commit -m "feat: initial module scaffold for VBR config refactor"
 ### Task 2: Implement Common Utilities (Logging & Export)
 
 **Files:**
-- Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig.psm1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Initialize-VhcModule.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Invoke-VhcCollector.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Export-VhcCsv.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Write-LogFile.ps1`
 
 **Step 1: Promote `Write-LogFile` to module**
 Extract from lines 84–118. Preserve the `LogLevel` enum and `$global:SETTINGS.loglevel` filter, replacing the global with a module-scoped `$script:LogLevel` set by the Orchestrator via `Initialize-VhcModule`.
@@ -236,7 +338,8 @@ Expected: Log file is created with timestamps; CSV contains dummy data.
 
 **Step 6: Commit**
 ```bash
-git commit -am "feat: add common logging, export, and collector wrapper to module"
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/
+git commit -m "feat: add common logging, export, and collector wrapper to module"
 ```
 
 ---
@@ -244,7 +347,8 @@ git commit -am "feat: add common logging, export, and collector wrapper to modul
 ### Task 3: Version Detection
 
 **Files:**
-- Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig.psm1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcMajorVersion.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcVbrInfo.ps1`
 - Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1`
 
 **Step 1: Create `Get-VhcMajorVersion`**
@@ -262,7 +366,9 @@ Call `Get-VhcMajorVersion` immediately after connecting and store the result. Pa
 
 **Step 4: Commit**
 ```bash
-git commit -am "feat: extract version detection into Get-VhcMajorVersion and Get-VhcVbrInfo"
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1
+git commit -m "feat: extract version detection into Get-VhcMajorVersion and Get-VhcVbrInfo"
 ```
 
 ---
@@ -270,7 +376,8 @@ git commit -am "feat: extract version detection into Get-VhcMajorVersion and Get
 ### Task 4: Server and User Role Collectors
 
 **Files:**
-- Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig.psm1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcUserRoles.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcServer.ps1`
 - Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1`
 
 **Step 1: Create `Get-VhcUserRoles`**
@@ -282,7 +389,9 @@ Extract lines 274–289. Returns the `$Servers` array to the Orchestrator (do no
 
 **Step 3: Commit**
 ```bash
-git commit -am "feat: extract UserRoles and Server collectors"
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1
+git commit -m "feat: extract UserRoles and Server collectors"
 ```
 
 ---
@@ -290,7 +399,16 @@ git commit -am "feat: extract UserRoles and Server collectors"
 ### Task 5: Concurrency Data Collection and Analysis
 
 **Files:**
-- Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig.psm1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcConcurrencyData.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Invoke-VhcConcurrencyAnalysis.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Get-VhcGpProxy.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Get-VhcViHvProxy.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Get-VhcCdpProxy.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Get-VhcRepoGateway.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/ConvertToGB.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/EnsureNonNegative.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Get-SqlSName.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/SafeValue.ps1`
 - Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1`
 
 This task covers lines 374–858. The data gathering and analysis are split into two functions, but they are implemented together as they share the `$hostRoles` hashtable.
@@ -320,7 +438,9 @@ The `$RescanHosts` switch from the Orchestrator parameters must be checked befor
 
 **Step 5: Commit**
 ```bash
-git commit -am "feat: extract concurrency data collection and analysis into module functions"
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1
+git commit -m "feat: extract concurrency data collection and analysis into module functions"
 ```
 
 ---
@@ -328,7 +448,12 @@ git commit -am "feat: extract concurrency data collection and analysis into modu
 ### Task 6: Infrastructure Collectors (Repos, EntraID, Tiers, Traffic, Registry)
 
 **Files:**
-- Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig.psm1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcEntraId.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcCapacityTier.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcArchiveTier.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcTrafficRules.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcRegistrySettings.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcRepository.ps1`
 - Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1`
 
 **Step 1: Create `Get-VhcRepository`**
@@ -354,7 +479,9 @@ Extract lines 972–1003. Must accept `-RemoteExecution` parameter and return ea
 
 **Step 7: Commit**
 ```bash
-git commit -am "feat: extract infrastructure collectors (Repo, EntraID, tiers, traffic, registry)"
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1
+git commit -m "feat: extract infrastructure collectors (Repo, EntraID, tiers, traffic, registry)"
 ```
 
 ---
@@ -362,7 +489,16 @@ git commit -am "feat: extract infrastructure collectors (Repo, EntraID, tiers, t
 ### Task 7: Job Collection
 
 **Files:**
-- Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig.psm1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcJob.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Get-VhcAgentJob.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Get-VhcCatalystJob.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Get-VhcTapeInfrastructure.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Get-VhcNasJob.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Get-VhcPluginAndCdpJob.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Get-VhcReplication.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Get-VhcSureBackup.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Get-VhcCloudConnect.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/Get-VhcCredentialsAndNotifications.ps1`
 - Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1`
 
 This is the largest and most complex block (lines 1090–1587, ~500 lines). It should be decomposed into `Get-VhcJob` (the main VBR job loop) plus sub-functions for each distinct job type family.
@@ -399,7 +535,9 @@ The main VBR job function. Calls all sub-functions above, then runs the main `Ge
 
 **Step 11: Commit**
 ```bash
-git commit -am "feat: extract modular Job collection with all job type sub-functions"
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1
+git commit -m "feat: extract modular Job collection with all job type sub-functions"
 ```
 
 ---
@@ -407,7 +545,9 @@ git commit -am "feat: extract modular Job collection with all job type sub-funct
 ### Task 8: Security, Malware, and Protected Workloads
 
 **Files:**
-- Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig.psm1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcMalwareDetection.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcSecurityCompliance.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcProtectedWorkloads.ps1`
 - Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1`
 
 **Step 1: Create `Get-VhcMalwareDetection`** (lines 1662–1672)
@@ -429,7 +569,9 @@ Handles VMware, Hyper-V, and physical workloads. Each sub-type has its own inner
 
 **Step 4: Commit**
 ```bash
-git commit -am "feat: extract Security, Malware, and Protected Workloads collectors"
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1
+git commit -m "feat: extract Security, Malware, and Protected Workloads collectors"
 ```
 
 ---
@@ -437,7 +579,8 @@ git commit -am "feat: extract Security, Malware, and Protected Workloads collect
 ### Task 9: Remaining Collectors (WAN, License, VBR Info)
 
 **Files:**
-- Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig.psm1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcWanAccelerator.ps1`
+- Create: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/Get-VhcLicense.ps1`
 - Modify: `vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1`
 
 **Step 1: Create `Get-VhcWanAccelerator`** (lines 1606–1622)
@@ -451,7 +594,9 @@ Confirm it runs last in the orchestrator sequence and handles the MFA global set
 
 **Step 4: Commit**
 ```bash
-git commit -am "feat: extract WAN Accelerator, License, and VBR Info collectors"
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/
+git add vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1
+git commit -m "feat: extract WAN Accelerator, License, and VBR Info collectors"
 ```
 
 ---
@@ -510,23 +655,15 @@ git commit -am "chore: finalize orchestrator sequence, remove dead code, complet
 
 PowerShell scripts are distributed alongside the EXE via `<Content Include>` entries in the csproj (with `CopyToOutputDirectory=PreserveNewest`). SDK-style csproj auto-detects all `.ps1`, `.psm1`, `.json`, and `.psd1` files as `<None>` items unless explicitly overridden, so each new file requires both a `<None Remove>` entry and a `<Content Include>` entry.
 
-**Step 1: Add entries for all new top-level files**
+**Step 1: Add packaging entries for new files**
 
-The minimum set of new files under `Tools\Scripts\HealthCheck\VBR\` that need packaging entries:
-
-| File | Type |
-|---|---|
-| `VBR-Orchestrator.ps1` | Main entry point (replaces `Get-VBRConfig.ps1`) |
-| `vHC-VbrConfig.psm1` | Module with all collector functions |
-| `VbrConfig.json` | Collector configuration and thresholds |
-| `vHC-VbrConfig.psd1` | Module manifest (if created in Task 1) |
+The module uses 39 individual `.ps1` files across `Public/` and `Private/` subfolders. Rather than listing each file explicitly (~42 `<None Remove>` + `<Content Include>` pairs, needing updates with every new function file), use glob patterns to cover the module folder tree.
 
 Add to the `<None Remove>` ItemGroup (alongside the existing `Get-VBRConfig.ps1` entry):
 ```xml
 <None Remove="Tools\Scripts\HealthCheck\VBR\VBR-Orchestrator.ps1" />
-<None Remove="Tools\Scripts\HealthCheck\VBR\vHC-VbrConfig.psm1" />
 <None Remove="Tools\Scripts\HealthCheck\VBR\VbrConfig.json" />
-<None Remove="Tools\Scripts\HealthCheck\VBR\vHC-VbrConfig.psd1" />  <!-- if manifest was created -->
+<None Remove="Tools\Scripts\HealthCheck\VBR\vHC-VbrConfig\**\*" />
 ```
 
 Add to the `<Content Include>` ItemGroup (alongside the existing `Get-VBRConfig.ps1` entry):
@@ -534,30 +671,15 @@ Add to the `<Content Include>` ItemGroup (alongside the existing `Get-VBRConfig.
 <Content Include="Tools\Scripts\HealthCheck\VBR\VBR-Orchestrator.ps1">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 </Content>
-<Content Include="Tools\Scripts\HealthCheck\VBR\vHC-VbrConfig.psm1">
-    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-</Content>
 <Content Include="Tools\Scripts\HealthCheck\VBR\VbrConfig.json">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 </Content>
-<Content Include="Tools\Scripts\HealthCheck\VBR\vHC-VbrConfig.psd1">  <!-- if manifest was created -->
+<Content Include="Tools\Scripts\HealthCheck\VBR\vHC-VbrConfig\**\*">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 </Content>
 ```
 
-> **Note — split-file module alternative:** If the module is structured with a `Private/` subfolder of per-collector `.ps1` files dot-sourced by the `.psm1`, each `.ps1` file in that subfolder will also need an explicit `<None Remove>` + `<Content Include>` pair. Rather than listing 20+ individual entries, consider switching the relevant ItemGroup to a glob pattern:
-> ```xml
-> <Content Include="Tools\Scripts\HealthCheck\VBR\**\*.ps1">
->     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-> </Content>
-> <Content Include="Tools\Scripts\HealthCheck\VBR\**\*.psm1">
->     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-> </Content>
-> <Content Include="Tools\Scripts\HealthCheck\VBR\**\*.json">
->     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-> </Content>
-> ```
-> This is a departure from the current explicit-listing pattern but is simpler and more future-proof.
+The `vHC-VbrConfig\**\*` glob covers `vHC-VbrConfig.psm1`, `vHC-VbrConfig.psd1`, all `Public/*.ps1`, and all `Private/*.ps1` in one entry — no further csproj changes required as new function files are added during implementation.
 
 **Step 2: Update C# invokers**
 
@@ -599,7 +721,7 @@ dotnet publish vHC/HC_Reporting/VeeamHealthCheck.csproj -c Release
 ls publish/out/Tools/Scripts/HealthCheck/VBR/
 ```
 
-Expected: `VBR-Orchestrator.ps1`, `vHC-VbrConfig.psm1`, `VbrConfig.json`, and `Get-VBRConfig.ps1` (shim) all present.
+Expected: `VBR-Orchestrator.ps1`, `VbrConfig.json`, and `Get-VBRConfig.ps1` (shim) present at root level; `vHC-VbrConfig/` subfolder present containing `vHC-VbrConfig.psm1`, `vHC-VbrConfig.psd1`, and all `Public/` and `Private/` function files.
 
 **Step 6: Commit**
 ```bash
@@ -620,33 +742,30 @@ The `manual-release.yml` and `ci-cd.yaml` workflows do not need changes — the 
 
 The `validate-csv-schemas.yml` workflow is currently disabled; since the refactor preserves all CSV schemas exactly, it will not need changes when re-enabled.
 
-**Step 1: Add new files to `ps51-syntax-validation.yml` static-analysis array**
+**Step 1: Replace hardcoded script lists with glob collection**
 
-The `$ps51Scripts` array appears **twice** in this workflow file (line 38–44 for static analysis, line 108–112 for runtime parse). Both must be updated.
+The `$ps51Scripts` array appears **twice** in this workflow file (line 38–44 for static analysis, line 108–112 for runtime parse). With 39 individual function files across `Public/` and `Private/` subfolders, hardcoding each path is impractical. Replace both arrays with glob-based discovery:
 
-Update the static-analysis array (first occurrence, ~line 38):
+Replace the static-analysis array (first occurrence, ~line 38):
 ```powershell
-$ps51Scripts = @(
-    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/Get-VBRConfig.ps1",  # keep until shim is removed
-    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1",
-    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig.psm1",
-    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/Get-VeeamSessionReport.ps1",
-    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/Get-NasInfo.ps1",
-    "vHC/HC_Reporting/Tools/Scripts/HotfixDetection/Collect-VBRLogs.ps1",
-    "vHC/HC_Reporting/Tools/Scripts/HotfixDetection/DumpManagedServerToText.ps1"
-)
+$ps51Scripts = @(Get-ChildItem -Path @(
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/*.ps1",
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/*.ps1",
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/*.ps1",
+    "vHC/HC_Reporting/Tools/Scripts/HotfixDetection/*.ps1"
+) -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
 ```
 
-Update the runtime-parse array (second occurrence, ~line 108) — same list minus the HotfixDetection scripts (which are already excluded there):
+Replace the runtime-parse array (second occurrence, ~line 108) — same but without HotfixDetection (the runtime step uses `powershell` / PS5.1 shell and is scoped to VBR scripts only):
 ```powershell
-$ps51Scripts = @(
-    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/Get-VBRConfig.ps1",  # keep until shim is removed
-    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1",
-    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig.psm1",
-    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/Get-VeeamSessionReport.ps1",
-    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/Get-NasInfo.ps1"
-)
+$ps51Scripts = @(Get-ChildItem -Path @(
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/*.ps1",
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Public/*.ps1",
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/Private/*.ps1"
+) -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
 ```
+
+The `.psm1` root file contains only the dot-sourcing boilerplate and `Export-ModuleMember` — no function logic — so the PS7-only syntax risk is minimal. Include it explicitly if desired by adding `"vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/vHC-VbrConfig.psm1"` to either array. This approach requires zero workflow changes as new function files are added.
 
 > **Note — split-file module:** If the module uses a `Private/` subfolder of individual `.ps1` files, each file must also be added here. Alternatively, replace the hardcoded array with a glob:
 > ```powershell
@@ -657,10 +776,11 @@ $ps51Scripts = @(
 
 **Step 2: Update the job summary text**
 
-Update the "Scripts Validated" bullet list in the `Write job summary` step (~line 176) to reflect the new files:
+Update the "Scripts Validated" section in the `Write job summary` step (~line 176) to reflect the new dynamic discovery:
 ```yaml
 - ``VBR-Orchestrator.ps1`` - Main VBR configuration orchestrator (entry point)
-- ``vHC-VbrConfig.psm1`` - VBR collector module
+- ``vHC-VbrConfig/Public/*.ps1`` - 20 exported collector functions
+- ``vHC-VbrConfig/Private/*.ps1`` - 19 internal sub-collectors and helpers
 - ``Get-VBRConfig.ps1`` - Legacy shim (until removed)
 - ``Get-VeeamSessionReport.ps1`` - Session reporting
 - ``Get-NasInfo.ps1`` - NAS information collection
