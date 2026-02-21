@@ -168,17 +168,20 @@ $collectorResults.Add((Invoke-VhcCollector -Name 'ConcurrencyAnalysis' -Action {
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
-# TODO Task 6: EntraId, CapacityTier, ArchiveTier, TrafficRules, Registry, Repository
+# Task 6: EntraId, CapacityTier, ArchiveTier, TrafficRules, Registry, Repository
 # NOTE: Get-VhcRepository is called DIRECTLY (not via wrapper) — its return
 #       value ($RepositoryDetails) is required by Get-VhcJob in Task 7.
-# $RepositoryDetails = Get-VhcRepository -VBRVersion $VBRVersion
-# $collectorResults.Add((Invoke-VhcCollector -Name 'EntraId'          -Action { Get-VhcEntraId }))
-# $collectorResults.Add((Invoke-VhcCollector -Name 'CapacityTier'     -Action { Get-VhcCapacityTier }))
-# $collectorResults.Add((Invoke-VhcCollector -Name 'ArchiveTier'      -Action { Get-VhcArchiveTier }))
-# $collectorResults.Add((Invoke-VhcCollector -Name 'TrafficRules'     -Action { Get-VhcTrafficRules }))
-# $collectorResults.Add((Invoke-VhcCollector -Name 'RegistrySettings' -Action {
-#     Get-VhcRegistrySettings -RemoteExecution $RemoteExecution
-# }))
+$collectorResults.Add((Invoke-VhcCollector -Name 'EntraId'          -Action { Get-VhcEntraId }))
+$collectorResults.Add((Invoke-VhcCollector -Name 'CapacityTier'     -Action { Get-VhcCapacityTier }))
+$collectorResults.Add((Invoke-VhcCollector -Name 'ArchiveTier'      -Action { Get-VhcArchiveTier }))
+$collectorResults.Add((Invoke-VhcCollector -Name 'TrafficRules'     -Action { Get-VhcTrafficRules }))
+$collectorResults.Add((Invoke-VhcCollector -Name 'RegistrySettings' -Action {
+    Get-VhcRegistrySettings -RemoteExecution $RemoteExecution
+}))
+
+$RepositoryDetails = Get-VhcRepository -VBRVersion $VBRVersion
+# $RepositoryDetails may be $null if the collector fails — Get-VhcJob must tolerate a null map
+# (repo names will simply be blank in _Jobs.csv).
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
