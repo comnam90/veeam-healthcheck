@@ -145,12 +145,16 @@ if ($RescanHosts) {
 }
 
 # ---------------------------------------------------------------------------
-# TODO Task 4: User roles and server collection
+# Task 4: User roles and server collection
 # NOTE: Get-VhcServer is called DIRECTLY (not via wrapper) — its return value
 #       ($VServers) is required by downstream concurrency collectors.
-# $VServers = Get-VhcServer
-# if ($null -eq $VServers) { throw "[Orchestrator] Get-VhcServer returned null — aborting." }
-# $collectorResults.Add((Invoke-VhcCollector -Name 'UserRoles' -Action { Get-VhcUserRoles }))
+# ---------------------------------------------------------------------------
+$collectorResults.Add((Invoke-VhcCollector -Name 'UserRoles' -Action { Get-VhcUserRoles }))
+
+$VServers = Get-VhcServer
+if ($null -eq $VServers) {
+    throw "[Orchestrator] Get-VhcServer returned null — aborting. Check VBR connectivity and logs."
+}
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
