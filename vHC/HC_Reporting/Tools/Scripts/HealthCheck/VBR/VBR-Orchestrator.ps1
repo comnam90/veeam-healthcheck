@@ -158,13 +158,13 @@ if ($null -eq $VServers) {
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
-# TODO Task 5: Concurrency data and analysis
+# Task 5: Concurrency data and analysis
 # NOTE: Get-VhcConcurrencyData is called DIRECTLY (not via wrapper) — its return
 #       value ($hostRoles) is required by Invoke-VhcConcurrencyAnalysis.
-# $hostRoles = Get-VhcConcurrencyData -VServers $VServers -Config $config -VBRServer $VBRServer -VBRVersion $VBRVersion
-# $collectorResults.Add((Invoke-VhcCollector -Name 'ConcurrencyAnalysis' -Action {
-#     Invoke-VhcConcurrencyAnalysis -HostRoles $hostRoles -Config $config -VBRVersion $VBRVersion -BackupServerName $VBRServer
-# }))
+$hostRoles = Get-VhcConcurrencyData -VServers $VServers -Config $config -VBRServer $VBRServer -VBRVersion $VBRVersion
+$collectorResults.Add((Invoke-VhcCollector -Name 'ConcurrencyAnalysis' -Action {
+    Invoke-VhcConcurrencyAnalysis -HostRoles $hostRoles -Config $config -VBRVersion $VBRVersion -BackupServerName $VBRServer
+}))
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
