@@ -2,7 +2,9 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Decompose the 2,188-line `Get-VBRConfig.ps1` into a modular PowerShell module (`.psm1`) and a clean Orchestrator script, preserving all 59 CSV output files and their exact schemas.
+**Goal:** Decompose the 2,188-line `Get-VBRConfig.ps1` into a modular PowerShell module (`.psm1`) and a clean Orchestrator script, preserving all CSV output files and their exact schemas.
+
+> **⚠️ Before starting Task 1:** Do a final count of `Export-VhcCsv` calls in the source `Get-VBRConfig.ps1` and confirm the exact number of CSV outputs. The plan references **59** throughout, but review identified a possible count of **60**. Update the collector inventory table and all references to match the confirmed count before any implementation begins.
 
 **Architecture:** Orchestrator-Collector pattern with a Common Library module. State is passed via explicit parameters. Data flows through the PowerShell pipeline to minimise memory usage.
 
@@ -12,7 +14,7 @@
 
 ## Reference: Complete Collector Inventory
 
-The script produces **59 CSV files** across **16 logical collector groups**. All must be preserved in the refactor. Implementation tasks below are grouped to reflect real dependencies.
+The script produces **59 CSV files** (confirm count before implementation — see note above) across **16 logical collector groups**. All must be preserved in the refactor. Implementation tasks below are grouped to reflect real dependencies.
 
 | Collector Function | Source Lines | CSV Output(s) |
 |---|---|---|
@@ -133,7 +135,7 @@ Check `vHC/VhcXTests/` for any integration tests that invoke the script by name 
 | `$VBRServer` | string | Mandatory |
 | `$VBRVersion` | int | Overridden at runtime by `Get-VhcMajorVersion` |
 | `$User` | string | Optional credential |
-| `$Password` | string | Plain-text password fallback (retained for compatibility; `$PasswordBase64` is preferred) |
+| `$Password` | string | Plain-text password fallback. **Retained for backward compatibility with manual CLI invocations only** — the C# invoker exclusively uses `$PasswordBase64`. Add a deprecation comment in the orchestrator parameter block. |
 | `$PasswordBase64` | string | Base64-encoded password; decoded inline |
 | `$RemoteExecution` | bool | Gates registry collection in `Get-VhcRegistrySettings` |
 | `$ReportPath` | string | Defaults to `C:\temp\vHC\Original\VBR\$VBRServer\$timestamp` |
@@ -223,6 +225,7 @@ vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/
 Populate with all concurrency thresholds from lines 299–332 (including `SqlRAMMin`/`SqlCPUMin` at lines 330–332 and `CdpProxyOSCPU`/`CdpProxyOSRAM` which are currently undefined bugs — set to `0`) plus `LogLevel`, `DefaultOutputPath`, `ReportingIntervalDays`, and the `SecurityComplianceRuleNames` mapping (the `$RuleTypes` hashtable from lines 1761–1816). Example structure:
 ```json
 {
+  "ConfigVersion": 1,
   "LogLevel": "INFO",
   "DefaultOutputPath": "C:\\temp\\vHC\\Original\\VBR",
   "ReportingIntervalDays": 14,
@@ -268,12 +271,14 @@ foreach ($import in ($Public + $Private)) {
     try {
         . $import.FullName
     } catch {
-        Write-Error "Failed to import function from $($import.FullName): $_"
+        throw "Failed to import function from $($import.FullName): $_"
     }
 }
 
 Export-ModuleMember -Function $Public.BaseName
 ```
+
+> **Note:** Import failures must `throw` (not `Write-Error` and continue). A failed dot-source creates a partially-loaded module that fails later in confusing ways. Fail fast and loud.
 
 `vHC-VbrConfig/vHC-VbrConfig.psd1` — module manifest:
 ```powershell
@@ -283,22 +288,35 @@ Export-ModuleMember -Function $Public.BaseName
     PowerShellVersion = '5.1'
     Description       = 'VBR configuration collector module for Veeam Health Check'
     Author            = 'Veeam Health Check'
-    FunctionsToExport = @()  # Populate fully in Task 9 once all Public functions exist
+    FunctionsToExport = '*'  # Lock down to explicit list in Task 9 once all Public functions exist
 }
 ```
 
-> `FunctionsToExport = @()` during scaffolding means no functions are exported until the array is populated. Update it to list all 20 Public function names in Task 9 — this lets PowerShell catalogue exports without fully loading the module, which is a meaningful performance benefit for module-heavy environments.
+> **`FunctionsToExport = '*'` during development.** Do NOT use `@()` here — an empty array prevents all exports regardless of `Export-ModuleMember`, which would silently break every verification step in Tasks 2–8. Replace `'*'` with the full explicit list of 20 Public function names in Task 9.
 
 **Step 3: Create `VBR-Orchestrator.ps1`** with the full parameter block (all 8 parameters listed above), `VbrConfig.json` loading, and module import using the subfolder manifest path. Include PS5.1/PS7+ Veeam module loading (from lines 126–143). The module import must reference the manifest by path:
 ```powershell
 Import-Module "$PSScriptRoot\vHC-VbrConfig\vHC-VbrConfig.psd1" -Force
 ```
 
-**Step 4: Verification**
+After loading `VbrConfig.json`, validate that the required top-level keys are present (`ConfigVersion`, `Thresholds`, `SecurityComplianceRuleNames`). Fail fast with a descriptive error if any are missing — do not let a malformed config produce silent null-reference failures mid-run:
 ```powershell
-pwsh -File vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1 -VBRServer localhost -VBRVersion 12
+foreach ($key in @('ConfigVersion', 'Thresholds', 'SecurityComplianceRuleNames')) {
+    if ($null -eq $config.$key) { throw "VbrConfig.json is missing required key: '$key'" }
+}
 ```
-Expected: Script loads module and exits without error.
+
+Also add a PS edition guard for VBR version compatibility: if the detected VBR version is below 13 and running under PowerShell Core (`$PSVersionTable.PSEdition -eq 'Core'`), fail fast with a clear message directing the user to rerun under Windows PowerShell 5.1.
+
+**Step 4: Verification**
+
+Test module loading in isolation (does not require a live Veeam installation):
+```powershell
+pwsh -c "Import-Module ./vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/vHC-VbrConfig.psd1; Get-Module vHC-VbrConfig"
+```
+Expected: Module loads with 0 exported commands (no Public functions yet). No errors.
+
+Full orchestrator invocation can only be tested once a Veeam environment is available.
 
 **Step 5: Commit**
 ```bash
@@ -320,7 +338,15 @@ git commit -m "feat: initial module scaffold for VBR config refactor"
 Extract from lines 84–118. Preserve the `LogLevel` enum and `$global:SETTINGS.loglevel` filter, replacing the global with a module-scoped `$script:LogLevel` set by the Orchestrator via `Initialize-VhcModule`.
 
 **Step 2: Promote and fix `Export-VhcCsv`**
-Extract from lines 57–67. Add explicit `$ReportPath` and `$VBRServer` parameters so the function has no script-scope dependency. Use `process {}` block to correctly handle pipeline input.
+
+> **⚠️ CRITICAL — Step 2a: Rename `$input` to `$InputObject`.** The existing function uses `$input` as a parameter name. `$input` is a PowerShell automatic variable; using it as a named parameter works by accident in the monolith but will produce unpredictable behaviour (empty or corrupt CSV files) in a module context. This rename must happen first, before any other changes in this step.
+
+Extract from lines 57–67. Add explicit `$ReportPath` and `$VBRServer` parameters so the function has no script-scope dependency. Use `process {}` block to correctly handle pipeline input. Add a null-guard at the top of the function body to catch uninitialised module state:
+```powershell
+if (-not $script:ReportPath -or -not $script:VBRServer) {
+    throw "Initialize-VhcModule must be called before Export-VhcCsv"
+}
+```
 
 **Step 3: Implement `Invoke-VhcCollector` wrapper**
 Create a function that accepts `-Name` (string) and `-Action` (scriptblock). It must:
@@ -328,6 +354,12 @@ Create a function that accepts `-Name` (string) and `-Action` (scriptblock). It 
 - Execute the scriptblock inside `try/catch`
 - Log `[Name] Completed in Xs` on success
 - Log `[Name] FAILED: <message>` on error without re-throwing (so one collector failure does not abort the run)
+
+**Return-value contract:** `Invoke-VhcCollector` must **return the scriptblock's output unchanged** on success, and `$null` on error.
+
+**Which collectors bypass the wrapper:** Collectors that must return values used by downstream collectors (`Get-VhcServer` → `$VServers`, `Get-VhcConcurrencyData` → `$hostRoles`, `Get-VhcRepository` → `$RepositoryDetails`) should be called **directly** by the orchestrator, not via `Invoke-VhcCollector`. The wrapper is for fire-and-forget collectors. This split must be documented in the orchestrator with a comment above each call.
+
+**Collector run summary:** Maintain a `$collectorResults` list in the orchestrator. After each `Invoke-VhcCollector` call, append a `[PSCustomObject]@{Name; Success; Duration; Error}` result (returned by the wrapper). Log a summary table at the end of the run so operators can see pass/fail per collector at a glance.
 
 **Step 4: Implement `Initialize-VhcModule`**
 An exported function called once by the Orchestrator to inject `$ReportPath`, `$VBRServer`, `$LogLevel`, and `$ReportInterval` into module-level script variables. This avoids threading these values through every collector call.
@@ -426,6 +458,12 @@ Helper functions (`Get-SqlSName`, `ConverttoGB`, `EnsureNonNegative`, `SafeValue
 
 **Step 2: Create `Invoke-VhcConcurrencyAnalysis`**
 Accepts `-HostRoles`, `-Config`, `-VBRVersion`, and `-BackupServerName`. Implements the requirements calculation loop (lines 719–823). Returns `$RequirementsComparison` and exports `_AllServersRequirementsComparison.csv`.
+
+> **⚠️ Before implementing this step:** Explicitly categorise the following known behavioral discrepancies as either *compatibility-preserving* (output must match old script exactly) or *intentional fix* (output change is acceptable and documented):
+> 1. **Backup server name check:** `if ($serverName -contains $BackupServerName)` applies `-contains` to a string, which is likely wrong (should be `-eq`). Fixing this may change which rows appear in `_AllServersRequirementsComparison.csv`.
+> 2. **CDP OS overhead omission:** `$CdpProxyOSCPU`/`$CdpProxyOSRAM` are computed but never added into `RequiredCores`/`RequiredRAM`. Adding them (now that they're defined in `VbrConfig.json`) changes the output. Decide whether to preserve the bug or fix it.
+>
+> Any intentional output changes must be noted in the commit message and signed off before Task 10 final integration.
 
 **Step 3: Orchestrator wiring**
 ```powershell
@@ -561,6 +599,7 @@ This is the most complex single block. Accept `-VBRVersion` parameter. Key imple
 - **v13+**: reads results via `Get-VBRSecurityComplianceAnalyzerResults` cmdlet
 - Maps raw rule type strings to human-readable names via the `$RuleTypes` hashtable (40+ entries, lines 1761–1816) — this hashtable should be moved to `VbrConfig.json`
 - Maps status strings via `$StatusObj` hashtable (lines 1817–1822)
+- **Unknown rule type fallback:** If a rule's `Type` is not present in the `SecurityComplianceRuleNames` mapping, do **not** drop the row. Output it with the raw `Type` string as the best-practice name and the raw `Status` string as-is. This preserves visibility of new compliance rules even when the JSON mapping is stale.
 - Must be gated on `$VBRVersion -gt 11`
 - Exports `_SecurityCompliance.csv`
 
@@ -608,21 +647,35 @@ git commit -m "feat: extract WAN Accelerator, License, and VBR Info collectors"
 
 **Step 1: Finalize Orchestrator execution order**
 The correct sequence must be:
-1. Load config, init module
-2. Load Veeam module/snapin
+1. Load config, validate required keys, init module
+2. Load Veeam module/snapin *(PS edition guard: if VBR < v13 and running under `pwsh`, fail fast with a message to rerun under Windows PowerShell 5.1)*
 3. Connect to VBR server (with Base64 credential handling)
+
+Wrap steps 3–23 in a `try/finally` block so `Disconnect-VBRServer` (step 23) is always called, even if a prerequisite collector aborts the run early:
+
+```powershell
+try {
+    # 3. Connect-VBRServer ...
+    # 4-22. Collectors ...
+} finally {
+    Disconnect-VBRServer -Confirm:$false -ErrorAction SilentlyContinue
+}
+```
+
+The inner collector sequence:
+
 4. `Get-VhcMajorVersion` → sets `$VBRVersion`
 5. Rescan hosts if `$RescanHosts`
 6. `Get-VhcUserRoles`
-7. `Get-VhcServer` → stores `$VServers`
-8. `Get-VhcConcurrencyData` → stores `$hostRoles`
+7. `Get-VhcServer` → stores `$VServers` *(direct call — return value required)*
+8. `Get-VhcConcurrencyData` → stores `$hostRoles` *(direct call — return value required)*
 9. `Invoke-VhcConcurrencyAnalysis`
 10. `Get-VhcEntraId`
 11. `Get-VhcCapacityTier`
 12. `Get-VhcArchiveTier`
 13. `Get-VhcTrafficRules`
 14. `Get-VhcRegistrySettings`
-15. `Get-VhcRepository` → stores `$RepositoryDetails`
+15. `Get-VhcRepository` → stores `$RepositoryDetails` *(direct call — return value required)*
 16. `Get-VhcJob` (passing `$RepositoryDetails`)
 17. `Get-VhcWanAccelerator`
 18. `Get-VhcLicense`
@@ -630,15 +683,24 @@ The correct sequence must be:
 20. `Get-VhcSecurityCompliance` (v12+ only)
 21. `Get-VhcProtectedWorkloads`
 22. `Get-VhcVbrInfo`
-23. `Disconnect-VBRServer`
+23. `Disconnect-VBRServer` *(in `finally` block)*
 
 **Step 2: Remove dead code**
 Remove the `AddTypeInfo` function defined at lines 2183–2186 (defined but never called). Remove commented-out collection stubs and the template block at lines 259–272.
 
-**Step 3: Performance check**
+**Step 3: CSV schema parity verification**
+
+> **This is the most critical correctness check of the entire refactor.** Before switching the C# invokers and before final commit, run both the original `Get-VBRConfig.ps1` and the new `VBR-Orchestrator.ps1` against the same VBR environment and diff the outputs:
+> - All expected CSV file names are present in the new output
+> - CSV column headers match exactly (including column order — `Export-Csv` respects object property order)
+> - Row counts match for stable, deterministic collectors
+>
+> Re-enable or adapt `validate-csv-schemas.yml` for this verification. At minimum, add a unit-level check that constructs a known `[PSCustomObject]` with specific properties, pipes it through `Export-VhcCsv`, and asserts the resulting CSV header row is an exact string match.
+
+**Step 4: Performance check**
 Run the new orchestrator and compare memory usage against the original on a representative dataset.
 
-**Step 4: Final commit**
+**Step 5: Final commit**
 ```bash
 git commit -am "chore: finalize orchestrator sequence, remove dead code, complete integration"
 ```
@@ -683,6 +745,8 @@ The `vHC-VbrConfig\**\*` glob covers `vHC-VbrConfig.psm1`, `vHC-VbrConfig.psd1`,
 
 **Step 2: Update C# invokers**
 
+> **⚠️ Delay this step until CSV parity has been confirmed (Task 10, Step 3).** The C# application will call `VBR-Orchestrator.ps1` once this change is made. Only switch after the new orchestrator has been verified to produce identical CSV output to the original script. Until then, `Get-VBRConfig.ps1` (shim) acts as the safe fallback entry point.
+
 Both files below reference `Get-VBRConfig.ps1` by path and must be updated to point to `VBR-Orchestrator.ps1`:
 
 - `vHC/HC_Reporting/Functions/Collection/PSCollections/PSInvoker.cs` line 30:
@@ -700,6 +764,8 @@ Both files below reference `Get-VBRConfig.ps1` by path and must be updated to po
   // To:
   private readonly string vbrConfigScript = Environment.CurrentDirectory + @"\Tools\Scripts\HealthCheck\VBR\VBR-Orchestrator.ps1";
   ```
+
+  > **Note:** `PowerShell7Executor.cs` uses `Environment.CurrentDirectory` which changes with the working directory in service contexts and is unreliable. `PSInvoker.cs` correctly uses `AppDomain.CurrentDomain.BaseDirectory`. Consider harmonising `PowerShell7Executor.cs` to use `AppDomain.CurrentDomain.BaseDirectory` at the same time as this path update.
 
 **Step 3: Check integration tests**
 
@@ -765,9 +831,11 @@ $ps51Scripts = @(Get-ChildItem -Path @(
 ) -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
 ```
 
-The `.psm1` root file contains only the dot-sourcing boilerplate and `Export-ModuleMember` — no function logic — so the PS7-only syntax risk is minimal. Include it explicitly if desired by adding `"vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/vHC-VbrConfig.psm1"` to either array. This approach requires zero workflow changes as new function files are added.
+The `.psm1` root file contains the dot-source loop and `#Requires -Version 5.1` — any PS7-only syntax introduced there will silently break the Windows PowerShell 5.1 path if not validated. **Include it explicitly in both arrays** by adding `"vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig/vHC-VbrConfig.psm1"` as a separate entry. This is not optional.
 
-> **Note — split-file module:** If the module uses a `Private/` subfolder of individual `.ps1` files, each file must also be added here. Alternatively, replace the hardcoded array with a glob:
+> **Also add a workflow trigger path:** Update the `on: push: paths:` filter in `ps51-syntax-validation.yml` to include `**/*.psm1` alongside `**/*.ps1`. Otherwise, changes to the module root file will not trigger the workflow at all.
+
+> **Alternative — broader glob:** Replace all hardcoded arrays with:
 > ```powershell
 > $ps51Scripts = Get-ChildItem "vHC/HC_Reporting/Tools/Scripts/**/*.ps1","vHC/HC_Reporting/Tools/Scripts/**/*.psm1" |
 >     Select-Object -ExpandProperty FullName
