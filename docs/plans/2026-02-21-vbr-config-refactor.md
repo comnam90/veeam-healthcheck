@@ -497,3 +497,177 @@ Run the new orchestrator and compare memory usage against the original on a repr
 ```bash
 git commit -am "chore: finalize orchestrator sequence, remove dead code, complete integration"
 ```
+
+---
+
+### Task 11: Update Project Packaging (VeeamHealthCheck.csproj)
+
+**Files:**
+- Modify: `vHC/HC_Reporting/VeeamHealthCheck.csproj`
+- Modify: `vHC/HC_Reporting/Functions/Collection/PSCollections/PSInvoker.cs`
+- Modify: `vHC/HC_Reporting/Functions/Collection/PSCollections/PowerShell7Executor.cs`
+- Check: `vHC/VhcXTests/` (integration tests that reference the script by name)
+
+PowerShell scripts are distributed alongside the EXE via `<Content Include>` entries in the csproj (with `CopyToOutputDirectory=PreserveNewest`). SDK-style csproj auto-detects all `.ps1`, `.psm1`, `.json`, and `.psd1` files as `<None>` items unless explicitly overridden, so each new file requires both a `<None Remove>` entry and a `<Content Include>` entry.
+
+**Step 1: Add entries for all new top-level files**
+
+The minimum set of new files under `Tools\Scripts\HealthCheck\VBR\` that need packaging entries:
+
+| File | Type |
+|---|---|
+| `VBR-Orchestrator.ps1` | Main entry point (replaces `Get-VBRConfig.ps1`) |
+| `vHC-VbrConfig.psm1` | Module with all collector functions |
+| `VbrConfig.json` | Collector configuration and thresholds |
+| `vHC-VbrConfig.psd1` | Module manifest (if created in Task 1) |
+
+Add to the `<None Remove>` ItemGroup (alongside the existing `Get-VBRConfig.ps1` entry):
+```xml
+<None Remove="Tools\Scripts\HealthCheck\VBR\VBR-Orchestrator.ps1" />
+<None Remove="Tools\Scripts\HealthCheck\VBR\vHC-VbrConfig.psm1" />
+<None Remove="Tools\Scripts\HealthCheck\VBR\VbrConfig.json" />
+<None Remove="Tools\Scripts\HealthCheck\VBR\vHC-VbrConfig.psd1" />  <!-- if manifest was created -->
+```
+
+Add to the `<Content Include>` ItemGroup (alongside the existing `Get-VBRConfig.ps1` entry):
+```xml
+<Content Include="Tools\Scripts\HealthCheck\VBR\VBR-Orchestrator.ps1">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+</Content>
+<Content Include="Tools\Scripts\HealthCheck\VBR\vHC-VbrConfig.psm1">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+</Content>
+<Content Include="Tools\Scripts\HealthCheck\VBR\VbrConfig.json">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+</Content>
+<Content Include="Tools\Scripts\HealthCheck\VBR\vHC-VbrConfig.psd1">  <!-- if manifest was created -->
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+</Content>
+```
+
+> **Note — split-file module alternative:** If the module is structured with a `Private/` subfolder of per-collector `.ps1` files dot-sourced by the `.psm1`, each `.ps1` file in that subfolder will also need an explicit `<None Remove>` + `<Content Include>` pair. Rather than listing 20+ individual entries, consider switching the relevant ItemGroup to a glob pattern:
+> ```xml
+> <Content Include="Tools\Scripts\HealthCheck\VBR\**\*.ps1">
+>     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+> </Content>
+> <Content Include="Tools\Scripts\HealthCheck\VBR\**\*.psm1">
+>     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+> </Content>
+> <Content Include="Tools\Scripts\HealthCheck\VBR\**\*.json">
+>     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+> </Content>
+> ```
+> This is a departure from the current explicit-listing pattern but is simpler and more future-proof.
+
+**Step 2: Update C# invokers**
+
+Both files below reference `Get-VBRConfig.ps1` by path and must be updated to point to `VBR-Orchestrator.ps1`:
+
+- `vHC/HC_Reporting/Functions/Collection/PSCollections/PSInvoker.cs` line 30:
+  ```csharp
+  // Change:
+  private readonly string vbrConfigScript = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Tools\Scripts\HealthCheck\VBR\Get-VBRConfig.ps1");
+  // To:
+  private readonly string vbrConfigScript = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Tools\Scripts\HealthCheck\VBR\VBR-Orchestrator.ps1");
+  ```
+
+- `vHC/HC_Reporting/Functions/Collection/PSCollections/PowerShell7Executor.cs` line 24:
+  ```csharp
+  // Change:
+  private readonly string vbrConfigScript = Environment.CurrentDirectory + @"\Tools\Scripts\HealthCheck\VBR\Get-VBRConfig.ps1";
+  // To:
+  private readonly string vbrConfigScript = Environment.CurrentDirectory + @"\Tools\Scripts\HealthCheck\VBR\VBR-Orchestrator.ps1";
+  ```
+
+**Step 3: Check integration tests**
+
+Search `vHC/VhcXTests/` for any test that references `Get-VBRConfig.ps1` by string and update to `VBR-Orchestrator.ps1`. If any test invokes the script as a file path (e.g., `-File Get-VBRConfig.ps1`), update accordingly.
+
+**Step 4: Decide on `Get-VBRConfig.ps1` retention**
+
+Three options:
+1. **Delete it** — clean, but breaks any external tooling or manual use that calls it by name.
+2. **Replace with a shim** — a 3-line wrapper that calls `VBR-Orchestrator.ps1 @PSBoundParameters` for backward compatibility.
+3. **Keep both** — safest short-term, but creates maintenance confusion.
+
+Recommendation: replace with a shim until the next major version, then remove.
+
+**Step 5: Build and verify**
+
+```bash
+dotnet publish vHC/HC_Reporting/VeeamHealthCheck.csproj -c Release
+ls publish/out/Tools/Scripts/HealthCheck/VBR/
+```
+
+Expected: `VBR-Orchestrator.ps1`, `vHC-VbrConfig.psm1`, `VbrConfig.json`, and `Get-VBRConfig.ps1` (shim) all present.
+
+**Step 6: Commit**
+```bash
+git add vHC/HC_Reporting/VeeamHealthCheck.csproj \
+        vHC/HC_Reporting/Functions/Collection/PSCollections/PSInvoker.cs \
+        vHC/HC_Reporting/Functions/Collection/PSCollections/PowerShell7Executor.cs
+git commit -m "build: add new VBR module files to csproj packaging and update C# invokers"
+```
+
+---
+
+### Task 12: Update CI/CD Workflows
+
+**Files:**
+- Modify: `.github/workflows/ps51-syntax-validation.yml`
+
+The `manual-release.yml` and `ci-cd.yaml` workflows do not need changes — the release workflow archives everything in `publish/out/` (populated by csproj), and the integration test workflow runs the EXE which picks up scripts automatically.
+
+The `validate-csv-schemas.yml` workflow is currently disabled; since the refactor preserves all CSV schemas exactly, it will not need changes when re-enabled.
+
+**Step 1: Add new files to `ps51-syntax-validation.yml` static-analysis array**
+
+The `$ps51Scripts` array appears **twice** in this workflow file (line 38–44 for static analysis, line 108–112 for runtime parse). Both must be updated.
+
+Update the static-analysis array (first occurrence, ~line 38):
+```powershell
+$ps51Scripts = @(
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/Get-VBRConfig.ps1",  # keep until shim is removed
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1",
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig.psm1",
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/Get-VeeamSessionReport.ps1",
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/Get-NasInfo.ps1",
+    "vHC/HC_Reporting/Tools/Scripts/HotfixDetection/Collect-VBRLogs.ps1",
+    "vHC/HC_Reporting/Tools/Scripts/HotfixDetection/DumpManagedServerToText.ps1"
+)
+```
+
+Update the runtime-parse array (second occurrence, ~line 108) — same list minus the HotfixDetection scripts (which are already excluded there):
+```powershell
+$ps51Scripts = @(
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/Get-VBRConfig.ps1",  # keep until shim is removed
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/VBR-Orchestrator.ps1",
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/vHC-VbrConfig.psm1",
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/Get-VeeamSessionReport.ps1",
+    "vHC/HC_Reporting/Tools/Scripts/HealthCheck/VBR/Get-NasInfo.ps1"
+)
+```
+
+> **Note — split-file module:** If the module uses a `Private/` subfolder of individual `.ps1` files, each file must also be added here. Alternatively, replace the hardcoded array with a glob:
+> ```powershell
+> $ps51Scripts = Get-ChildItem "vHC/HC_Reporting/Tools/Scripts/**/*.ps1","vHC/HC_Reporting/Tools/Scripts/**/*.psm1" |
+>     Select-Object -ExpandProperty FullName
+> ```
+> This eliminates the need to update the workflow whenever a new file is added.
+
+**Step 2: Update the job summary text**
+
+Update the "Scripts Validated" bullet list in the `Write job summary` step (~line 176) to reflect the new files:
+```yaml
+- ``VBR-Orchestrator.ps1`` - Main VBR configuration orchestrator (entry point)
+- ``vHC-VbrConfig.psm1`` - VBR collector module
+- ``Get-VBRConfig.ps1`` - Legacy shim (until removed)
+- ``Get-VeeamSessionReport.ps1`` - Session reporting
+- ``Get-NasInfo.ps1`` - NAS information collection
+```
+
+**Step 3: Commit**
+```bash
+git add .github/workflows/ps51-syntax-validation.yml
+git commit -m "ci: add VBR-Orchestrator.ps1 and vHC-VbrConfig.psm1 to PS5.1 syntax validation"
+```
