@@ -192,12 +192,12 @@ $collectorResults.Add((Invoke-VhcCollector -Name 'Jobs' -Action {
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
-# TODO Task 8: Malware detection, security compliance, protected workloads
-# $collectorResults.Add((Invoke-VhcCollector -Name 'MalwareDetection'   -Action { Get-VhcMalwareDetection -VBRVersion $VBRVersion }))
-# $collectorResults.Add((Invoke-VhcCollector -Name 'SecurityCompliance' -Action {
-#     Get-VhcSecurityCompliance -VBRVersion $VBRVersion -Config $config
-# }))
-# $collectorResults.Add((Invoke-VhcCollector -Name 'ProtectedWorkloads' -Action { Get-VhcProtectedWorkloads }))
+# Task 8: Malware detection, security compliance, protected workloads
+$collectorResults.Add((Invoke-VhcCollector -Name 'MalwareDetection'   -Action { Get-VhcMalwareDetection -VBRVersion $VBRVersion }))
+$collectorResults.Add((Invoke-VhcCollector -Name 'SecurityCompliance' -Action {
+    Get-VhcSecurityCompliance -VBRVersion $VBRVersion -Config $config
+}))
+$collectorResults.Add((Invoke-VhcCollector -Name 'ProtectedWorkloads' -Action { Get-VhcProtectedWorkloads }))
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
