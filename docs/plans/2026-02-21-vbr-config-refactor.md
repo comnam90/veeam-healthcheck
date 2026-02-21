@@ -87,6 +87,30 @@ function Export-VhcCsv {
 ```
 The `Invoke-VhcCollector` wrapper can handle injecting `$ReportPath` and `$VBRServer` so individual collector calls remain clean.
 
+### CSV Column Order — Use `[pscustomobject][ordered]@{}`
+
+`Export-Csv` column order is determined by the property order of the object piped into it. To guarantee stable, deterministic column order across all collectors and PowerShell versions, **all object construction in this module must use `[pscustomobject][ordered]@{}`**, not plain `[pscustomobject]@{}`.
+
+Plain hashtables are unordered in PowerShell 5.1 — relying on accidental insertion order will silently reorder CSV columns. The `[ordered]` modifier creates an `OrderedDictionary` which preserves insertion order through the `[pscustomobject]` cast:
+
+```powershell
+# Correct — column order is guaranteed
+[pscustomobject][ordered]@{
+    Name   = $job.Name
+    Status = $job.LastResult
+    RepoId = $job.Info.TargetRepositoryId
+}
+
+# Incorrect — column order is non-deterministic in PS 5.1
+[pscustomobject]@{
+    Name   = $job.Name
+    Status = $job.LastResult
+    RepoId = $job.Info.TargetRepositoryId
+}
+```
+
+When extracting each collector, match the property order to the original `Select-Object` column sequence in `Get-VBRConfig.ps1` to ensure CSV output is identical. This is a prerequisite for the CSV parity verification in Task 10.
+
 ### `VbrConfig.json` vs Existing `CollectorConfig.json`
 
 The existing script already loads `CollectorConfig.json` from `$global:SETTINGS.OutputPath` (lines 71–82) and merges it into `$global:SETTINGS`. The new `VbrConfig.json` **replaces `CollectorConfig.json` for this VBR script only** — note that VB365 and other scripts in the repo have their own settings loading and must not be affected. It should contain:
@@ -692,7 +716,7 @@ Remove the `AddTypeInfo` function defined at lines 2183–2186 (defined but neve
 
 > **This is the most critical correctness check of the entire refactor.** Before switching the C# invokers and before final commit, run both the original `Get-VBRConfig.ps1` and the new `VBR-Orchestrator.ps1` against the same VBR environment and diff the outputs:
 > - All expected CSV file names are present in the new output
-> - CSV column headers match exactly (including column order — `Export-Csv` respects object property order)
+> - CSV column headers match exactly (including column order — see *CSV Column Order* note in Architectural Notes; all collectors must use `[pscustomobject][ordered]@{}`)
 > - Row counts match for stable, deterministic collectors
 >
 > Re-enable or adapt `validate-csv-schemas.yml` for this verification. At minimum, add a unit-level check that constructs a known `[PSCustomObject]` with specific properties, pipes it through `Export-VhcCsv`, and asserts the resulting CSV header row is an exact string match.
