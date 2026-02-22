@@ -31,4 +31,11 @@ param(
     [switch]$RescanHosts
 )
 
-& "$PSScriptRoot\VBR-Orchestrator.ps1" @PSBoundParameters
+$commonParams = @('Verbose','Debug','ErrorAction','WarningAction','InformationAction',
+                  'ErrorVariable','WarningVariable','InformationVariable','OutVariable',
+                  'OutBuffer','PipelineVariable','Confirm','WhatIf')
+$forwardParams = @{}
+foreach ($key in $PSBoundParameters.Keys) {
+    if ($key -notin $commonParams) { $forwardParams[$key] = $PSBoundParameters[$key] }
+}
+& "$PSScriptRoot\VBR-Orchestrator.ps1" @forwardParams
