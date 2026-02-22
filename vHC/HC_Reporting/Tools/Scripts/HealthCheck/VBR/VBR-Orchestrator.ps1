@@ -108,21 +108,25 @@ $collectorResults = [System.Collections.Generic.List[PSCustomObject]]::new()
 # ---------------------------------------------------------------------------
 # Connect to VBR server
 # ---------------------------------------------------------------------------
+# Pre-connect cleanup in case a stale session already exists.
 try { Disconnect-VBRServer -ErrorAction SilentlyContinue } catch {}
 
 $useCreds = ($User -and $PasswordBase64 -and
              -not [string]::IsNullOrWhiteSpace($User) -and
              -not [string]::IsNullOrWhiteSpace($PasswordBase64))
 
-if ($useCreds) {
-    $passwordBytes  = [System.Convert]::FromBase64String($PasswordBase64)
-    $plainPassword  = [System.Text.Encoding]::UTF8.GetString($passwordBytes)
-    $securePassword = ConvertTo-SecureString -String $plainPassword -AsPlainText -Force
-    $credential     = New-Object System.Management.Automation.PSCredential($User, $securePassword)
-    Connect-VBRServer -Server $VBRServer -Credential $credential -ErrorAction Stop
-} else {
-    Connect-VBRServer -Server $VBRServer -ErrorAction Stop
-}
+# Wrap Connect → Collectors → Disconnect in try/finally so Disconnect always runs,
+# even if a prerequisite collector aborts the run early.
+try {
+    if ($useCreds) {
+        $passwordBytes  = [System.Convert]::FromBase64String($PasswordBase64)
+        $plainPassword  = [System.Text.Encoding]::UTF8.GetString($passwordBytes)
+        $securePassword = ConvertTo-SecureString -String $plainPassword -AsPlainText -Force
+        $credential     = New-Object System.Management.Automation.PSCredential($User, $securePassword)
+        Connect-VBRServer -Server $VBRServer -Credential $credential -ErrorAction Stop
+    } else {
+        Connect-VBRServer -Server $VBRServer -ErrorAction Stop
+    }
 
 # ---------------------------------------------------------------------------
 # Version detection — replace parameter-supplied version with detected version
@@ -210,8 +214,6 @@ $collectorResults.Add((Invoke-VhcCollector -Name 'ProtectedWorkloads' -Action { 
 $collectorResults.Add((Invoke-VhcCollector -Name 'VbrInfo' -Action { Get-VhcVbrInfo -VBRVersion $VBRVersion }))
 # ---------------------------------------------------------------------------
 
-try { Disconnect-VBRServer -ErrorAction SilentlyContinue } catch {}
-
 # ---------------------------------------------------------------------------
 # Collector run summary
 # ---------------------------------------------------------------------------
@@ -231,3 +233,6 @@ if ($collectorResults.Count -gt 0) {
 }
 
 Write-Host "[Orchestrator] Collection complete. Output: $ReportPath"
+} finally {
+    Disconnect-VBRServer -Confirm:$false -ErrorAction SilentlyContinue
+}

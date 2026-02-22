@@ -158,6 +158,68 @@ namespace VhcXTests.Integration
         }
 
         [Fact]
+        public void VBROrchestrator_ScriptExists()
+        {
+            var scriptPath = Path.Combine(_scriptsPath, "HealthCheck", "VBR", "VBR-Orchestrator.ps1");
+            Assert.True(File.Exists(scriptPath), $"VBR-Orchestrator.ps1 not found at: {scriptPath}");
+        }
+
+        [Fact]
+        public void VBROrchestrator_ValidPowerShellSyntax()
+        {
+            var scriptPath = Path.Combine(_scriptsPath, "HealthCheck", "VBR", "VBR-Orchestrator.ps1");
+
+            if (!File.Exists(scriptPath))
+            {
+                Assert.Fail($"Script not found: {scriptPath}");
+            }
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = "pwsh",
+                Arguments = $"-NoProfile -NonInteractive -Command \"$errors = $null; [System.Management.Automation.Language.Parser]::ParseFile('{scriptPath}', [ref]$null, [ref]$errors); if ($errors) {{ Write-Error 'Syntax errors found'; exit 1 }} else {{ exit 0 }}\"",
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            var rc = RunPwshAndLog(psi, "VBROrchestrator_ValidPowerShellSyntax");
+            Assert.True(rc == 0, $"PowerShell syntax validation failed. See TestResults/pwsh-logs/VBROrchestrator_ValidPowerShellSyntax.txt (exit {rc})");
+        }
+
+        [Fact]
+        public void VhcVbrConfigModule_AllFilesValidPowerShellSyntax()
+        {
+            var modulePath = Path.Combine(_scriptsPath, "HealthCheck", "VBR", "vHC-VbrConfig");
+
+            if (!Directory.Exists(modulePath))
+            {
+                Assert.Fail($"vHC-VbrConfig module directory not found at: {modulePath}");
+            }
+
+            var scripts = Directory.GetFiles(modulePath, "*.ps1", SearchOption.AllDirectories);
+            Assert.NotEmpty(scripts);
+
+            foreach (var scriptPath in scripts)
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "pwsh",
+                    Arguments = $"-NoProfile -NonInteractive -Command \"$errors = $null; [System.Management.Automation.Language.Parser]::ParseFile('{scriptPath}', [ref]$null, [ref]$errors); if ($errors) {{ exit 1 }} else {{ exit 0 }}\"",
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                var logName = $"VhcVbrConfigModule-{Path.GetFileName(scriptPath)}";
+                var rc = RunPwshAndLog(psi, logName);
+                Assert.True(rc == 0, $"Module file has syntax errors: {Path.GetFileName(scriptPath)} (see TestResults/pwsh-logs/{logName}.txt)");
+            }
+        }
+
+        [Fact]
         public void IncrementVersionScript_ExecutesSuccessfully()
         {
             var scriptPath = Path.Combine(_projectRoot, "increment_version.ps1");
