@@ -28,15 +28,6 @@ function Get-VhcRepoGateway {
         $GWData   = [System.Collections.Generic.List[PSCustomObject]]::new()
 
         foreach ($Repository in $Repositories) {
-            # Skip non-local repositories: VCC cloud repos (Host.Type = Cloud),
-            # object storage / VeeamVault repos (no usable Host.Name).
-            # These are not local infrastructure and have no meaningful concurrency ceiling.
-            if ($null -eq $Repository.Host -or
-                [string]::IsNullOrEmpty($Repository.Host.Name) -or
-                $Repository.Host.Type -eq 'Cloud') {
-                continue
-            }
-
             $NrofRepositoryTasks = $Repository.Options.MaxTaskCount
             $gatewayServers      = $Repository.GetActualGateways()
             $NrofgatewayServers  = $gatewayServers.Count
@@ -47,6 +38,8 @@ function Get-VhcRepoGateway {
             }
 
             if ($NrofgatewayServers -gt 0) {
+                # Gateway servers are always local infrastructure even when
+                # the backing repo is object storage / VeeamVault / cloud.
                 foreach ($gatewayServer in $gatewayServers) {
                     $Server  = $VServers | Where-Object { $_.Name -eq $gatewayServer.Name }
                     $GWCores = if ($null -ne $Server) { $Server.GetPhysicalHost().HardwareInfo.CoresCount } else { 0 }
@@ -78,6 +71,15 @@ function Get-VhcRepoGateway {
                     $HostRoles[$gatewayServer.Name].TotalTasks   += $NrofRepositoryTasks / $NrofgatewayServers
                 }
             } else {
+                # No gateway - the repo host IS the storage target.
+                # Skip non-local hosts: VCC cloud repos (Host.Type = Cloud) and
+                # object storage / VeeamVault repos that have no usable Host.Name.
+                if ($null -eq $Repository.Host -or
+                    [string]::IsNullOrEmpty($Repository.Host.Name) -or
+                    $Repository.Host.Type -eq 'Cloud') {
+                    continue
+                }
+
                 $Server    = $VServers | Where-Object { $_.Name -eq $Repository.Host.Name }
                 $RepoCores = if ($null -ne $Server) { $Server.GetPhysicalHost().HardwareInfo.CoresCount } else { 0 }
                 $RepoRAM   = if ($null -ne $Server) { ConvertToGB($Server.GetPhysicalHost().HardwareInfo.PhysicalRAMTotal) } else { 0 }
