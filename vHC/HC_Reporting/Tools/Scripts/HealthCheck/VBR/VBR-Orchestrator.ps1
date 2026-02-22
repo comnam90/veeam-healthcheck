@@ -192,18 +192,18 @@ $collectorResults.Add((Invoke-VhcCollector -Name 'Jobs' -Action {
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
+# Task 9: WAN accelerators and license (spec positions 17 & 18 — after Jobs, before Malware)
+$collectorResults.Add((Invoke-VhcCollector -Name 'WanAccelerator' -Action { Get-VhcWanAccelerator }))
+$collectorResults.Add((Invoke-VhcCollector -Name 'License'        -Action { Get-VhcLicense }))
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
 # Task 8: Malware detection, security compliance, protected workloads
 $collectorResults.Add((Invoke-VhcCollector -Name 'MalwareDetection'   -Action { Get-VhcMalwareDetection -VBRVersion $VBRVersion }))
 $collectorResults.Add((Invoke-VhcCollector -Name 'SecurityCompliance' -Action {
     Get-VhcSecurityCompliance -VBRVersion $VBRVersion -Config $config
 }))
 $collectorResults.Add((Invoke-VhcCollector -Name 'ProtectedWorkloads' -Action { Get-VhcProtectedWorkloads }))
-# ---------------------------------------------------------------------------
-
-# ---------------------------------------------------------------------------
-# TODO Task 9: WAN accelerators and license
-# $collectorResults.Add((Invoke-VhcCollector -Name 'WanAccelerator' -Action { Get-VhcWanAccelerator }))
-# $collectorResults.Add((Invoke-VhcCollector -Name 'License'        -Action { Get-VhcLicense }))
 # ---------------------------------------------------------------------------
 
 # VbrInfo runs last — reads many registry paths that must not block earlier collectors
