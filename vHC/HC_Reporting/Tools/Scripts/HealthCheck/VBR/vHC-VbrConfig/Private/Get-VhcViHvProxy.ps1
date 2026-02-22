@@ -17,8 +17,8 @@ function Get-VhcViHvProxy {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)] [object[]] $VMwareProxies,
-        [Parameter(Mandatory)] [object[]] $HyperVProxies,
+        [Parameter(Mandatory = $false)] [object[]] $VMwareProxies = @(),
+        [Parameter(Mandatory = $false)] [object[]] $HyperVProxies = @(),
         [Parameter(Mandatory)] [object[]] $VServers,
         [Parameter(Mandatory)] [hashtable] $HostRoles
     )

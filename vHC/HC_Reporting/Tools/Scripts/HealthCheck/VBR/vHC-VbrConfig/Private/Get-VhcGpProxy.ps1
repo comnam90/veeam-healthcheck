@@ -15,7 +15,7 @@ function Get-VhcGpProxy {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)] [object[]] $GPProxies,
+        [Parameter(Mandatory = $false)] [object[]] $GPProxies = @(),
         [Parameter(Mandatory)] [object[]] $VServers,
         [Parameter(Mandatory)] [hashtable] $HostRoles
     )

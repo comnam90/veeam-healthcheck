@@ -15,7 +15,7 @@ function Get-VhcRepoGateway {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)] [object[]] $Repositories,
+        [Parameter(Mandatory = $false)] [object[]] $Repositories = @(),
         [Parameter(Mandatory)] [object[]] $VServers,
         [Parameter(Mandatory)] [hashtable] $HostRoles
     )

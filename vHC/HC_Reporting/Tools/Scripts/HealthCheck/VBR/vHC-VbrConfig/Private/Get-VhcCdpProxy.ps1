@@ -15,7 +15,7 @@ function Get-VhcCdpProxy {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)] [object[]] $CDPProxies,
+        [Parameter(Mandatory = $false)] [object[]] $CDPProxies = @(),
         [Parameter(Mandatory)] [object[]] $VServers,
         [Parameter(Mandatory)] [hashtable] $HostRoles
     )
