@@ -226,7 +226,7 @@ if ($collectorResults.Count -gt 0) {
         Write-Host "  [$status] $($r.Name.PadRight(30)) $duration$err"
     }
     Write-Host "[Orchestrator] ============================="
-    $failed = $collectorResults | Where-Object { -not $_.Success }
+    $failed = @($collectorResults | Where-Object { -not $_.Success })
     if ($failed) {
         Write-LogFile "Run completed with $($failed.Count) failed collector(s): $(($failed.Name) -join ', ')" -LogLevel "WARNING"
     }

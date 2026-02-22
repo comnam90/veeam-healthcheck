@@ -106,7 +106,7 @@ function Get-VhcJob {
                 $CalculatedOriginalSize = $Job.Info.IncludedSize
             }
         } catch {
-            Write-LogFile "Warning: Could not get last backup for job: $($Job.Name)" -LogLevel "WARN"
+            Write-LogFile "Warning: Could not get last backup for job: $($Job.Name)" -LogLevel "WARNING"
             $TotalOnDiskGB          = 0
             $CalculatedOriginalSize = $Job.Info.IncludedSize
         }

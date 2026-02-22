@@ -38,7 +38,12 @@ function Get-VhcProtectedWorkloads {
         }
 
         $unprotectedEntityInfo = Find-VBRViEntity | Where-Object { $_.Name -notin $vmNames.Name }
-        $protectedEntityInfo   = Find-VBRViEntity -Name $vmNames.Name
+        if ($null -eq $vmNames -or $null -eq $vmNames.Name) {
+            $protectedEntityInfo = Find-VBRViEntity -Name " "
+        }
+        else {
+            $protectedEntityInfo = Find-VBRViEntity -Name $vmNames.Name
+        }
     }
     catch {
         Write-LogFile "Failed on VMware workloads: $($_.Exception.Message)" -LogLevel "ERROR"

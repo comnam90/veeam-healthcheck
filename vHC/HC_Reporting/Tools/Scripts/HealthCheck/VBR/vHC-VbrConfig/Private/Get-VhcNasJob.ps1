@@ -51,7 +51,7 @@ function Get-VhcNasJob {
                 }
                 Write-LogFile "Built NAS session lookup with $($nasSessionLookup.Count) unique jobs"
             } catch {
-                Write-LogFile "Warning: Failed to get NAS sessions: $($_.Exception.Message)" -LogLevel "WARN"
+                Write-LogFile "Warning: Failed to get NAS sessions: $($_.Exception.Message)" -LogLevel "WARNING"
             }
 
             $jobCounter = 0
