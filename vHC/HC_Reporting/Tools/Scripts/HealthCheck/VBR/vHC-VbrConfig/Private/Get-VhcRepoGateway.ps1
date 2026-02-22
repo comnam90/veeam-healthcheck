@@ -28,6 +28,15 @@ function Get-VhcRepoGateway {
         $GWData   = [System.Collections.Generic.List[PSCustomObject]]::new()
 
         foreach ($Repository in $Repositories) {
+            # Skip non-local repositories: VCC cloud repos (Host.Type = Cloud),
+            # object storage / VeeamVault repos (no usable Host.Name).
+            # These are not local infrastructure and have no meaningful concurrency ceiling.
+            if ($null -eq $Repository.Host -or
+                [string]::IsNullOrEmpty($Repository.Host.Name) -or
+                $Repository.Host.Type -eq 'Cloud') {
+                continue
+            }
+
             $NrofRepositoryTasks = $Repository.Options.MaxTaskCount
             $gatewayServers      = $Repository.GetActualGateways()
             $NrofgatewayServers  = $gatewayServers.Count
