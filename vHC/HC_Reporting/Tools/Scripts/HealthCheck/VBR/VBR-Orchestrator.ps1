@@ -234,5 +234,5 @@ if ($collectorResults.Count -gt 0) {
 
 Write-Host "[Orchestrator] Collection complete. Output: $ReportPath"
 } finally {
-    Disconnect-VBRServer -Confirm:$false -ErrorAction SilentlyContinue
+    Disconnect-VBRServer -ErrorAction SilentlyContinue
 }
