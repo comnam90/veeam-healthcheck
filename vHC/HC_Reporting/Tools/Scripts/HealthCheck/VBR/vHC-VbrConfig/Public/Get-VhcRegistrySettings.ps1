@@ -15,7 +15,7 @@ function Get-VhcRegistrySettings {
     )
 
     if ($RemoteExecution -eq $true) {
-        Write-LogFile "Skipping registry collection — RemoteExecution is enabled." -LogLevel "INFO"
+        Write-LogFile "Skipping registry collection - RemoteExecution is enabled." -LogLevel "INFO"
         return
     }
 

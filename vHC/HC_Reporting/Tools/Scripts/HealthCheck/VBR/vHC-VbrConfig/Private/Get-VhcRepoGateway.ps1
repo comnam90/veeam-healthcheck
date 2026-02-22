@@ -5,7 +5,7 @@ function Get-VhcRepoGateway {
     .Synopsis
         Collects repository and gateway server data, exports _RepositoryServers.csv and _Gateways.csv.
         Appends Repository and Gateway role data to the shared HostRoles hashtable.
-        Source: Get-VBRConfig.ps1 lines 604–689.
+        Source: Get-VBRConfig.ps1 lines 604-689.
     .Parameter Repositories
         Array of backup repository objects returned by Get-VBRBackupRepository.
     .Parameter VServers

@@ -6,7 +6,7 @@
     Replaces Get-VBRConfig.ps1 as the canonical entry point after Task 11 shim is in place.
 .Notes
     Version: 1.0.0
-    Part of the vHC VBR Config refactor — see docs/plans/2026-02-21-vbr-config-refactor.md
+    Part of the vHC VBR Config refactor - see docs/plans/2026-02-21-vbr-config-refactor.md
 .EXAMPLE
     VBR-Orchestrator.ps1 -VBRServer myserver -VBRVersion 12
     VBR-Orchestrator.ps1 -VBRServer myserver -VBRVersion 13 -User admin -PasswordBase64 <base64>
@@ -76,7 +76,7 @@ Import-Module "$PSScriptRoot\vHC-VbrConfig\vHC-VbrConfig.psd1" -Force
 
 # ---------------------------------------------------------------------------
 # Ensure Veeam module / PSSnapin is loaded
-# Extracted from Get-VBRConfig.ps1 lines 126–143.
+# Extracted from Get-VBRConfig.ps1 lines 126-143.
 # PS 6+ (Core/7+) only supports modules; PS 5.1 tries the PSSnapin first.
 # ---------------------------------------------------------------------------
 if ($PSVersionTable.PSVersion.Major -ge 6) {
@@ -102,7 +102,7 @@ Initialize-VhcModule -ReportPath $ReportPath -VBRServer $VBRServer `
                      -LogLevel $config.LogLevel `
                      -ReportInterval $ReportInterval
 
-# Collector run summary list — each Invoke-VhcCollector call appends a result row.
+# Collector run summary list - each Invoke-VhcCollector call appends a result row.
 $collectorResults = [System.Collections.Generic.List[PSCustomObject]]::new()
 
 # ---------------------------------------------------------------------------
@@ -115,7 +115,7 @@ $useCreds = ($User -and $PasswordBase64 -and
              -not [string]::IsNullOrWhiteSpace($User) -and
              -not [string]::IsNullOrWhiteSpace($PasswordBase64))
 
-# Wrap Connect → Collectors → Disconnect in try/finally so Disconnect always runs,
+# Wrap Connect -> Collectors -> Disconnect in try/finally so Disconnect always runs,
 # even if a prerequisite collector aborts the run early.
 try {
     if ($useCreds) {
@@ -129,7 +129,7 @@ try {
     }
 
 # ---------------------------------------------------------------------------
-# Version detection — replace parameter-supplied version with detected version
+# Version detection - replace parameter-supplied version with detected version
 # ---------------------------------------------------------------------------
 $VBRVersion = Get-VhcMajorVersion
 Write-LogFile "VBR Version: $VBRVersion"
@@ -144,26 +144,26 @@ if ($VBRVersion -gt 0 -and $VBRVersion -lt 13 -and $PSVersionTable.PSEdition -eq
 # Optional host rescan (must run before concurrency collection)
 # ---------------------------------------------------------------------------
 if ($RescanHosts) {
-    Write-Host "[Orchestrator] Rescanning all hosts — this may take several minutes..."
+    Write-Host "[Orchestrator] Rescanning all hosts - this may take several minutes..."
     Rescan-VBREntity -AllHosts -Wait
 }
 
 # ---------------------------------------------------------------------------
 # Task 4: User roles and server collection
-# NOTE: Get-VhcServer is called DIRECTLY (not via wrapper) — its return value
+# NOTE: Get-VhcServer is called DIRECTLY (not via wrapper) - its return value
 #       ($VServers) is required by downstream concurrency collectors.
 # ---------------------------------------------------------------------------
 $collectorResults.Add((Invoke-VhcCollector -Name 'UserRoles' -Action { Get-VhcUserRoles }))
 
 $VServers = Get-VhcServer
 if ($null -eq $VServers) {
-    throw "[Orchestrator] Get-VhcServer returned null — aborting. Check VBR connectivity and logs."
+    throw "[Orchestrator] Get-VhcServer returned null - aborting. Check VBR connectivity and logs."
 }
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # Task 5: Concurrency data and analysis
-# NOTE: Get-VhcConcurrencyData is called DIRECTLY (not via wrapper) — its return
+# NOTE: Get-VhcConcurrencyData is called DIRECTLY (not via wrapper) - its return
 #       value ($hostRoles) is required by Invoke-VhcConcurrencyAnalysis.
 $hostRoles = Get-VhcConcurrencyData -VServers $VServers -Config $config -VBRServer $VBRServer -VBRVersion $VBRVersion
 $collectorResults.Add((Invoke-VhcCollector -Name 'ConcurrencyAnalysis' -Action {
@@ -173,7 +173,7 @@ $collectorResults.Add((Invoke-VhcCollector -Name 'ConcurrencyAnalysis' -Action {
 
 # ---------------------------------------------------------------------------
 # Task 6: EntraId, CapacityTier, ArchiveTier, TrafficRules, Registry, Repository
-# NOTE: Get-VhcRepository is called DIRECTLY (not via wrapper) — its return
+# NOTE: Get-VhcRepository is called DIRECTLY (not via wrapper) - its return
 #       value ($RepositoryDetails) is required by Get-VhcJob in Task 7.
 $collectorResults.Add((Invoke-VhcCollector -Name 'EntraId'          -Action { Get-VhcEntraId }))
 $collectorResults.Add((Invoke-VhcCollector -Name 'CapacityTier'     -Action { Get-VhcCapacityTier }))
@@ -184,7 +184,7 @@ $collectorResults.Add((Invoke-VhcCollector -Name 'RegistrySettings' -Action {
 }))
 
 $RepositoryDetails = Get-VhcRepository -VBRVersion $VBRVersion
-# $RepositoryDetails may be $null if the collector fails — Get-VhcJob must tolerate a null map
+# $RepositoryDetails may be $null if the collector fails - Get-VhcJob must tolerate a null map
 # (repo names will simply be blank in _Jobs.csv).
 # ---------------------------------------------------------------------------
 
@@ -196,7 +196,7 @@ $collectorResults.Add((Invoke-VhcCollector -Name 'Jobs' -Action {
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
-# Task 9: WAN accelerators and license (spec positions 17 & 18 — after Jobs, before Malware)
+# Task 9: WAN accelerators and license (spec positions 17 & 18 - after Jobs, before Malware)
 $collectorResults.Add((Invoke-VhcCollector -Name 'WanAccelerator' -Action { Get-VhcWanAccelerator }))
 $collectorResults.Add((Invoke-VhcCollector -Name 'License'        -Action { Get-VhcLicense }))
 # ---------------------------------------------------------------------------
@@ -210,7 +210,7 @@ $collectorResults.Add((Invoke-VhcCollector -Name 'SecurityCompliance' -Action {
 $collectorResults.Add((Invoke-VhcCollector -Name 'ProtectedWorkloads' -Action { Get-VhcProtectedWorkloads }))
 # ---------------------------------------------------------------------------
 
-# VbrInfo runs last — reads many registry paths that must not block earlier collectors
+# VbrInfo runs last - reads many registry paths that must not block earlier collectors
 $collectorResults.Add((Invoke-VhcCollector -Name 'VbrInfo' -Action { Get-VhcVbrInfo -VBRVersion $VBRVersion }))
 # ---------------------------------------------------------------------------
 

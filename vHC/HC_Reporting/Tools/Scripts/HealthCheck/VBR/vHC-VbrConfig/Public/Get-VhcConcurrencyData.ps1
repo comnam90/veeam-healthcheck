@@ -6,7 +6,7 @@ function Get-VhcConcurrencyData {
         Collects all concurrency-related infrastructure data: GP proxies, VMware/HV proxies,
         CDP proxies, and repository/gateway servers. Adds BackupServer and SQL Server roles
         to the same host-role map.
-        Source: Get-VBRConfig.ps1 lines 374–717.
+        Source: Get-VBRConfig.ps1 lines 374-717.
     .Parameter VServers
         Array of VBR server objects returned by Get-VhcServer. Required for hardware info lookup.
     .Parameter Config
@@ -17,7 +17,7 @@ function Get-VhcConcurrencyData {
     .Parameter VBRVersion
         Major VBR version integer. Reserved for future per-version branching in sub-collectors.
     .Outputs
-        [hashtable] $hostRoles — keyed by server name, each entry contains Roles, Names,
+        [hashtable] $hostRoles - keyed by server name, each entry contains Roles, Names,
         TotalTasks, Cores, RAM, and per-role task counters. Required by Invoke-VhcConcurrencyAnalysis.
     #>
     [CmdletBinding()]
@@ -50,7 +50,7 @@ function Get-VhcConcurrencyData {
     }
 
     # ---------------------------------------------------------------------------
-    # Shared host-role map — passed by reference to each sub-collector
+    # Shared host-role map - passed by reference to each sub-collector
     # ---------------------------------------------------------------------------
     $hostRoles = @{}
 
@@ -71,7 +71,7 @@ function Get-VhcConcurrencyData {
             $VBRServer
         }
 
-        # Only append to an existing entry — do not create a standalone BackupServer row.
+        # Only append to an existing entry - do not create a standalone BackupServer row.
         # If the backup server is not co-located with any proxy/repo, it is logged only
         # (matches original source behaviour).
         if ($hostRoles.ContainsKey($bsKey)) {
@@ -85,7 +85,7 @@ function Get-VhcConcurrencyData {
     }
 
     # ---------------------------------------------------------------------------
-    # Add SQL Server role (skipped for Linux backup servers — no local SQL)
+    # Add SQL Server role (skipped for Linux backup servers - no local SQL)
     # ---------------------------------------------------------------------------
     $backupServerEntry = $VServers | Where-Object { $_.Name -eq $VBRServer }
     $backupServerType  = if ($backupServerEntry) { $backupServerEntry.Type } else { '' }
@@ -94,7 +94,7 @@ function Get-VhcConcurrencyData {
         $SQLServer = Get-SqlSName -VBRServer $VBRServer
 
         if ($SQLServer) {
-            # Only append to an existing entry — do not create a standalone SQL row.
+            # Only append to an existing entry - do not create a standalone SQL row.
             # SQL is "skipped - printed only" when not co-located with a backup component
             # (matches original source behaviour).
             if ($hostRoles.ContainsKey($SQLServer)) {

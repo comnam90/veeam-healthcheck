@@ -5,7 +5,7 @@ function Get-VhcPluginAndCdpJob {
     .Synopsis
         Collects plugin backup jobs, CDP policies, and VCD replica jobs.
         Exports _pluginjobs.csv, _cdpjobs.csv, _vcdjobs.csv.
-        Source: Get-VBRConfig.ps1 lines 1309–1349.
+        Source: Get-VBRConfig.ps1 lines 1309-1349.
     #>
     [CmdletBinding()]
     param()

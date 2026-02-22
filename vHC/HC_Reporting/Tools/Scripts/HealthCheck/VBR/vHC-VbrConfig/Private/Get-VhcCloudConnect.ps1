@@ -5,7 +5,7 @@ function Get-VhcCloudConnect {
     .Synopsis
         Collects Cloud Connect gateway and tenant data.
         Exports _CloudGateways.csv, _CloudTenants.csv.
-        Source: Get-VBRConfig.ps1 lines 1411–1433.
+        Source: Get-VBRConfig.ps1 lines 1411-1433.
     #>
     [CmdletBinding()]
     param()

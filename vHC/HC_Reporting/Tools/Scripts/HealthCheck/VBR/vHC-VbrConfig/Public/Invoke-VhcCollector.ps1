@@ -6,7 +6,7 @@ function Invoke-VhcCollector {
         Executes a collector scriptblock with timing, error isolation, and structured result tracking.
         Use this wrapper for fire-and-forget collectors. Collectors whose return values are consumed
         by downstream collectors (Get-VhcServer, Get-VhcConcurrencyData, Get-VhcRepository) must
-        be called directly by the Orchestrator — not via this wrapper.
+        be called directly by the Orchestrator - not via this wrapper.
     .Parameter Name
         Collector display name used in log messages and the result summary.
     .Parameter Action

@@ -8,7 +8,7 @@ function Get-VhcProtectedWorkloads {
         Preserves the GetLastOibs($true) -> GetLastOibs() fallback pattern.
         Exports _PhysProtected.csv, _PhysNotProtected.csv, _HvProtected.csv,
                 _HvUnprotected.csv, _ViProtected.csv, _ViUnprotected.csv.
-        Source: Get-VBRConfig.ps1 lines 2000–2099.
+        Source: Get-VBRConfig.ps1 lines 2000-2099.
     #>
     [CmdletBinding()]
     param()

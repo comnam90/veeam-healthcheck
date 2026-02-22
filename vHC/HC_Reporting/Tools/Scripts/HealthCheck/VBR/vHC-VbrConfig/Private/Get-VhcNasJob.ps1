@@ -5,7 +5,7 @@ function Get-VhcNasJob {
     .Synopsis
         Collects NAS backup jobs (with session-based size metrics) and NAS backup copy jobs.
         Exports _nasBackup.csv, _nasBCJ.csv.
-        Source: Get-VBRConfig.ps1 lines 1213–1307.
+        Source: Get-VBRConfig.ps1 lines 1213-1307.
     .Parameter ReportInterval
         Number of days back to query NAS backup sessions. Must match orchestrator $ReportInterval.
     #>

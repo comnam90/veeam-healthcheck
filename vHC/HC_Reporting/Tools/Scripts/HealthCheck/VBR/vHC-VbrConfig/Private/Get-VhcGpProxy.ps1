@@ -5,7 +5,7 @@ function Get-VhcGpProxy {
     .Synopsis
         Collects General Purpose (NAS) proxy data and exports to _NasProxy.csv.
         Appends GPProxy role data to the shared HostRoles hashtable.
-        Source: Get-VBRConfig.ps1 lines 447–490.
+        Source: Get-VBRConfig.ps1 lines 447-490.
     .Parameter GPProxies
         Array of GP/NAS proxy objects returned by Get-VBRNASProxyServer.
     .Parameter VServers

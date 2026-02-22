@@ -5,7 +5,7 @@ function Get-VhcTapeInfrastructure {
     .Synopsis
         Collects tape infrastructure: jobs, servers, libraries, media pools, and vaults.
         Exports _TapeJobs.csv, _TapeServers.csv, _TapeLibraries.csv, _TapeMediaPools.csv, _TapeVaults.csv.
-        Source: Get-VBRConfig.ps1 lines 1155–1212.
+        Source: Get-VBRConfig.ps1 lines 1155-1212.
     #>
     [CmdletBinding()]
     param()

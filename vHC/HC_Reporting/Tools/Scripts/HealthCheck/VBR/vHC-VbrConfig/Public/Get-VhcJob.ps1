@@ -7,11 +7,11 @@ function Get-VhcJob {
         Calls nine private sub-functions for each job family, then runs the main
         Get-VBRJob loop with restore-point size calculation.
         Exports _Jobs.csv, _configBackup.csv.
-        Source: Get-VBRConfig.ps1 lines 1090–1587.
+        Source: Get-VBRConfig.ps1 lines 1090-1587.
     .Parameter RepositoryDetails
         ArrayList of [pscustomobject]@{ID; Name} rows returned by Get-VhcRepository.
         Used to resolve TargetRepositoryId to a human-readable name in _Jobs.csv.
-        May be $null — repo names will be blank in that case.
+        May be $null - repo names will be blank in that case.
     .Parameter VBRVersion
         Major VBR version integer. Reserved for future per-version branching.
     .Parameter ReportInterval
@@ -64,7 +64,7 @@ function Get-VhcJob {
     Get-VhcCredentialsAndNotifications
 
     # ------------------------------------------------------------------
-    # Main VBR job processing loop — restore point size calculation
+    # Main VBR job processing loop - restore point size calculation
     # ------------------------------------------------------------------
     [System.Collections.ArrayList]$AllJobs = @()
 

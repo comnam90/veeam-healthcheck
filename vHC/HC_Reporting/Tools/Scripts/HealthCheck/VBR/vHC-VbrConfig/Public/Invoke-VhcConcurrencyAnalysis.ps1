@@ -6,7 +6,7 @@ function Invoke-VhcConcurrencyAnalysis {
         Calculates per-server CPU/RAM requirements and suggested task counts based on the
         aggregated host-role map produced by Get-VhcConcurrencyData. Exports the results to
         _AllServersRequirementsComparison.csv.
-        Source: Get-VBRConfig.ps1 lines 719–823.
+        Source: Get-VBRConfig.ps1 lines 719-823.
 
     .Notes
         Intentional fixes applied vs source:
@@ -57,7 +57,7 @@ function Invoke-VhcConcurrencyAnalysis {
         $GPProxyOSRAMReq  = $t.GpProxyOSRAM
         $RepoOSCPUReq     = $t.RepoOSCPU
         $RepoOSRAMReq     = $t.RepoOSRAM
-        # Fix: was undefined in source — read from config (defaults to 0, no output change)
+        # Fix: was undefined in source - read from config (defaults to 0, no output change)
         $CDPProxyOSCPUReq = $t.CdpProxyOSCPU
         $CDPProxyOSRAMReq = $t.CdpProxyOSRAM
 
@@ -72,7 +72,7 @@ function Invoke-VhcConcurrencyAnalysis {
             $SuggestedTasksByRAM   = 0
             $serverName            = $server.Key
 
-            # Pre-compute OS overhead conditionals (PS 5.1 compatible — no ternary operator)
+            # Pre-compute OS overhead conditionals (PS 5.1 compatible - no ternary operator)
             $RepoGWOSCPUOverhead   = if ((SafeValue $server.Value.TotalRepoTasks)    -gt 0 -or
                                          (SafeValue $server.Value.TotalGWTasks)      -gt 0) { $RepoOSCPUReq     } else { 0 }
             $VpProxyOSCPUOverhead  = if ((SafeValue $server.Value.TotalVpProxyTasks) -gt 0) { $VPProxyOSCPUReq  } else { 0 }

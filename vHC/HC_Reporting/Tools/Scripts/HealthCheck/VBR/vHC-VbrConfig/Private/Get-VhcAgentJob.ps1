@@ -5,7 +5,7 @@ function Get-VhcAgentJob {
     .Synopsis
         Collects computer backup jobs and legacy endpoint (EP) backup jobs.
         Exports _AgentBackupJob.csv, _EndpointJob.csv.
-        Source: Get-VBRConfig.ps1 lines 1117–1145.
+        Source: Get-VBRConfig.ps1 lines 1117-1145.
     #>
     [CmdletBinding()]
     param()

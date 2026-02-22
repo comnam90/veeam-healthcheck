@@ -3,10 +3,10 @@
 function Get-VhcCredentialsAndNotifications {
     <#
     .Synopsis
-        Collects email notification settings and stored credentials (name/username only —
+        Collects email notification settings and stored credentials (name/username only -
         Veeam cmdlets never expose passwords).
         Exports _EmailNotification.csv, _Credentials.csv.
-        Source: Get-VBRConfig.ps1 lines 1435–1457.
+        Source: Get-VBRConfig.ps1 lines 1435-1457.
     #>
     [CmdletBinding()]
     param()

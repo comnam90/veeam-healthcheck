@@ -12,7 +12,7 @@ function Get-VhcSecurityCompliance {
         visibility of new compliance rules when the JSON mapping is stale.
         Gated on VBR v12+ (VBRVersion -gt 11).
         Exports _SecurityCompliance.csv.
-        Source: Get-VBRConfig.ps1 lines 1677–1991.
+        Source: Get-VBRConfig.ps1 lines 1677-1991.
     .Parameter VBRVersion
         Major VBR version integer. Function is a no-op for versions 11 and below.
     .Parameter Config
@@ -147,7 +147,7 @@ function Get-VhcSecurityCompliance {
                     continue
                 }
 
-                # Resolve rule name — fall back to raw type string for unknown rules
+                # Resolve rule name - fall back to raw type string for unknown rules
                 # so that new compliance checks remain visible even when VbrConfig.json is stale.
                 $ruleName = $Config.SecurityComplianceRuleNames.$complianceType
                 if (-not $ruleName) {
@@ -155,7 +155,7 @@ function Get-VhcSecurityCompliance {
                     $ruleName = $complianceType
                 }
 
-                # Resolve status — fall back to raw status string for unknown values
+                # Resolve status - fall back to raw status string for unknown values
                 $statusDisplay = if ($StatusObj.ContainsKey($complianceStatus)) {
                     $StatusObj[$complianceStatus]
                 }

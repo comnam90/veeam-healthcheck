@@ -5,7 +5,7 @@ function Get-VhcCdpProxy {
     .Synopsis
         Collects CDP proxy data and exports to _CdpProxy.csv.
         Appends CDPProxy role data to the shared HostRoles hashtable.
-        Source: Get-VBRConfig.ps1 lines 555–602.
+        Source: Get-VBRConfig.ps1 lines 555-602.
     .Parameter CDPProxies
         Array of CDP proxy objects returned by Get-VBRCDPProxy.
     .Parameter VServers

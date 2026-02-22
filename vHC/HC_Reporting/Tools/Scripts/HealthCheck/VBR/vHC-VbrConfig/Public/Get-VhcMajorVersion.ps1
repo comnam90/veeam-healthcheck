@@ -27,7 +27,7 @@ function Get-VhcMajorVersion {
         return $buildMajor
     }
 
-    # v10–12: read from Veeam.Backup.Core.dll ProductVersion via registry CorePath
+    # v10-12: read from Veeam.Backup.Core.dll ProductVersion via registry CorePath
     try {
         $corePath   = Get-ItemProperty -Path "HKLM:\Software\Veeam\Veeam Backup and Replication\" `
                                        -Name "CorePath" -ErrorAction Stop
@@ -43,7 +43,7 @@ function Get-VhcMajorVersion {
             return $major
         }
 
-        Write-LogFile "Unknown VBR major version '$major' from DLL — returning 0" -LogLevel "WARNING"
+        Write-LogFile "Unknown VBR major version '$major' from DLL - returning 0" -LogLevel "WARNING"
         return 0
     } catch {
         Write-LogFile "Get-VhcMajorVersion: registry/DLL detection failed: $($_.Exception.Message)" -LogLevel "WARNING"

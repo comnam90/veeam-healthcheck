@@ -5,7 +5,7 @@ function Get-VhcCatalystJob {
     .Synopsis
         Collects Catalyst copy jobs and Catalyst jobs.
         Exports _catCopyjob.csv, _catalystJob.csv.
-        Source: Get-VBRConfig.ps1 lines 1102–1122.
+        Source: Get-VBRConfig.ps1 lines 1102-1122.
     #>
     [CmdletBinding()]
     param()

@@ -5,7 +5,7 @@ function Get-VhcViHvProxy {
     .Synopsis
         Collects VMware and Hyper-V proxy data and exports to _Proxies.csv and _HvProxy.csv.
         Appends Proxy role data to the shared HostRoles hashtable.
-        Source: Get-VBRConfig.ps1 lines 492–553.
+        Source: Get-VBRConfig.ps1 lines 492-553.
     .Parameter VMwareProxies
         Array of VMware proxy objects returned by Get-VBRViProxy.
     .Parameter HyperVProxies

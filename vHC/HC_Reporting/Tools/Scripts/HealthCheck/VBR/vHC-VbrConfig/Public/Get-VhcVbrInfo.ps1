@@ -27,7 +27,7 @@ function Get-VhcVbrInfo {
     $dbType           = $null
     $MFAGlobalSetting = $null
 
-    # Registry reads — all silently continue to tolerate remote-execution scenarios
+    # Registry reads - all silently continue to tolerate remote-execution scenarios
     try {
         $instancePath   = Get-ItemProperty -Path "HKLM:\Software\Veeam\Veeam Backup and Replication\" `
                                            -Name "SqlInstanceName"  -ErrorAction SilentlyContinue
@@ -69,7 +69,7 @@ function Get-VhcVbrInfo {
         Write-LogFile "Get-VhcVbrInfo: failed to read registry values: $($_.Exception.Message)" -LogLevel "WARNING"
     }
 
-    # MFA global setting — only available on VBR 12+; fails gracefully on earlier versions
+    # MFA global setting - only available on VBR 12+; fails gracefully on earlier versions
     try {
         Write-LogFile "Getting MFA Global Setting"
         $MFAGlobalSetting = [Veeam.Backup.Core.SBackupOptions]::get_GlobalMFA()

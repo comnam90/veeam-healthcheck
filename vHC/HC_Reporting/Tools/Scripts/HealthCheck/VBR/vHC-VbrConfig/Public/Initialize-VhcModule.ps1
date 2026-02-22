@@ -8,7 +8,7 @@ function Initialize-VhcModule {
     .Parameter ReportPath
         Full path where CSV output files will be written.
     .Parameter VBRServer
-        VBR server name — used as filename prefix for all CSV outputs.
+        VBR server name - used as filename prefix for all CSV outputs.
     .Parameter LogLevel
         Minimum log level for Write-LogFile output. Defaults to INFO.
     .Parameter ReportInterval
