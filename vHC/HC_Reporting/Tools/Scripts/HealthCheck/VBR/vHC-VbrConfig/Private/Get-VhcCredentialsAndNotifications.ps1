@@ -18,7 +18,7 @@ function Get-VhcCredentialsAndNotifications {
     $credentials       = $null
 
     try {
-        $emailNotification = Get-VBRMailNotification
+        $emailNotification = Get-VBRMailNotificationConfiguration
         Write-LogFile "Email notification settings collected"
     } catch {
         Write-LogFile "Email Notification Settings collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
