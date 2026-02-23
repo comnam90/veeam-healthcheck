@@ -79,6 +79,7 @@
     "LinuxUsePasswordPolicy": "Linux uses password policy",
     "SecureBootEnable": "Secure Boot is enabled",
     "LinuxUseSecurityModule": "Linux uses security module (SELinux/AppArmor)",
-    "LinuxWorldDirectoriesPermissions": "Linux world-writable directories have proper permissions"
+    "LinuxWorldDirectoriesPermissions": "Linux world-writable directories have proper permissions",
+    "BackupServerHighAvailabilityEnabled": "Backup server high availability is enabled"
   }
 }
