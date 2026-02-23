@@ -3345,7 +3345,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
                         job.RetentionType == "Cycles" ? "Points" : job.RetentionType,
                         retentionValue,
                         job.StgEncryptionEnabled,
-                        CJobTypesParser.GetJobType(job.JobType),
+                         job.TypeToString ?? CJobTypesParser.GetJobType(job.JobType),
                         compressionLevel,
                         blockSize,
                         gfsEnabled.ToString(),

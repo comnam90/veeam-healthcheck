@@ -874,7 +874,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             // CQueries cq = _cq;
             List<CModel.EDbJobType> types = new();
 
-            List<string> types2 = csv.Select(x => x.JobType).ToList();
+            List<string> types2 = csv.Select(x => x.TypeToString ?? x.JobType).ToList();
 
             // foreach (var c in csv)
             // {

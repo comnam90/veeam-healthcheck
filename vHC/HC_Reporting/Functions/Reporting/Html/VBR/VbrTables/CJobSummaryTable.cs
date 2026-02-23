@@ -31,7 +31,6 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR.VbrTables
                 var nasBcj = csv.GetDynamicNasBCJ();
                 var sureBackup = csv.GetDynamicSureBackupJob();
                 var tapeJobs = csv.GetTapeJobInfoFromCsv();
-                var types = backupJobs.Select(x => x.JobType).Distinct().ToList();
 
                 typeAndCount.Add("Plugin", pluginJobs.Count());
                 typeAndCount.Add("Agent Backup", agentBackups.Count());
@@ -44,20 +43,15 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR.VbrTables
                 typeAndCount.Add("Tape", tapeJobs.Count());
                 try
                 {
-                    foreach (var bType in types)
+                    foreach (var group in backupJobs
+                        .Where(x => x.JobType != "NasBackup" && x.JobType != "NasBackupCopy")
+                        .GroupBy(x => !string.IsNullOrEmpty(x.TypeToString) ? x.TypeToString : CJobTypesParser.GetJobType(x.JobType)))
                     {
-                        if (bType == "NasBackup" || bType == "NasBackupCopy")
-                        {
-                            continue;
-                        }
-
-
-                        var realType = CJobTypesParser.GetJobType(bType);
-                        if (!typeAndCount.ContainsKey(realType))
+                        if (!typeAndCount.ContainsKey(group.Key))
                         {
                             try
                             {
-                                typeAndCount.Add(realType, backupJobs.Count(x => x.JobType == bType));
+                                typeAndCount.Add(group.Key, group.Count());
                             }
                             catch (Exception ex) { CGlobals.Logger.Error(ex.Message); }
                         }

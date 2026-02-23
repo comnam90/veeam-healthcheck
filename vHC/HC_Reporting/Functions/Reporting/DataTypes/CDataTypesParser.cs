@@ -543,6 +543,7 @@ namespace VeeamHealthCheck.Functions.Reporting.DataTypes
                         jInfo.JobType = s.JobType;
 
                         jInfo.JobType = CJobTypesParser.GetJobType(s.JobType);
+                        jInfo.TypeToString = !string.IsNullOrEmpty(s.TypeToString) ? s.TypeToString : CJobTypesParser.GetJobType(s.JobType);
 
                         jInfo.Name = s.Name;
 

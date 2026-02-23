@@ -35,6 +35,8 @@ namespace VeeamHealthCheck.Functions.Reporting.DataTypes
 
         public string EncryptionEnabled { get; set; }
 
+        public string TypeToString { get; set; }
+
         public CJobTypeInfos()
         {
         }
