@@ -70,8 +70,11 @@ function Get-VhcJob {
 
     foreach ($Job in @($Jobs)) {
         try {
-            $LastBackup  = $Job.GetLastBackup()
-            $RestorePoints = Get-VBRRestorePoint -Backup $LastBackup
+            $LastBackup    = $Job.GetLastBackup()
+            $RestorePoints = @()
+            if ($null -ne $LastBackup) {
+                $RestorePoints = Get-VBRRestorePoint -Backup $LastBackup
+            }
             $TotalOnDiskGB = 0
 
             $RestorePoints.ForEach{
