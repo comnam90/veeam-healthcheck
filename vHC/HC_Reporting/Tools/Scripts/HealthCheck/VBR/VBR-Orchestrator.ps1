@@ -21,8 +21,8 @@ param(
     [Parameter(Mandatory = $false)]
     [string]$User = "",
 
-    # DEPRECATED: Plain-text password is retained for backward compatibility with manual CLI invocations only.
-    # The C# invoker exclusively uses $PasswordBase64. Do not use $Password in new integrations.
+    # Plain-text password for manual CLI invocations. The C# invoker exclusively uses $PasswordBase64.
+    # When both are provided, $PasswordBase64 takes precedence.
     [Parameter(Mandatory = $false)]
     [string]$Password = "",
 
@@ -111,16 +111,20 @@ $collectorResults = [System.Collections.Generic.List[PSCustomObject]]::new()
 # Pre-connect cleanup in case a stale session already exists.
 try { Disconnect-VBRServer -ErrorAction SilentlyContinue } catch {}
 
-$useCreds = ($User -and $PasswordBase64 -and
-             -not [string]::IsNullOrWhiteSpace($User) -and
-             -not [string]::IsNullOrWhiteSpace($PasswordBase64))
+$useCreds = (-not [string]::IsNullOrWhiteSpace($User) -and
+            (-not [string]::IsNullOrWhiteSpace($PasswordBase64) -or
+             -not [string]::IsNullOrWhiteSpace($Password)))
 
 # Wrap Connect -> Collectors -> Disconnect in try/finally so Disconnect always runs,
 # even if a prerequisite collector aborts the run early.
 try {
     if ($useCreds) {
-        $passwordBytes  = [System.Convert]::FromBase64String($PasswordBase64)
-        $plainPassword  = [System.Text.Encoding]::UTF8.GetString($passwordBytes)
+        if (-not [string]::IsNullOrWhiteSpace($PasswordBase64)) {
+            $passwordBytes = [System.Convert]::FromBase64String($PasswordBase64)
+            $plainPassword = [System.Text.Encoding]::UTF8.GetString($passwordBytes)
+        } else {
+            $plainPassword = $Password
+        }
         $securePassword = ConvertTo-SecureString -String $plainPassword -AsPlainText -Force
         $credential     = New-Object System.Management.Automation.PSCredential($User, $securePassword)
         Connect-VBRServer -Server $VBRServer -Credential $credential -ErrorAction Stop

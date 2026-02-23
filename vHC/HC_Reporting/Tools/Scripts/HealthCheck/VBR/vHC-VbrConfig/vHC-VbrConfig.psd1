@@ -4,7 +4,7 @@
     PowerShellVersion = '5.1'
     Description       = 'VBR configuration collector module for Veeam Health Check'
     Author            = 'Veeam Health Check'
-    # Lock down to an explicit list in Task 9 once all Public functions exist.
+    # Lock down to an explicit list once all Public functions are stable.
     # Do NOT use @() here - an empty array prevents all exports regardless of Export-ModuleMember.
     FunctionsToExport = '*'
 }

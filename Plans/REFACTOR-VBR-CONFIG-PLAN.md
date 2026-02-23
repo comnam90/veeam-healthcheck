@@ -13,12 +13,12 @@ The current monolithic script will be decomposed into four primary components, u
 * **SOLID (SRP)**: Handles *how* the collection runs and orchestrates the environment, not *what* is collected. 
 * **State Management**: Parses external configuration and passes specific threshold arrays/settings to collectors via parameter splatting, eliminating the need for `$global:` variables.
 
-### 2. Common Library Module (`vHC-Common.psm1`)
+### 2. Common Library Module (`vHC-VbrConfig.psm1`)
 * **Responsibility**: Shared utility functions and standardized wrappers.
 * **Functions**: 
     * `Invoke-VhcCollector`: A wrapper function for collectors that provides unified logging (`Write-LogFile`), error handling, and injects necessary configuration parameters.
     * `Export-VhcCsv`: Standardized CSV export logic acting as a pipeline consumer, directly writing incoming objects to disk to minimize memory footprint.
-    * `Get-VhcVbrVersion`: Centralized version detection logic.
+    * `Get-VhcMajorVersion`: Centralized version detection logic.
 * **DRY (Don't Repeat Yourself)**: Eliminates 100+ instances of repetitive try/catch and logging boilerplate.
 
 ### 3. Modular Collectors (`Collectors/` -> Exported Module Functions)
