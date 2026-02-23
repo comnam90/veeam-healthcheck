@@ -39,6 +39,9 @@ param(
     [int]$ReportInterval = 14,
 
     [Parameter(Mandatory = $false)]
+    [string]$LogPath = "C:\temp\vHC\Original\Log",
+
+    [Parameter(Mandatory = $false)]
     [switch]$RescanHosts
 )
 
@@ -100,7 +103,8 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
 # ---------------------------------------------------------------------------
 Initialize-VhcModule -ReportPath $ReportPath -VBRServer $VBRServer `
                      -LogLevel $config.LogLevel `
-                     -ReportInterval $ReportInterval
+                     -ReportInterval $ReportInterval `
+                     -LogPath $LogPath
 
 # Collector run summary list - each Invoke-VhcCollector call appends a result row.
 $collectorResults = [System.Collections.Generic.List[PSCustomObject]]::new()

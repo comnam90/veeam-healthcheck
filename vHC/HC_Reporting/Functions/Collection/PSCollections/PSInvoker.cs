@@ -473,6 +473,8 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
                 argString += $"-ReportPath \"{CVariables.vbrDir}\" ";
             }
 
+            // Add LogPath parameter so collector logs follow the configured output root
+            argString += $"-LogPath \"{Path.Combine(CVariables.unsafeDir, "Log")}\" ";
             // Add credentials if needed for remote execution
             string safeArgString = argString; // For logging without sensitive data
             if (needsCredentials)

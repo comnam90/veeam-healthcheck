@@ -26,6 +26,8 @@ param(
     [Parameter(Mandatory = $false)]
     [string]$ReportPath = "",
     [Parameter(Mandatory = $false)]
+    [string]$LogPath = "",
+    [Parameter(Mandatory = $false)]
     [int]$ReportInterval = 14,
     [Parameter(Mandatory = $false)]
     [switch]$RescanHosts
