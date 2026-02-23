@@ -27,14 +27,14 @@ function Get-VhcSureBackup {
     }
 
     try {
-        $sbAppGroups = Get-VSBApplicationGroup
+        $sbAppGroups = Get-VBRApplicationGroup
         Write-LogFile "Found $(@($sbAppGroups).Count) SureBackup application groups"
     } catch {
         Write-LogFile "SureBackup Application Groups collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
     }
 
     try {
-        $sbVirtualLabs = Get-VSBVirtualLab
+        $sbVirtualLabs = Get-VBRVirtualLab
         Write-LogFile "Found $(@($sbVirtualLabs).Count) SureBackup virtual labs"
     } catch {
         Write-LogFile "SureBackup Virtual Labs collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
