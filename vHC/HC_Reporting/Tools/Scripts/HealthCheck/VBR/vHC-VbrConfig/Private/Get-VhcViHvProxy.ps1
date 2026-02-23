@@ -38,8 +38,14 @@ function Get-VhcViHvProxy {
                 $ProxyRAM   = ConvertToGB($Proxy.GetPhysicalHost().HardwareInfo.PhysicalRAMTotal)
             } catch {
                 $Server     = $VServers | Where-Object { $_.Name -eq $Proxy.Name }
-                $ProxyCores = $Server.GetPhysicalHost().HardwareInfo.CoresCount
-                $ProxyRAM   = ConvertToGB($Server.GetPhysicalHost().HardwareInfo.PhysicalRAMTotal)
+                if ($null -ne $Server) {
+                    $ProxyCores = $Server.GetPhysicalHost().HardwareInfo.CoresCount
+                    $ProxyRAM   = ConvertToGB($Server.GetPhysicalHost().HardwareInfo.PhysicalRAMTotal)
+                } else {
+                    Write-LogFile "Hardware info unavailable for proxy '$($Proxy.Name)' — defaulting to 0 cores / 0 RAM." -LogLevel "WARNING"
+                    $ProxyCores = 0
+                    $ProxyRAM   = 0
+                }
             }
 
             $proxytype = if ($Proxy.Type -eq 'Vi') { 'VMware' } else { $Proxy.Type }

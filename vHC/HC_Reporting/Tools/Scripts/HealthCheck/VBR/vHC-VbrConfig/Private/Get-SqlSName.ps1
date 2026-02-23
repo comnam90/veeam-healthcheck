@@ -40,7 +40,8 @@ function Get-SqlSName {
                 $SQLSName = (Get-ItemProperty -Path $msSqlPath -Name $sqlServerNameKey -ErrorAction Stop).$sqlServerNameKey
             }
         } catch {
-            Write-Error "Unable to retrieve SQL Server name from registry."
+            Write-LogFile "Unable to retrieve SQL Server name from registry." -LogLevel "WARNING"
+            return $null
         }
     }
 

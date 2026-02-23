@@ -51,8 +51,9 @@ namespace VhcXTests.Integration
             // The script dot-sources Export-VhcCsv (and Write-LogFile which it calls internally),
             // injects the module-level vars it reads, pipes a known [pscustomobject][ordered]
             // through it, then asserts the CSV header is an exact column-order match.
-            var writeLogPath = Path.Combine(
-                Path.GetDirectoryName(_exportCsvScriptPath) ?? tmpDir, "Write-LogFile.ps1");
+            var moduleRoot    = Path.GetFullPath(Path.Combine(
+                Path.GetDirectoryName(_exportCsvScriptPath) ?? tmpDir, ".."));
+            var writeLogPath  = Path.Combine(moduleRoot, "Public", "Write-LogFile.ps1");
             var scriptContent = $@"
 $ErrorActionPreference = 'Stop'
 . '{writeLogPath}'
