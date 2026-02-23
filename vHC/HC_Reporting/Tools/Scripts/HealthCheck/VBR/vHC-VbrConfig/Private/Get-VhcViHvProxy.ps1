@@ -42,7 +42,7 @@ function Get-VhcViHvProxy {
                     $ProxyCores = $Server.GetPhysicalHost().HardwareInfo.CoresCount
                     $ProxyRAM   = ConvertToGB($Server.GetPhysicalHost().HardwareInfo.PhysicalRAMTotal)
                 } else {
-                    Write-LogFile "Hardware info unavailable for proxy '$($Proxy.Name)' — defaulting to 0 cores / 0 RAM." -LogLevel "WARNING"
+                    Write-LogFile "Hardware info unavailable for proxy '$($Proxy.Name)' - defaulting to 0 cores / 0 RAM." -LogLevel "WARNING"
                     $ProxyCores = 0
                     $ProxyRAM   = 0
                 }
