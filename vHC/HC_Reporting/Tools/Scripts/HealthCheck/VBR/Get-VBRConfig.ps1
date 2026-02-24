@@ -198,6 +198,11 @@ $RepositoryDetails = $repoResult.Output
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
+# Session cache export - must run before Jobs so Get-VeeamSessionReport.ps1 can consume it
+$collectorResults.Add((Invoke-VhcCollector -Name 'SessionCache' -Action { Export-VhcSessionCache }))
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
 # Task 7: Job collectors (require $RepositoryDetails from Task 6)
 $collectorResults.Add((Invoke-VhcCollector -Name 'Jobs' -Action {
     Get-VhcJob -RepositoryDetails $RepositoryDetails -VBRVersion $VBRVersion -ReportInterval $ReportInterval
