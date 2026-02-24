@@ -176,10 +176,9 @@ jobs:
 
           ### Scripts Validated
 
-          - ``VBR-Orchestrator.ps1`` - Main VBR configuration orchestrator (entry point)
+          - ``Get-VBRConfig.ps1`` - Main VBR configuration entry point
           - ``vHC-VbrConfig/Public/*.ps1`` - Exported collector functions (glob-discovered)
           - ``vHC-VbrConfig/Private/*.ps1`` - Internal sub-collectors and helpers (glob-discovered)
-          - ``Get-VBRConfig.ps1`` - Legacy shim (until removed)
           - ``Get-VeeamSessionReport.ps1`` - Session reporting
           - ``Get-NasInfo.ps1`` - NAS information collection
 
