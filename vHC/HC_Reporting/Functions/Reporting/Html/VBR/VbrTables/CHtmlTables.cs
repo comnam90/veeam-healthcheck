@@ -2969,32 +2969,27 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
                 CCsvParser csvparser = new();
                 var source = csvparser.JobCsvParser().ToList();
                 source.OrderBy(x => x.Name);
-                var jobTypes = source.Select(x => x.JobType).Distinct().ToList();
 
                 try
                 {
-                    foreach (var jType in jobTypes)
+                    foreach (var group in source.GroupBy(x => !string.IsNullOrEmpty(x.TypeToString) ? x.TypeToString : CJobTypesParser.GetJobType(x.JobType)))
                     {
+                        string displayType = group.Key;
+                        string jType = group.First().JobType;
                         double tSizeGB = 0;
                         double onDiskTotalGB = 0;
 
                         bool useSourceSize = !(jType == "NasBackupCopy" || jType == "Copy");
 
-                        var realType = CJobTypesParser.GetJobType(jType);
-                        string jobTable = this.form.SectionStartWithButton("jobTable", realType + " Jobs", string.Empty);
+                        string jobTable = this.form.SectionStartWithButton("jobTable", displayType + " Jobs", string.Empty);
                         s += jobTable;
                         s += this.SetGenericJobTablHeader(useSourceSize, jType);
-                        var res = source.Where(x => x.JobType == jType).ToList();
+                        var res = group.ToList();
                         foreach (var job in res)
                         {
                             // object x = null;
                             double onDiskGB = 0;
                             double sourceSizeGB = 0;
-
-                            if (job.JobType != jType)
-                            {
-                                continue;
-                            }
 
                             string row = string.Empty;
                             if (jType == "NasBackup")
@@ -3076,7 +3071,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
 
                             // row += _form.TableData(job.StgEncryptionEnabled, "");
                             row += job.StgEncryptionEnabled == "True" ? this.form.TableData(this.form.True, string.Empty) : this.form.TableData(this.form.False, string.Empty);
-                            var jobType = CJobTypesParser.GetJobType(job.JobType);
+                            var jobType = job.TypeToString ?? CJobTypesParser.GetJobType(job.JobType);
                             row += this.form.TableData(jobType, string.Empty);
 
                             // row += _form.TableData("", "");
