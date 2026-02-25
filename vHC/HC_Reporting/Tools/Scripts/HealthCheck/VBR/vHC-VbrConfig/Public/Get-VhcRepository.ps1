@@ -63,6 +63,8 @@ function Get-VhcRepository {
                         @{name = 'CachedFreeSpace'; expression = { $_.GetContainer().cachedfreespace.InGigabytes } },
                         @{name = 'CachedTotalSpace'; expression = { $_.GetContainer().cachedtotalspace.InGigabytes } }
                 }
+                $ExtentDetails | Add-Member -NotePropertyName 'IsImmutabilitySupported' `
+                    -NotePropertyValue ($Extent.Repository.GetImmutabilitySettings().IsEnabled) -Force
                 $AllSOBRExtents.Add($ExtentDetails) | Out-Null
             }
         }
