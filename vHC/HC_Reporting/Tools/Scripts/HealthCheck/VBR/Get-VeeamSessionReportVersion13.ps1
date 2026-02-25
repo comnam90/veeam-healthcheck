@@ -127,7 +127,16 @@ if (Test-Path $sessionCachePath) {
         $cutoff = (Get-Date).AddDays(-1 * ($ReportInterval + 1))
         $sessions = $cachedSessions | Where-Object { $_.CreationTime -ge $cutoff }
 
-        Write-LogFile("Loaded " + $sessions.Count + " sessions from cache (filtered from " + $cachedSessions.Count + " total)")
+        # Import-Clixml always produces Deserialized.* objects which are property-bags only.
+        # Logger.GetLog() is a .NET method and cannot be called on deserialized objects.
+        # Detect this and fall through to the live database query instead.
+        $firstSession = $sessions | Select-Object -First 1
+        if ($firstSession -and $firstSession.PSTypeNames[0] -like 'Deserialized.*') {
+            Write-LogFile("Session cache contains deserialized objects (Import-Clixml limitation) - methods unavailable, falling back to database query", "Errors", "WARN")
+            $sessions = $null
+        } else {
+            Write-LogFile("Loaded " + $sessions.Count + " sessions from cache (filtered from " + $cachedSessions.Count + " total)")
+        }
     }
     catch {
         Write-LogFile("Warning: Failed to load session cache: " + $_.Exception.Message, "Errors", "WARN")
