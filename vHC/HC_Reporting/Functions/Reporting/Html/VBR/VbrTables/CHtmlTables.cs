@@ -589,7 +589,7 @@ namespace VeeamHealthCheck.Html.VBR
             // header
             s += this.form.TableHeader("Installed Apps", string.Empty);
             s += this.form.TableHeaderEnd();
-            s += this.form.TableData("See <a href=\"C:\\\\temp\\\\vHC\\\\Original\\\\Log\\\\\">Veeam.HealthCheck.ServerApplications log file</a> at C:\\temp\\vHC\\Log\\", string.Empty);
+            s += this.form.TableData("See <a href=\"" + CVariables.unsafeDir + @"\Log\" + "\">Veeam.HealthCheck.ServerApplications log file</a> at " + CVariables.unsafeDir + @"\Log\", string.Empty);
             s += this.form.EndTable();
             return s;
         }
