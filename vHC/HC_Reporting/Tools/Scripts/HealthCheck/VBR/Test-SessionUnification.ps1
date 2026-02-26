@@ -54,7 +54,7 @@ param(
 Set-StrictMode -Off
 $ErrorActionPreference = 'Continue'
 
-#region ── helpers ──────────────────────────────────────────────────────────────
+#region helpers
 
 function Get-LogRecordsSafe {
     param($Session, [int]$TimeoutSeconds = 20)
@@ -179,7 +179,7 @@ function Build-SessionRow {
 
 #endregion
 
-#region ── preflight ────────────────────────────────────────────────────────────
+#region preflight
 
 Write-Host "`n=== VBR Session Report Unification Test ===" -ForegroundColor Cyan
 Write-Host "SessionCount=$SessionCount  ReportIntervalDays=$ReportIntervalDays  TimeoutSeconds=$TimeoutSeconds`n"
@@ -199,7 +199,7 @@ Write-Host "Detected VBR major version: $vbrVersion" -ForegroundColor Yellow
 
 #endregion
 
-#region ── fetch sessions ───────────────────────────────────────────────────────
+#region fetch sessions
 
 Write-Host "`nFetching sessions (last $ReportIntervalDays days)..." -ForegroundColor Cyan
 $cutoff = (Get-Date).AddDays(-$ReportIntervalDays)
@@ -211,7 +211,7 @@ Write-Host "Using first $($sessions.Count) sessions for comparison`n"
 
 #endregion
 
-#region ── CURRENT path ─────────────────────────────────────────────────────────
+#region CURRENT path
 
 Write-Host "--- Running CURRENT path ---" -ForegroundColor Magenta
 $currentRows = [System.Collections.ArrayList]@()
@@ -227,8 +227,8 @@ if ($vbrVersion -ge 13) {
         $i++
     }
 } else {
-    # Current <13 path: task-level rows (same as unified — proves no regression on v12)
-    Write-Host "  (v12: current path IS task-level — running GetTaskSessions() to establish baseline)"
+    # Current <13 path: task-level rows (same as unified - proves no regression on v12)
+    Write-Host "  (v12: current path IS task-level - running GetTaskSessions() to establish baseline)"
     try { $taskSessions = @($sessions.GetTaskSessions()) } catch { $taskSessions = @() }
     $i = 1
     foreach ($task in $taskSessions) {
@@ -244,7 +244,7 @@ Write-Host "  -> $($currentRows.Count) rows produced`n"
 
 #endregion
 
-#region ── UNIFIED path ─────────────────────────────────────────────────────────
+#region UNIFIED path
 
 Write-Host "--- Running UNIFIED path (GetTaskSessions for all versions) ---" -ForegroundColor Magenta
 $unifiedRows = [System.Collections.ArrayList]@()
@@ -263,7 +263,7 @@ Write-Host "  -> $($unifiedRows.Count) rows produced`n"
 
 #endregion
 
-#region ── export CSVs ──────────────────────────────────────────────────────────
+#region export CSVs
 
 $timestamp  = Get-Date -Format 'yyyyMMdd_HHmmss'
 $currentCsv = Join-Path $OutputFolder "SessionUnification_CURRENT_${timestamp}.csv"
@@ -278,7 +278,7 @@ Write-Host "  UNIFIED: $unifiedCsv`n"
 
 #endregion
 
-#region ── comparison summary ───────────────────────────────────────────────────
+#region comparison summary
 
 Write-Host "=== COMPARISON SUMMARY ===" -ForegroundColor Cyan
 Write-Host ""
