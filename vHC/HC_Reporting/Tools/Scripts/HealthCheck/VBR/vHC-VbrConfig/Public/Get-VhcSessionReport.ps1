@@ -50,11 +50,13 @@ function Get-VhcSessionReport {
             $PrimaryBottleneck = ''
 
             if ($null -ne $logRecords) {
-                $bottleneckMatch   = $logRecords | Where-Object Title -Match 'Load'
-                $BottleneckDetails = if ($bottleneckMatch) { $bottleneckMatch.Title -replace 'Load: ', '' } else { '' }
+                # Use '^Load: ' to avoid matching unrelated lines (e.g. 'Loading config', 'Workload').
+                # Select-Object -Last 1 handles the case where multiple matching records exist.
+                $bottleneckMatch   = $logRecords | Where-Object Title -Match '^Load: ' | Select-Object -Last 1
+                $BottleneckDetails = if ($bottleneckMatch) { $bottleneckMatch.Title -replace '^Load: ', '' } else { '' }
 
-                $primaryMatch      = $logRecords | Where-Object Title -Match 'Primary Bottleneck'
-                $PrimaryBottleneck = if ($primaryMatch) { $primaryMatch.Title -replace 'Primary bottleneck: ', '' } else { '' }
+                $primaryMatch      = $logRecords | Where-Object Title -Match '^Primary [Bb]ottleneck: ' | Select-Object -Last 1
+                $PrimaryBottleneck = if ($primaryMatch) { $primaryMatch.Title -replace '^Primary [Bb]ottleneck: ', '' } else { '' }
             } else {
                 Write-LogFile "Warning: Timeout or error getting log for '$($session.Name)' - bottleneck fields will be empty" -LogLevel "WARNING"
             }
@@ -85,48 +87,57 @@ function Get-VhcSessionReport {
 
     } else {
         # VBR < 13 path: call GetTaskSessions() on each backup session for task-level detail.
-        # Log records are accessed directly (no timeout guard needed for this API version).
+        # Logger.GetLog() is guarded by the same timeout runspace used in the >=13 path.
         $LogRegex            = [regex]'\bUsing \b.+\s(\[[^\]]*\])'
         $BottleneckRegex     = [regex]'^Busy: (\S+ \d+% > \S+ \d+% > \S+ \d+% > \S+ \d+%)'
         $PrimaryBottleneckRx = [regex]'^Primary bottleneck: (\S+)'
 
-        $taskSessions = $script:AllBackupSessions.GetTaskSessions()
+        $taskSessions = @()
+        try {
+            $taskSessions = @($script:AllBackupSessions.GetTaskSessions())
+        } catch {
+            Write-LogFile "Failed to retrieve task sessions: $($_.Exception.Message)" -LogLevel "ERROR"
+        }
 
         foreach ($task in $taskSessions) {
-            $logRecords = $task.Logger.GetLog().UpdatedRecords
+            try {
+                $logRecords = Get-VhcSessionLogWithTimeout -Session $task -TimeoutSeconds 30
 
-            $ProcessingLogMatches = $logRecords | Where-Object Title -match $LogRegex
-            $ProcessingLogTitles  = $(($ProcessingLogMatches.Title -replace '\bUsing \b.+\s\[', '') -replace ']', '')
-            $ProcessingMode       = $($ProcessingLogTitles | Select-Object -Unique) -join ';'
+                $ProcessingLogMatches = $logRecords | Where-Object Title -match $LogRegex
+                $ProcessingLogTitles  = $(($ProcessingLogMatches.Title -replace '\bUsing \b.+\s\[', '') -replace ']', '')
+                $ProcessingMode       = $($ProcessingLogTitles | Select-Object -Unique) -join ';'
 
-            $BottleneckLogMatch       = $logRecords | Where-Object Title -match $BottleneckRegex
-            $BottleneckDetails        = $BottleneckLogMatch.Title -replace 'Busy: ', ''
+                $BottleneckLogMatch       = $logRecords | Where-Object Title -match $BottleneckRegex | Select-Object -Last 1
+                $BottleneckDetails        = if ($BottleneckLogMatch) { $BottleneckLogMatch.Title -replace 'Busy: ', '' } else { '' }
 
-            $PrimaryBottleneckMatch   = $logRecords | Where-Object Title -match $PrimaryBottleneckRx
-            $PrimaryBottleneckDetails = $PrimaryBottleneckMatch.Title -replace 'Primary bottleneck: '
+                $PrimaryBottleneckMatch   = $logRecords | Where-Object Title -match $PrimaryBottleneckRx | Select-Object -Last 1
+                $PrimaryBottleneckDetails = if ($PrimaryBottleneckMatch) { $PrimaryBottleneckMatch.Title -replace 'Primary bottleneck: ', '' } else { '' }
 
-            try { $jobDuration  = $task.JobSess.SessionInfo.Progress.Duration.ToString() } catch { $jobDuration  = '' }
-            try { $taskDuration = $task.WorkDetails.WorkDuration.ToString() }               catch { $taskDuration = '' }
+                try { $jobDuration  = $task.JobSess.SessionInfo.Progress.Duration.ToString() } catch { $jobDuration  = '' }
+                try { $taskDuration = $task.WorkDetails.WorkDuration.ToString() }               catch { $taskDuration = '' }
 
-            $row = [pscustomobject][ordered]@{
-                'JobName'           = $task.JobName
-                'VMName'            = $task.Name
-                'Status'            = $task.Status
-                'IsRetry'           = $task.JobSess.IsRetryMode
-                'ProcessingMode'    = $ProcessingMode
-                'JobDuration'       = $jobDuration
-                'TaskDuration'      = $taskDuration
-                'TaskAlgorithm'     = $task.WorkDetails.TaskAlgorithm
-                'CreationTime'      = $task.JobSess.CreationTime
-                'BackupSize(GB)'    = [math]::Round(($task.JobSess.BackupStats.BackupSize / 1GB), 4)
-                'DataSize(GB)'      = [math]::Round(($task.JobSess.BackupStats.DataSize / 1GB), 4)
-                'DedupRatio'        = $task.JobSess.BackupStats.DedupRatio
-                'CompressRatio'     = $task.JobSess.BackupStats.CompressRatio
-                'BottleneckDetails' = $BottleneckDetails
-                'PrimaryBottleneck' = $PrimaryBottleneckDetails
-                'JobType'           = $task.ObjectPlatform.Platform
+                $row = [pscustomobject][ordered]@{
+                    'JobName'           = $task.JobName
+                    'VMName'            = $task.Name
+                    'Status'            = $task.Status
+                    'IsRetry'           = $task.JobSess.IsRetryMode
+                    'ProcessingMode'    = $ProcessingMode
+                    'JobDuration'       = $jobDuration
+                    'TaskDuration'      = $taskDuration
+                    'TaskAlgorithm'     = $task.WorkDetails.TaskAlgorithm
+                    'CreationTime'      = $task.JobSess.CreationTime
+                    'BackupSize(GB)'    = [math]::Round(($task.JobSess.BackupStats.BackupSize / 1GB), 4)
+                    'DataSize(GB)'      = [math]::Round(($task.JobSess.BackupStats.DataSize / 1GB), 4)
+                    'DedupRatio'        = $task.JobSess.BackupStats.DedupRatio
+                    'CompressRatio'     = $task.JobSess.BackupStats.CompressRatio
+                    'BottleneckDetails' = $BottleneckDetails
+                    'PrimaryBottleneck' = $PrimaryBottleneckDetails
+                    'JobType'           = $task.ObjectPlatform.Platform
+                }
+                if ($row) { $null = $allOutput.Add($row) }
+            } catch {
+                Write-LogFile "Failed to process task '$($task.Name)' in job '$($task.JobName)': $($_.Exception.Message)" -LogLevel "WARNING"
             }
-            if ($row) { $null = $allOutput.Add($row) }
         }
     }
 
@@ -135,14 +146,15 @@ function Get-VhcSessionReport {
         $allOutput | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
         Write-LogFile "Exported $($allOutput.Count) session rows to $csvPath"
     } else {
-        Write-LogFile "No session rows produced - writing empty CSV" -LogLevel "WARNING"
-        # Write header-only CSV so downstream C# CSV parser gets an empty but valid file
-        [pscustomobject][ordered]@{
+        Write-LogFile "No session rows produced - writing header-only CSV" -LogLevel "WARNING"
+        # Export-Csv with zero objects writes nothing; write header line explicitly instead.
+        $headerLine = ([pscustomobject][ordered]@{
             'JobName'=''; 'VMName'=''; 'Status'=''; 'IsRetry'=''; 'ProcessingMode'='';
             'JobDuration'=''; 'TaskDuration'=''; 'TaskAlgorithm'=''; 'CreationTime'='';
             'BackupSize(GB)'=''; 'DataSize(GB)'=''; 'DedupRatio'=''; 'CompressRatio'='';
             'BottleneckDetails'=''; 'PrimaryBottleneck'=''; 'JobType'=''
-        } | Select-Object -First 0 | Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
+        } | ConvertTo-Csv -NoTypeInformation | Select-Object -First 1)
+        Out-File -FilePath $csvPath -InputObject $headerLine -Encoding UTF8
     }
 
     # Release live .NET session objects to free memory - large deployments can hold

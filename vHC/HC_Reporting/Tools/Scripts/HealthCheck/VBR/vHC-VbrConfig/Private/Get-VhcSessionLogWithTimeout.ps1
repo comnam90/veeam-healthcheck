@@ -34,11 +34,13 @@ function Get-VhcSessionLogWithTimeout {
         } catch {
             return $null
         } finally {
+            $handle.AsyncWaitHandle.Dispose()
             $ps.Dispose()
             $runspace.Close()
             $runspace.Dispose()
         }
     } else {
+        $handle.AsyncWaitHandle.Dispose()
         $ps.Stop()
         $ps.Dispose()
         $runspace.Close()
