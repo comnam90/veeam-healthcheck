@@ -40,6 +40,7 @@ function Get-VhcSessionReport {
         $taskSessions = @($script:AllBackupSessions.GetTaskSessions())
     } catch {
         Write-LogFile "Failed to retrieve task sessions: $($_.Exception.Message)" -LogLevel "ERROR"
+        throw
     }
 
     foreach ($task in $taskSessions) {
