@@ -79,9 +79,9 @@ namespace VhcXTests.Integration
         }
 
         [Fact]
-        public void GetVeeamSessionReport_ValidPowerShellSyntax()
+        public void GetVhcSessionReport_ValidPowerShellSyntax()
         {
-            var scriptPath = Path.Combine(_scriptsPath, "HealthCheck", "VBR", "Get-VeeamSessionReport.ps1");
+            var scriptPath = Path.Combine(_scriptsPath, "HealthCheck", "VBR", "vHC-VbrConfig", "Public", "Get-VhcSessionReport.ps1");
             
             if (!File.Exists(scriptPath))
             {
@@ -98,8 +98,8 @@ namespace VhcXTests.Integration
                 CreateNoWindow = true
             };
 
-            var rc = RunPwshAndLog(psi, "GetVeeamSessionReport_ValidPowerShellSyntax");
-            Assert.True(rc == 0, "Get-VeeamSessionReport.ps1 has syntax errors");
+            var rc = RunPwshAndLog(psi, "GetVhcSessionReport_ValidPowerShellSyntax");
+            Assert.True(rc == 0, "Get-VhcSessionReport.ps1 has syntax errors");
         }
 
         [Fact]

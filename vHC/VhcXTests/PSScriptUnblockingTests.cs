@@ -195,8 +195,6 @@ namespace VhcXTests
             {
                 "vb365Script",
                 "vbrConfigScript",
-                "vbrSessionScript",
-                "vbrSessionScriptVersion13",
                 "nasScript",
                 "exportLogsScript",
                 "dumpServers",

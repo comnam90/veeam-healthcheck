@@ -198,8 +198,14 @@ $RepositoryDetails = $repoResult.Output
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
-# Session cache export - must run before Jobs so Get-VeeamSessionReport.ps1 can consume it
-$collectorResults.Add((Invoke-VhcCollector -Name 'SessionCache' -Action { Export-VhcSessionCache }))
+# Fetch backup sessions once as live .NET objects (stored in $script:AllBackupSessions).
+# Must run before SessionReport. Uses Get-VBRBackupSession; objects are never serialised
+# so .NET methods (GetTaskSessions, Logger.GetLog) remain available to Get-VhcSessionReport.
+$collectorResults.Add((Invoke-VhcCollector -Name 'BackupSessions' -Action { Get-VhcBackupSessions }))
+
+# Generate VeeamSessionReport.csv from the in-memory sessions collected above.
+# Handles VBR < 13 (GetTaskSessions task-level path) and VBR >= 13 (session-level path).
+$collectorResults.Add((Invoke-VhcCollector -Name 'SessionReport' -Action { Get-VhcSessionReport -VBRVersion $VBRVersion }))
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------

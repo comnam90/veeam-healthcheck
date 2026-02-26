@@ -18,7 +18,6 @@ public class PowerShell51CompatibilityTests
     private static readonly string[] Ps51RequiredScripts = new[]
     {
         "Tools/Scripts/HealthCheck/VBR/Get-VBRConfig.ps1",
-        "Tools/Scripts/HealthCheck/VBR/Get-VeeamSessionReport.ps1",
         "Tools/Scripts/HealthCheck/VBR/Get-NasInfo.ps1",
         "Tools/Scripts/HotfixDetection/Collect-VBRLogs.ps1",
         "Tools/Scripts/HotfixDetection/DumpManagedServerToText.ps1"
@@ -38,13 +37,6 @@ public class PowerShell51CompatibilityTests
     public void GetVBRConfig_ShouldNotContain_TernaryOperator()
     {
         var scriptPath = GetScriptPath("Tools/Scripts/HealthCheck/VBR/Get-VBRConfig.ps1");
-        AssertNoPs7Syntax(scriptPath, "ternary");
-    }
-
-    [Fact]
-    public void GetVeeamSessionReport_ShouldNotContain_TernaryOperator()
-    {
-        var scriptPath = GetScriptPath("Tools/Scripts/HealthCheck/VBR/Get-VeeamSessionReport.ps1");
         AssertNoPs7Syntax(scriptPath, "ternary");
     }
 

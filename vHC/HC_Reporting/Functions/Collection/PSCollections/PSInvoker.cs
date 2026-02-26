@@ -28,8 +28,6 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
         private readonly string vb365Script = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Tools\Scripts\HealthCheck\VB365\Collect-VB365Data.ps1");
 
         private readonly string vbrConfigScript = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Tools\Scripts\HealthCheck\VBR\Get-VBRConfig.ps1");
-        private readonly string vbrSessionScript = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Tools\Scripts\HealthCheck\VBR\Get-VeeamSessionReport.ps1");
-        private readonly string vbrSessionScriptVersion13 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Tools\Scripts\HealthCheck\VBR\Get-VeeamSessionReportVersion13.ps1");
         private readonly string mfaTestScript = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Functions\Collection\PSCollections\Scripts\TestMfa.ps1");
 
         private readonly string nasScript = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Tools\Scripts\HealthCheck\VBR\Get-NasInfo.ps1");
@@ -219,9 +217,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
         public void TryUnblockFiles()
         {
             this.UnblockFile(this.vbrConfigScript);
-            this.UnblockFile(this.vbrSessionScript);
             this.UnblockFile(this.nasScript);
-            UnblockFile(vbrSessionScriptVersion13);
             UnblockFile(mfaTestScript);
             this.UnblockFile(this.exportLogsScript);
             this.UnblockFile(this.dumpServers);
@@ -347,9 +343,6 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
             {
                 this.log.Info("[PS] Skipping NAS info collection - not supported for remote execution", false);
             }
-
-            success = this.ExecutePsScript(this.VbrSessionStartInfo());
-
 
             return success;
         }
@@ -527,19 +520,6 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
             return this.ConfigStartInfo(this.nasScript, 0, CVariables.vbrDir);
         }
 
-        private ProcessStartInfo VbrSessionStartInfo()
-        {
-            // Pass the VBR directory path which now includes server name and timestamp
-            if (CGlobals.VBRMAJORVERSION == 13)
-            {
-                return this.ConfigStartInfo(this.vbrSessionScriptVersion13, CGlobals.ReportDays, CVariables.vbrDir);
-            }
-            else
-            {
-                return this.ConfigStartInfo(this.vbrSessionScript, CGlobals.ReportDays, CVariables.vbrDir);
-            }
-        }
-
         private ProcessStartInfo ExportLogsStartInfo(string path, string server)
         {
             this.log.Info(CMessages.PsVbrConfigStart, false);
@@ -625,22 +605,6 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
                 CreateNoWindow = false,
                 WindowStyle = ProcessWindowStyle.Minimized
             };
-        }
-
-        private void RunVbrSessionCollection()
-        {
-            this.log.Info("[PS][VBR Sessions] Enter Session Collection Invoker...", false);
-
-            var startInfo2 = this.ConfigStartInfo(this.vbrSessionScript, CGlobals.ReportDays, string.Empty);
-
-            this.log.Info("[PS][VBR Sessions] Starting Session Collection PowerShell Process...", false);
-
-            var result = Process.Start(startInfo2);
-
-            this.log.Info("[PS][VBR Sessions] Process started with ID: " + result.Id.ToString(), false);
-            result.WaitForExit();
-
-            this.log.Info("[PS][VBR Sessions] Session collection complete!", false);
         }
 
         private ProcessStartInfo ConfigStartInfo(string scriptLocation, int days, string path)
