@@ -209,8 +209,6 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
                 return false;
             }
 
-            // RunVbrSessionCollection();
-
             return res;
         }
 

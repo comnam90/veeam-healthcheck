@@ -204,8 +204,8 @@ $RepositoryDetails = $repoResult.Output
 $collectorResults.Add((Invoke-VhcCollector -Name 'BackupSessions' -Action { Get-VhcBackupSessions }))
 
 # Generate VeeamSessionReport.csv from the in-memory sessions collected above.
-# Handles VBR < 13 (GetTaskSessions task-level path) and VBR >= 13 (session-level path).
-$collectorResults.Add((Invoke-VhcCollector -Name 'SessionReport' -Action { Get-VhcSessionReport -VBRVersion $VBRVersion }))
+# Uses GetTaskSessions() for all VBR versions (see ADR 0004).
+$collectorResults.Add((Invoke-VhcCollector -Name 'SessionReport' -Action { Get-VhcSessionReport }))
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
