@@ -1,6 +1,7 @@
 # ADR 0002: Integrate Session Reporting into vHC-VbrConfig Module
 
-* **Status:** Proposed
+* **Status:** Accepted
+* **Superseded in part by:** ADR 0004 (unified `GetTaskSessions()` path replaces the two-path architecture described in Implementation Overview below)
 * **Date:** 2026-02-26
 * **Decider:** Ben Thomas
 * **Consulted:** GitHub Copilot
@@ -77,15 +78,15 @@ Chosen option: **Option 1**, because it is the only path that solves the fundame
 1. **Modify `Export-VhcSessionCache`:** Change it to store live session objects in `$script:AllBackupSessions` instead of serialising to XML. Remove the `Export-Clixml` call and the `SessionCache.xml` output entirely. Rename to `Get-VhcBackupSessions` to reflect its new role as a collector, not an exporter.
 
 2. **Create `Get-VhcSessionReport`** (new Public module function):
-   - Accepts `-VBRVersion [int]` to match the existing pattern (e.g., `Get-VhcRepository -VBRVersion`).
    - Reads `$script:AllBackupSessions` populated by `Get-VhcBackupSessions`.
-   - **V13+ path** (version ≥ 13): Iterates sessions directly, uses a timeout-guarded runspace for `Logger.GetLog()` (ported from `Get-VeeamSessionReportVersion13.ps1`).
-   - **Standard path** (version < 13): Calls `.GetTaskSessions()` on each session, extracts processing mode and bottleneck details (ported from `Get-VeeamSessionReport.ps1`).
+   - Calls `.GetTaskSessions()` on each session for all VBR versions (see ADR 0004 — the
+     originally planned two-path architecture was superseded after live testing revealed the
+     `>=13` session-level path produced per-job-run rows instead of per-VM rows).
    - Writes `VeeamSessionReport.csv` to `$script:ReportPath`.
 
 3. **Update `Get-VBRConfig.ps1` orchestrator:**
    - Replace the `SessionCache` collector step with `Get-VhcBackupSessions`.
-   - Add a `SessionReport` collector step calling `Get-VhcSessionReport -VBRVersion $VBRVersion`.
+   - Add a `SessionReport` collector step calling `Get-VhcSessionReport`.
 
 4. **Update `vHC-VbrConfig.psm1`:** Dot-source `Get-VhcSessionReport.ps1`; remove dot-source of `Export-VhcSessionCache.ps1` (or rename).
 
