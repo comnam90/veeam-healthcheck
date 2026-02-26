@@ -57,7 +57,7 @@ function Get-VhcSessionReport {
             $PrimaryBottleneckMatch   = $logRecords | Where-Object Title -match $PrimaryBottleneckRx | Select-Object -Last 1
             $PrimaryBottleneckDetails = if ($PrimaryBottleneckMatch) { $PrimaryBottleneckMatch.Title -replace 'Primary bottleneck: ', '' } else { '' }
 
-            try { $jobDuration  = $task.JobSess.SessionInfo.Progress.Duration.ToString() } catch { $jobDuration  = '' }
+            try { $jobDuration  = $task.JobSess.Progress.Duration.ToString() }               catch { $jobDuration  = '' }
             try { $taskDuration = $task.WorkDetails.WorkDuration.ToString() }               catch { $taskDuration = '' }
 
             $row = [pscustomobject][ordered]@{
