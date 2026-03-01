@@ -70,8 +70,17 @@ function Get-VhcSessionReport {
                 'TaskDuration'      = $taskDuration
                 'TaskAlgorithm'     = $task.WorkDetails.TaskAlgorithm
                 'CreationTime'      = $task.JobSess.CreationTime
-                'BackupSize(GB)'    = [math]::Round(($task.JobSess.BackupStats.BackupSize / 1GB), 4)
-                'DataSize(GB)'      = [math]::Round(($task.JobSess.BackupStats.DataSize / 1GB), 4)
+                # NAS jobs leave BackupStats at 0; fall back to Progress fields (see ADR 0005)
+                'BackupSize(GB)'    = if ($task.JobSess.BackupStats.BackupSize -gt 0) {
+                    [math]::Round(($task.JobSess.BackupStats.BackupSize / 1GB), 4)
+                } else {
+                    [math]::Round(($task.JobSess.Progress.TransferedSize / 1GB), 4)
+                }
+                'DataSize(GB)'      = if ($task.JobSess.BackupStats.DataSize -gt 0) {
+                    [math]::Round(($task.JobSess.BackupStats.DataSize / 1GB), 4)
+                } else {
+                    [math]::Round(($task.JobSess.Progress.ProcessedSize / 1GB), 4)
+                }
                 'DedupRatio'        = $task.JobSess.BackupStats.DedupRatio
                 'CompressRatio'     = $task.JobSess.BackupStats.CompressRatio
                 'BottleneckDetails' = $BottleneckDetails
