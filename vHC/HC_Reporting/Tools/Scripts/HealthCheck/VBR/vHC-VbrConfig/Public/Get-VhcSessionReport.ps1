@@ -79,7 +79,7 @@ function Get-VhcSessionReport {
                 'DataSize(GB)'      = if ($task.JobSess.BackupStats.DataSize -gt 0) {
                     [math]::Round(($task.JobSess.BackupStats.DataSize / 1GB), 4)
                 } else {
-                    [math]::Round(($task.JobSess.Progress.ProcessedSize / 1GB), 4)
+                    [math]::Round(($task.JobSess.Progress.ReadSize / 1GB), 4)
                 }
                 'DedupRatio'        = $task.JobSess.BackupStats.DedupRatio
                 'CompressRatio'     = $task.JobSess.BackupStats.CompressRatio

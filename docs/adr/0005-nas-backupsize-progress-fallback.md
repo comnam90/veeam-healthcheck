@@ -15,7 +15,7 @@ how much data was actually transferred.
 
 The actual byte counts are available on the parent session's `Progress` object:
 - `Progress.TransferedSize` — bytes written to the backup repository (equivalent to BackupSize)
-- `Progress.ProcessedSize`  — source bytes read from the NAS share (equivalent to DataSize)
+- `Progress.ReadSize`       — bytes read from the source for the backup (equivalent to DataSize)
 
 These fields are populated for all job types.
 
@@ -27,7 +27,7 @@ carried forward unchanged into the refactored `Get-VhcSessionReport.ps1` module 
 ## Decision
 
 Use a **zero-fallback**: if `BackupStats.BackupSize` equals `0`, read from `Progress.TransferedSize`
-(and likewise `BackupStats.DataSize` / `Progress.ProcessedSize`).
+(and likewise `BackupStats.DataSize` / `Progress.ReadSize`).
 
 No explicit job-type branching is introduced. The fallback applies any time `BackupStats` is
 empty, making the fix inherently self-describing and safe for future unknown job types that
