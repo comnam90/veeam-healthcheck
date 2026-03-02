@@ -119,7 +119,6 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
 # ---------------------------------------------------------------------------
 Initialize-VhcModule -ReportPath $ReportPath -VBRServer $VBRServer `
                      -LogLevel $config.LogLevel `
-                     -ReportInterval $ReportInterval `
                      -LogPath $LogPath
 
 # Collector run summary list - each Invoke-VhcCollector call appends a result row.
@@ -215,14 +214,19 @@ $RepositoryDetails = $repoResult.Output
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
-# Fetch backup sessions once as live .NET objects (stored in $script:AllBackupSessions).
-# Must run before SessionReport. Uses Get-VBRBackupSession; objects are never serialised
-# so .NET methods (GetTaskSessions, Logger.GetLog) remain available to Get-VhcSessionReport.
-$collectorResults.Add((Invoke-VhcCollector -Name 'BackupSessions' -Action { Get-VhcBackupSessions }))
+# Fetch backup sessions as live .NET objects and pass them explicitly to SessionReport.
+# Uses Get-VBRBackupSession; objects are never serialised so .NET methods
+# (GetTaskSessions, Logger.GetLog) remain available to Get-VhcSessionReport. See ADR 0006.
+$backupSessionsResult = Invoke-VhcCollector -Name 'BackupSessions' -Action {
+    Get-VhcBackupSessions -ReportInterval $ReportInterval
+}
+$collectorResults.Add($backupSessionsResult)
 
-# Generate VeeamSessionReport.csv from the in-memory sessions collected above.
+# Generate VeeamSessionReport.csv from the sessions returned above.
 # Uses GetTaskSessions() for all VBR versions (see ADR 0004).
-$collectorResults.Add((Invoke-VhcCollector -Name 'SessionReport' -Action { Get-VhcSessionReport }))
+$collectorResults.Add((Invoke-VhcCollector -Name 'SessionReport' -Action {
+    Get-VhcSessionReport -BackupSessions $backupSessionsResult.Output
+}))
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------

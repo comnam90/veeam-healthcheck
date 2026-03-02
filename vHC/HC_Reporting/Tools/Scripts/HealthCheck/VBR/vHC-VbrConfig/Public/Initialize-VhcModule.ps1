@@ -11,8 +11,6 @@ function Initialize-VhcModule {
         VBR server name - used as filename prefix for all CSV outputs.
     .Parameter LogLevel
         Minimum log level for Write-LogFile output. Defaults to INFO.
-    .Parameter ReportInterval
-        Days lookback for NAS session queries. Defaults to 14.
     .Parameter LogPath
         Directory for collector log files. Defaults to C:\temp\vHC\Original\Log.
     #>
@@ -22,15 +20,13 @@ function Initialize-VhcModule {
         [Parameter(Mandatory)] [ValidateNotNullOrEmpty()] [string] $VBRServer,
         [Parameter(Mandatory = $false)] [ValidateSet("TRACE","PROFILE","DEBUG","INFO","WARNING","ERROR","FATAL")]
                                [string] $LogLevel = "INFO",
-        [Parameter(Mandatory = $false)] [int]    $ReportInterval = 14,
         [Parameter(Mandatory = $false)] [string] $LogPath = "C:\temp\vHC\Original\Log"
     )
 
-    $script:ReportPath     = $ReportPath
-    $script:VBRServer      = $VBRServer
-    $script:LogLevel       = $LogLevel
-    $script:ReportInterval = $ReportInterval
-    $script:LogPath        = $LogPath
+    $script:ReportPath = $ReportPath
+    $script:VBRServer  = $VBRServer
+    $script:LogLevel   = $LogLevel
+    $script:LogPath    = $LogPath
 
     if (-not (Test-Path $ReportPath)) {
         New-Item -Path $ReportPath -ItemType Directory -Force | Out-Null
