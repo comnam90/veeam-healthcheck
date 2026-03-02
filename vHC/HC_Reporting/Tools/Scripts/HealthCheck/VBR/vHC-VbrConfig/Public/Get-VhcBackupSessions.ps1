@@ -3,28 +3,23 @@
 function Get-VhcBackupSessions {
     <#
     .Synopsis
-        Fetches all VBR backup sessions within the report interval and stores them as live
-        .NET objects in $script:AllBackupSessions for use by Get-VhcSessionReport.
-
-        Replaces Export-VhcSessionCache, which serialised objects via Export-Clixml. Serialisation
-        produces Deserialized.* property-bag objects that lose all .NET methods, making session
-        reporting (which requires GetTaskSessions() and Logger.GetLog()) impossible.
-
-        Sessions must remain in the same process as the consumer to keep method access.
+        Fetches VBR backup sessions created within the reporting window and returns them
+        as pipeline output. The caller (orchestrator) captures the output and passes it
+        explicitly to Get-VhcSessionReport via the -BackupSessions parameter.
+    .Parameter ReportInterval
+        Number of days back to collect sessions for. Matches the -ReportInterval parameter
+        passed to Get-VBRConfig.ps1.
+    .Outputs
+        [object[]] — Veeam backup session objects.
     #>
     [CmdletBinding()]
-    param()
+    param (
+        [Parameter(Mandatory)] [int] $ReportInterval
+    )
 
-    Write-LogFile "Fetching backup sessions for the last $script:ReportInterval days..."
-
-    $cutoff = (Get-Date).AddDays(-$script:ReportInterval)
-    try {
-        $script:AllBackupSessions = @(Get-VBRBackupSession | Where-Object { $_.CreationTime -gt $cutoff })
-        Write-LogFile "Fetched $(@($script:AllBackupSessions).Count) backup sessions"
-    }
-    catch {
-        Write-LogFile "Failed to fetch backup sessions: $($_.Exception.Message)" -LogLevel "ERROR"
-        $script:AllBackupSessions = $null
-        throw
-    }
+    Write-LogFile "Fetching backup sessions for the last $ReportInterval days..."
+    $cutoff = (Get-Date).AddDays(-$ReportInterval)
+    $sessions = @(Get-VBRBackupSession | Where-Object { $_.CreationTime -gt $cutoff })
+    Write-LogFile "Collected $($sessions.Count) backup sessions."
+    return $sessions
 }

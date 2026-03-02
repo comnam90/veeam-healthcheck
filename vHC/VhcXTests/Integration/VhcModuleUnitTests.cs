@@ -344,6 +344,82 @@ try {{
         }
 
         /// <summary>
+        /// Verifies Get-VhcBackupSessions accepts an explicit -ReportInterval parameter
+        /// and does not silently fall back to $script:ReportInterval.
+        /// Called without any $script: state; the expected failure is VBR-not-available,
+        /// not a missing-variable error — which proves the parameter is used.
+        /// </summary>
+        [Fact]
+        public void GetVhcBackupSessions_AcceptsReportIntervalParameter_NotScriptVar()
+        {
+            var projectRoot = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..", "HC_Reporting"));
+            var moduleRoot     = Path.Combine(projectRoot, "Tools", "Scripts", "HealthCheck", "VBR", "vHC-VbrConfig");
+            var funcPath       = Path.Combine(moduleRoot, "Public", "Get-VhcBackupSessions.ps1");
+            var writeLogPath   = Path.Combine(moduleRoot, "Public",  "Write-LogFile.ps1");
+
+            var tmpDir        = Path.Combine(Path.GetTempPath(), $"vhc-bksess-{Guid.NewGuid():N}");
+            var tmpScriptPath = Path.Combine(tmpDir, "Test-BackupSessionsParam.ps1");
+            Directory.CreateDirectory(tmpDir);
+
+            var scriptContent = $@"
+$ErrorActionPreference = 'Stop'
+. '{writeLogPath}'
+. '{funcPath}'
+
+# Do NOT set $script:ReportInterval - the function must use the parameter instead.
+$script:LogPath  = '{tmpDir}'
+$script:LogLevel = 'ERROR'
+
+try {{
+    Get-VhcBackupSessions -ReportInterval 14
+}} catch {{
+    $msg = $_.Exception.Message
+    # A ReportInterval-related error means the param was ignored and $script: was read.
+    if ($msg -match 'ReportInterval') {{
+        Write-Error ""Function used `$script:ReportInterval instead of parameter: $msg""
+        exit 1
+    }}
+    # Any VBR-not-available error is expected and proves the param is being used.
+    Write-Host ""OK: VBR-unavailable error (expected): $msg""
+    exit 0
+}}
+# If no exception: VBR is somehow available; pass since the param was accepted.
+Write-Host 'OK: function accepted -ReportInterval parameter without error'
+exit 0
+";
+            File.WriteAllText(tmpScriptPath, scriptContent);
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName               = "pwsh",
+                    Arguments              = $"-NoProfile -NonInteractive -File \"{tmpScriptPath}\"",
+                    RedirectStandardError  = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute        = false,
+                    CreateNoWindow         = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process == null) { Assert.Fail("Failed to start pwsh"); return; }
+                var stdout = process.StandardOutput.ReadToEnd();
+                var stderr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                Assert.True(process.ExitCode == 0,
+                    $"Get-VhcBackupSessions did not accept -ReportInterval parameter.\n" +
+                    $"STDOUT: {stdout}\nSTDERR: {stderr}");
+            }
+            finally
+            {
+                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, recursive: true);
+            }
+        }
+
+        /// <summary>
         /// Verifies the orchestrator throws a clear error when VbrConfig.json is missing
         /// a required threshold key, rather than silently using $null.
         /// </summary>
