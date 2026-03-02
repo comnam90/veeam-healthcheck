@@ -189,6 +189,161 @@ try {{
         }
 
         /// <summary>
+        /// Regression guard: Invoke-VhcCollector must never throw, even when the wrapped
+        /// scriptblock throws. It must return Success=false and Error set to the exception message.
+        /// </summary>
+        [Fact]
+        public void InvokeVhcCollector_ScriptblockThrows_ReturnsFailedResultWithoutThrowing()
+        {
+            var projectRoot = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..", "HC_Reporting"));
+            var moduleRoot      = Path.Combine(projectRoot, "Tools", "Scripts", "HealthCheck", "VBR", "vHC-VbrConfig");
+            var collectorPath   = Path.Combine(moduleRoot, "Public", "Invoke-VhcCollector.ps1");
+            var writeLogPath    = Path.Combine(moduleRoot, "Public",  "Write-LogFile.ps1");
+
+            var tmpDir       = Path.Combine(Path.GetTempPath(), $"vhc-coll-{Guid.NewGuid():N}");
+            var tmpScriptPath = Path.Combine(tmpDir, "Test-CollectorIsolation.ps1");
+            Directory.CreateDirectory(tmpDir);
+
+            var scriptContent = $@"
+$ErrorActionPreference = 'Stop'
+. '{writeLogPath}'
+. '{collectorPath}'
+
+# Initialize the module-level vars Write-LogFile reads
+$script:LogPath  = '{tmpDir}'
+$script:LogLevel = 'ERROR'
+
+$result = Invoke-VhcCollector -Name 'TestCollector' -Action {{
+    throw 'Intentional test error'
+}}
+
+if ($result.Success -eq $true) {{
+    Write-Error 'Expected Success=false but got Success=true'
+    exit 1
+}}
+if ([string]::IsNullOrEmpty($result.Error)) {{
+    Write-Error 'Expected Error to be populated but it was empty'
+    exit 1
+}}
+if ($result.Error -notmatch 'Intentional test error') {{
+    Write-Error ""Expected Error to contain 'Intentional test error' but got: $($result.Error)""
+    exit 1
+}}
+Write-Host ""OK: Success=false, Error='$($result.Error)'""
+exit 0
+";
+            File.WriteAllText(tmpScriptPath, scriptContent);
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName               = "pwsh",
+                    Arguments              = $"-NoProfile -NonInteractive -File \"{tmpScriptPath}\"",
+                    RedirectStandardError  = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute        = false,
+                    CreateNoWindow         = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process == null) { Assert.Fail("Failed to start pwsh"); return; }
+                var stdout = process.StandardOutput.ReadToEnd();
+                var stderr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                Assert.True(process.ExitCode == 0,
+                    $"Invoke-VhcCollector did not correctly isolate the thrown exception.\n" +
+                    $"STDOUT: {stdout}\nSTDERR: {stderr}");
+            }
+            finally
+            {
+                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, recursive: true);
+            }
+        }
+
+        /// <summary>
+        /// Regression guard: Get-VhcSessionReport must throw with a clear error message when
+        /// $script:AllBackupSessions is null (i.e. Get-VhcBackupSessions was never called or failed).
+        /// When wrapped by Invoke-VhcCollector this produces a FAIL entry, not a silent empty CSV.
+        /// </summary>
+        [Fact]
+        public void GetVhcSessionReport_NullSessions_ThrowsDescriptiveError()
+        {
+            var projectRoot = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..", "HC_Reporting"));
+            var moduleRoot       = Path.Combine(projectRoot, "Tools", "Scripts", "HealthCheck", "VBR", "vHC-VbrConfig");
+            var sessionRptPath   = Path.Combine(moduleRoot, "Public",  "Get-VhcSessionReport.ps1");
+            var writeLogPath     = Path.Combine(moduleRoot, "Public",  "Write-LogFile.ps1");
+            var exportCsvPath    = Path.Combine(moduleRoot, "Private", "Export-VhcCsv.ps1");
+            var sessionLogPath   = Path.Combine(moduleRoot, "Private", "Get-VhcSessionLogWithTimeout.ps1");
+
+            var tmpDir       = Path.Combine(Path.GetTempPath(), $"vhc-sess-{Guid.NewGuid():N}");
+            var tmpScriptPath = Path.Combine(tmpDir, "Test-NullSessionGuard.ps1");
+            Directory.CreateDirectory(tmpDir);
+
+            var scriptContent = $@"
+$ErrorActionPreference = 'Stop'
+. '{writeLogPath}'
+. '{exportCsvPath}'
+. '{sessionLogPath}'
+. '{sessionRptPath}'
+
+$script:ReportPath         = '{tmpDir}'
+$script:VBRServer          = 'test'
+$script:LogPath            = '{tmpDir}'
+$script:LogLevel           = 'ERROR'
+$script:ReportInterval     = 14
+$script:AllBackupSessions  = $null   # simulate Get-VhcBackupSessions never running
+
+try {{
+    Get-VhcSessionReport
+    # Should NOT reach here
+    Write-Error 'Get-VhcSessionReport did not throw when sessions are null'
+    exit 1
+}} catch {{
+    if ($_.Exception.Message -notmatch 'AllBackupSessions') {{
+        Write-Error ""Expected error about AllBackupSessions but got: $($_.Exception.Message)""
+        exit 1
+    }}
+    Write-Host ""OK: threw with expected message: $($_.Exception.Message)""
+    exit 0
+}}
+";
+            File.WriteAllText(tmpScriptPath, scriptContent);
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName               = "pwsh",
+                    Arguments              = $"-NoProfile -NonInteractive -File \"{tmpScriptPath}\"",
+                    RedirectStandardError  = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute        = false,
+                    CreateNoWindow         = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process == null) { Assert.Fail("Failed to start pwsh"); return; }
+                var stdout = process.StandardOutput.ReadToEnd();
+                var stderr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                Assert.True(process.ExitCode == 0,
+                    $"Get-VhcSessionReport did not throw the expected error for null sessions.\n" +
+                    $"STDOUT: {stdout}\nSTDERR: {stderr}");
+            }
+            finally
+            {
+                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, recursive: true);
+            }
+        }
+
+        /// <summary>
         /// Verifies the orchestrator throws a clear error when VbrConfig.json is missing
         /// a required threshold key, rather than silently using $null.
         /// </summary>
