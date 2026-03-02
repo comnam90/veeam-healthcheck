@@ -44,7 +44,12 @@ namespace VeeamHealthCheck.Shared
                     using var reader = new StreamReader(filePath);
                     using var csv = new CsvReader(reader, config);
 
-                    csv.Read();
+                    if (!csv.Read())
+                    {
+                        csvData[filePath] = data;
+                        Console.WriteLine($"Warning: CSV file {filePath} is empty. Loaded 0 rows.");
+                        return true;
+                    }
                     csv.ReadHeader();
                     var headers = csv.HeaderRecord.ToArray();
 
