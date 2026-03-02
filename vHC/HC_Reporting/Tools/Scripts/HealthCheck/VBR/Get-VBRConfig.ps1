@@ -64,6 +64,23 @@ foreach ($key in @('ConfigVersion', 'Thresholds', 'SecurityComplianceRuleNames')
     }
 }
 
+# Validate that all expected threshold keys are present within Thresholds.
+# A missing key returns $null and causes silent wrong output in the concurrency analysis.
+$requiredThresholds = @(
+    'VpProxyRAMPerTask','VpProxyCPUPerTask','VpProxyOSCPU','VpProxyOSRAM',
+    'GpProxyRAMPerTask','GpProxyCPUPerTask','GpProxyOSCPU','GpProxyOSRAM',
+    'RepoGwRAMPerTask','RepoGwCPUPerTask','RepoOSCPU','RepoOSRAM',
+    'CdpProxyRAM','CdpProxyCPU',
+    'BackupServerCPU_v12','BackupServerRAM_v12','BackupServerCPU_v13','BackupServerRAM_v13',
+    'SqlRAMMin','SqlCPUMin',
+    'CompliancePollMaxSeconds','CompliancePollIntervalSeconds'
+)
+foreach ($key in $requiredThresholds) {
+    if ($null -eq $config.Thresholds.$key) {
+        throw "VbrConfig.json Thresholds is missing required key: '$key'"
+    }
+}
+
 # ---------------------------------------------------------------------------
 # Resolve default output path
 # ---------------------------------------------------------------------------
