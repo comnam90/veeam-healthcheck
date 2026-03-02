@@ -46,14 +46,14 @@ namespace VeeamHealthCheck.Shared
 
                     csv.Read();
                     csv.ReadHeader();
-                    var headers = csv.HeaderRecord.Select(h => h.Trim('"')).ToArray();
+                    var headers = csv.HeaderRecord.ToArray();
 
                     while (csv.Read())
                     {
                         var row = new Dictionary<string, string>();
                         for (int j = 0; j < headers.Length; j++)
                         {
-                            row[headers[j]] = csv.GetField(j)?.Trim('"') ?? string.Empty;
+                            row[headers[j]] = csv.GetField(j) ?? string.Empty;
                         }
                         data.Add(row);
                     }
