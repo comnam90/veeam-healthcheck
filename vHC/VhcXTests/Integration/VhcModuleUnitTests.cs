@@ -117,6 +117,78 @@ exit 0
         }
 
         /// <summary>
+        /// Verifies that Export-VhcCsv propagates file I/O failures rather than swallowing them.
+        /// A non-existent output directory is used to trigger Export-Csv failure reliably.
+        /// </summary>
+        [Fact]
+        public void ExportVhcCsv_IoFailure_ThrowsException()
+        {
+            var projectRoot = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..", "HC_Reporting"));
+            var moduleRoot       = Path.Combine(projectRoot, "Tools", "Scripts", "HealthCheck", "VBR", "vHC-VbrConfig");
+            var exportCsvPath    = Path.Combine(moduleRoot, "Private", "Export-VhcCsv.ps1");
+            var writeLogPath     = Path.Combine(moduleRoot, "Public",  "Write-LogFile.ps1");
+
+            var tmpDir       = Path.Combine(Path.GetTempPath(), $"vhc-ioerr-{Guid.NewGuid():N}");
+            var tmpScriptPath = Path.Combine(tmpDir, "Test-IoFailure.ps1");
+            Directory.CreateDirectory(tmpDir);
+
+            // ReportPath points to a path that does not exist and cannot be created by Export-VhcCsv.
+            // (Export-Csv fails when the parent directory doesn't exist.)
+            var nonExistentPath = Path.Combine(tmpDir, "does-not-exist", "nested");
+
+            var scriptContent = $@"
+$ErrorActionPreference = 'Stop'
+. '{writeLogPath}'
+. '{exportCsvPath}'
+
+$script:ReportPath = '{nonExistentPath}'
+$script:VBRServer  = 'test'
+$script:LogPath    = '{tmpDir}'
+$script:LogLevel   = 'ERROR'
+
+try {{
+    [pscustomobject]@{{ A = 1 }} | Export-VhcCsv -FileName '_test.csv'
+    # Should NOT reach here - expect an exception from the missing directory
+    Write-Error 'Export-VhcCsv did not throw on I/O failure'
+    exit 1
+}} catch {{
+    # Exception propagated as expected
+    exit 0
+}}
+";
+            File.WriteAllText(tmpScriptPath, scriptContent);
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName               = "pwsh",
+                    Arguments              = $"-NoProfile -NonInteractive -File \"{tmpScriptPath}\"",
+                    RedirectStandardError  = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute        = false,
+                    CreateNoWindow         = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process == null) { Assert.Fail("Failed to start pwsh"); return; }
+                var stdout = process.StandardOutput.ReadToEnd();
+                var stderr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                Assert.True(process.ExitCode == 0,
+                    $"Export-VhcCsv should have thrown on I/O failure and been caught by the test's try/catch.\n" +
+                    $"Exit code {process.ExitCode} means the exception was swallowed.\nSTDOUT: {stdout}\nSTDERR: {stderr}");
+            }
+            finally
+            {
+                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, recursive: true);
+            }
+        }
+
+        /// <summary>
         /// Verifies the orchestrator throws a clear error when VbrConfig.json is missing
         /// a required threshold key, rather than silently using $null.
         /// </summary>

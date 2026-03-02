@@ -35,6 +35,7 @@ function Export-VhcCsv {
             $allObjects | Export-Csv -Path $file -NoTypeInformation -ErrorAction Stop
         } catch {
             Write-LogFile "Export-VhcCsv failed writing '$file': $($_.Exception.Message)" -LogLevel "ERROR"
+            throw
         }
     }
 }
