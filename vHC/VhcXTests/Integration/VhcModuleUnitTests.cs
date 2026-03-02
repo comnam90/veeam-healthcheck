@@ -292,21 +292,20 @@ $ErrorActionPreference = 'Stop'
 . '{sessionLogPath}'
 . '{sessionRptPath}'
 
-$script:ReportPath         = '{tmpDir}'
-$script:VBRServer          = 'test'
-$script:LogPath            = '{tmpDir}'
-$script:LogLevel           = 'ERROR'
-$script:ReportInterval     = 14
-$script:AllBackupSessions  = $null   # simulate Get-VhcBackupSessions never running
+$script:ReportPath     = '{tmpDir}'
+$script:VBRServer      = 'test'
+$script:LogPath        = '{tmpDir}'
+$script:LogLevel       = 'ERROR'
 
 try {{
-    Get-VhcSessionReport
+    # Pass $null explicitly via the new parameter — no $script: state involved.
+    Get-VhcSessionReport -BackupSessions $null
     # Should NOT reach here
-    Write-Error 'Get-VhcSessionReport did not throw when sessions are null'
+    Write-Error 'Get-VhcSessionReport did not throw when BackupSessions is null'
     exit 1
 }} catch {{
-    if ($_.Exception.Message -notmatch 'AllBackupSessions') {{
-        Write-Error ""Expected error about AllBackupSessions but got: $($_.Exception.Message)""
+    if ($_.Exception.Message -notmatch 'Get-VhcBackupSessions') {{
+        Write-Error ""Expected error mentioning Get-VhcBackupSessions but got: $($_.Exception.Message)""
         exit 1
     }}
     Write-Host ""OK: threw with expected message: $($_.Exception.Message)""

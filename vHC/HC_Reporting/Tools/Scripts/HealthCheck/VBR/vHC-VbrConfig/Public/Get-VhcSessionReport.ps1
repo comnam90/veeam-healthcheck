@@ -3,28 +3,31 @@
 function Get-VhcSessionReport {
     <#
     .Synopsis
-        Generates VeeamSessionReport.csv from the backup sessions held in $script:AllBackupSessions.
+        Generates VeeamSessionReport.csv from the backup sessions passed via -BackupSessions.
         Replaces the standalone Get-VeeamSessionReport.ps1 and Get-VeeamSessionReportVersion13.ps1.
 
-        Must be called after Get-VhcBackupSessions has successfully populated
-        $script:AllBackupSessions with live .NET objects in the same process.
+        Receives live .NET session objects from Get-VhcBackupSessions via the -BackupSessions
+        parameter. Objects must remain in the same process to keep method access.
 
         Calls GetTaskSessions() on every backup session regardless of VBR version. This produces
         one row per VM (task) rather than one row per job run, giving accurate VMName and
         ProcessingMode values on all supported VBR versions. See ADR 0004.
-
-    .Notes
-        $script:AllBackupSessions is nulled after CSV export to release live .NET objects
-        from memory. Large deployments can hold thousands of session objects.
+    .Parameter BackupSessions
+        Live Veeam backup session objects returned by Get-VhcBackupSessions. Pass $null or an
+        empty array to produce a descriptive error rather than a silent empty CSV.
     #>
     [CmdletBinding()]
-    param()
+    param (
+        [Parameter(Mandatory = $false)]
+        [AllowNull()]
+        [object[]] $BackupSessions
+    )
 
-    if (-not $script:AllBackupSessions -or @($script:AllBackupSessions).Count -eq 0) {
-        throw "No backup sessions in `$script:AllBackupSessions. Ensure Get-VhcBackupSessions completed successfully before calling Get-VhcSessionReport."
+    if (-not $BackupSessions -or @($BackupSessions).Count -eq 0) {
+        throw "No backup sessions available. Ensure Get-VhcBackupSessions completed successfully before calling Get-VhcSessionReport."
     }
 
-    Write-LogFile "Generating session report for $(@($script:AllBackupSessions).Count) sessions..."
+    Write-LogFile "Generating session report for $(@($BackupSessions).Count) sessions..."
 
     [System.Collections.ArrayList]$allOutput = @()
 
@@ -37,7 +40,7 @@ function Get-VhcSessionReport {
 
     $taskSessions = @()
     try {
-        $taskSessions = @($script:AllBackupSessions.GetTaskSessions())
+        $taskSessions = @($BackupSessions.GetTaskSessions())
     } catch {
         Write-LogFile "Failed to retrieve task sessions: $($_.Exception.Message)" -LogLevel "ERROR"
         throw
@@ -109,7 +112,4 @@ function Get-VhcSessionReport {
         Out-File -FilePath $csvPath -InputObject $headerLine -Encoding UTF8
     }
 
-    # Release live .NET session objects to free memory - large deployments can hold
-    # thousands of sessions with log data as in-process .NET objects.
-    $script:AllBackupSessions = $null
 }
