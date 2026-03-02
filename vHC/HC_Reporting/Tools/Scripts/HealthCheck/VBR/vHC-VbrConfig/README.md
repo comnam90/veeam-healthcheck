@@ -37,28 +37,23 @@ sufficient to export it — no manifest edit required.
 
 ## Calling pattern
 
-`VBR-Orchestrator.ps1` uses two calling patterns:
-
-**Direct call** — used when the function's return value is consumed by a
-downstream collector. The Orchestrator captures the output and passes it
-explicitly.
+`VBR-Orchestrator.ps1` uses `Invoke-VhcCollector` for all collectors. Collectors
+whose return values feed downstream collectors are captured via the `.Output` field:
 
 ```powershell
-$VServers        = Get-VhcServer                        # feeds Get-VhcConcurrencyData
-$hostRoles       = Get-VhcConcurrencyData -VServers $VServers ...   # feeds Invoke-VhcConcurrencyAnalysis
-$RepositoryDetails = Get-VhcRepository -VBRVersion $VBRVersion      # feeds Get-VhcJob
+$serverResult      = Invoke-VhcCollector -Name 'Server'   -Action { Get-VhcServer }
+$VServers          = $serverResult.Output
+
+$repoResult        = Invoke-VhcCollector -Name 'Repository' -Action { Get-VhcRepository -VBRVersion $VBRVersion }
+$RepositoryDetails = $repoResult.Output
 ```
 
-**`Invoke-VhcCollector` wrapper** — used for fire-and-forget collectors whose
-output is only CSVs. Provides timing, error isolation, and a structured result
-row for the run summary.
+Fire-and-forget collectors (CSV output only) are added to the results list and
+`.Output` is not read:
 
 ```powershell
 $collectorResults.Add((Invoke-VhcCollector -Name 'License' -Action { Get-VhcLicense }))
 ```
-
-Do **not** wrap direct-call collectors in `Invoke-VhcCollector` — the wrapper
-discards the return value.
 
 ---
 
