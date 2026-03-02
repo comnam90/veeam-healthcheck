@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Management.Automation;
 using System.Globalization;
+using System.Net;
 using System.Text.Json;
 using VeeamHealthCheck.Functions.Analysis.DataModels;
 using VeeamHealthCheck.Functions.Collection;
@@ -589,7 +590,7 @@ namespace VeeamHealthCheck.Html.VBR
             // header
             s += this.form.TableHeader("Installed Apps", string.Empty);
             s += this.form.TableHeaderEnd();
-            s += this.form.TableData("See <a href=\"" + CVariables.unsafeDir + @"\Log\" + "\">Veeam.HealthCheck.ServerApplications log file</a> at " + CVariables.unsafeDir + @"\Log\", string.Empty);
+            s += this.form.TableData("See <a href=\"" + WebUtility.HtmlEncode(CVariables.unsafeDir) + @"\Log\" + "\">Veeam.HealthCheck.ServerApplications log file</a> at " + WebUtility.HtmlEncode(CVariables.unsafeDir) + @"\Log\", string.Empty);
             s += this.form.EndTable();
             return s;
         }
