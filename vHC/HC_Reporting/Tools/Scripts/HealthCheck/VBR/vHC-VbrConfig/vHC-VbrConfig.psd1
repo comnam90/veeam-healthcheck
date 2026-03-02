@@ -4,7 +4,29 @@
     PowerShellVersion = '5.1'
     Description       = 'VBR configuration collector module for Veeam Health Check'
     Author            = 'Veeam Health Check'
-    # Lock down to an explicit list once all Public functions are stable.
-    # Do NOT use @() here - an empty array prevents all exports regardless of Export-ModuleMember.
-    FunctionsToExport = '*'
+    FunctionsToExport = @(
+        'Get-VhcArchiveTier',
+        'Get-VhcBackupSessions',
+        'Get-VhcCapacityTier',
+        'Get-VhcConcurrencyData',
+        'Get-VhcEntraId',
+        'Get-VhcJob',
+        'Get-VhcLicense',
+        'Get-VhcMajorVersion',
+        'Get-VhcMalwareDetection',
+        'Get-VhcProtectedWorkloads',
+        'Get-VhcRegistrySettings',
+        'Get-VhcRepository',
+        'Get-VhcSecurityCompliance',
+        'Get-VhcServer',
+        'Get-VhcSessionReport',
+        'Get-VhcTrafficRules',
+        'Get-VhcUserRoles',
+        'Get-VhcVbrInfo',
+        'Get-VhcWanAccelerator',
+        'Initialize-VhcModule',
+        'Invoke-VhcCollector',
+        'Invoke-VhcConcurrencyAnalysis',
+        'Write-LogFile'
+    )
 }
