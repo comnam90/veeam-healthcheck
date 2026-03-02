@@ -71,7 +71,7 @@ function Get-VhcRepository {
 
         $SOBROutput = $SOBRs | Select-Object -Property `
             "PolicyType",
-            @{n = "Extents"; e = { $SOBRs.extent.name -as [String] } },
+            @{n = "Extents"; e = { ($_.Extent.Name -join ", ") } },
             "UsePerVMBackupFiles", "PerformFullWhenExtentOffline", "EnableCapacityTier",
             "OperationalRestorePeriod", "OverridePolicyEnabled", "OverrideSpaceThreshold",
             "OffloadWindowOptions", "CapacityExtent", "EncryptionEnabled", "EncryptionKey",
