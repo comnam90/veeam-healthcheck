@@ -198,10 +198,11 @@ input parameters in the concurrency sub-collectors use
 `[Parameter(Mandatory = $false)] [object[]] $Param = @()` to accept empty
 arrays from environments with no proxies of a given type.
 
-**UTF-8 BOM**
-PS 5.1 reads `.ps1` files without a UTF-8 BOM as Windows-1252. Non-ASCII
-characters in string literals cause a `ParseException`. All files in this
-module must be saved as **UTF-8 with BOM**.
+**Encoding requirements**
+PS 5.1 reads `.ps1` files as Windows-1252 by default. Non-ASCII characters in
+string literals cause a `ParseException`. A UTF-8 BOM is itself non-ASCII and
+will also trigger the CI encoding test. All files in this module must contain
+**only ASCII characters** and must **not include a UTF-8 BOM**.
 
 **`[pscustomobject][ordered]@{}`**
 All output objects use `[pscustomobject][ordered]@{}` to ensure deterministic
