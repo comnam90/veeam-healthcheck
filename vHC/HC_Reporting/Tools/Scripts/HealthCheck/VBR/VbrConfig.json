@@ -2,7 +2,6 @@
   "ConfigVersion": 1,
   "LogLevel": "INFO",
   "DefaultOutputPath": "C:\\temp\\vHC\\Original\\VBR",
-  "ReportingIntervalDays": 14,
   "Thresholds": {
     "VpProxyRAMPerTask": 1,
     "VpProxyCPUPerTask": 0.5,
