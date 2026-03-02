@@ -167,7 +167,9 @@ namespace VhcXTests.Integration
                 Assert.Fail($"vHC-VbrConfig module directory not found at: {modulePath}");
             }
 
-            var scripts = Directory.GetFiles(modulePath, "*.ps1", SearchOption.AllDirectories);
+            var ps1Files  = Directory.GetFiles(modulePath, "*.ps1",  SearchOption.AllDirectories);
+            var psm1Files = Directory.GetFiles(modulePath, "*.psm1", SearchOption.AllDirectories);
+            var scripts   = ps1Files.Concat(psm1Files).ToArray();
             Assert.NotEmpty(scripts);
 
             foreach (var scriptPath in scripts)
