@@ -67,11 +67,13 @@ versions below 13 require PS 5.1 (the Orchestrator enforces this at runtime).
 The Veeam PS snapin is used under PS 5.1; the `Veeam.Backup.PowerShell` module
 is used under PS 7+.
 
-**UTF-8 BOM requirement**
-PS 5.1 reads `.ps1` files without a UTF-8 BOM as Windows-1252. Any non-ASCII
-characters (em dashes, arrows, smart quotes, etc.) in string literals will
-cause a parse error. All scripts in this directory and in `vHC-VbrConfig\` must
-be saved as **UTF-8 with BOM**.
+**Encoding requirements**
+PS 5.1 reads `.ps1` files as Windows-1252 by default. Non-ASCII characters
+(em dashes, arrows, smart quotes, etc.) in string literals cause a parse error.
+A UTF-8 BOM is itself non-ASCII and will also trigger the encoding test
+(`AllVbrScripts_ShouldContainOnlyAsciiCharacters`). All scripts in this
+directory and in `vHC-VbrConfig\` must contain **only ASCII characters** and
+must **not include a UTF-8 BOM**.
 
 **`$ErrorActionPreference = 'Stop'` and `Set-StrictMode -Version Latest`**
 Both are set in `VBR-Orchestrator.ps1` and inherited by module functions. This
