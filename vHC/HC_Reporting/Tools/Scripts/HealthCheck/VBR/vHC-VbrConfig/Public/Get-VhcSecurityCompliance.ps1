@@ -64,8 +64,8 @@ function Get-VhcSecurityCompliance {
         # ---------------------------------------------------------------
         # Poll for results (max 45 s, every 3 s)
         # ---------------------------------------------------------------
-        $maxWaitSeconds    = 45
-        $pollIntervalSeconds = 3
+        $maxWaitSeconds      = if ($Config.Thresholds.CompliancePollMaxSeconds)      { [int]$Config.Thresholds.CompliancePollMaxSeconds }      else { 45 }
+        $pollIntervalSeconds = if ($Config.Thresholds.CompliancePollIntervalSeconds) { [int]$Config.Thresholds.CompliancePollIntervalSeconds } else { 3 }
         $elapsed           = 0
         $SecurityCompliances = $null
         Write-LogFile "Polling for scan results (max ${maxWaitSeconds}s, every ${pollIntervalSeconds}s)..."
