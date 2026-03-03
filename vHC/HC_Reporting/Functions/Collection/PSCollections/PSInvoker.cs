@@ -460,7 +460,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
 
             if (CGlobals.REMOTEEXEC)
             {
-                argString += "-RemoteExecution $true ";
+                argString += "-RemoteExecution ";
             }
 
             // Add ReportPath parameter

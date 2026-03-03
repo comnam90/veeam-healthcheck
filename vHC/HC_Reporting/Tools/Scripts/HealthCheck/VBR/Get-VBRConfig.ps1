@@ -30,7 +30,7 @@ param(
     [string]$PasswordBase64 = "",
 
     [Parameter(Mandatory = $false)]
-    [bool]$RemoteExecution = $false,
+    [switch]$RemoteExecution,
 
     [Parameter(Mandatory = $false)]
     [string]$ReportPath = "",
@@ -203,7 +203,7 @@ $collectorResults.Add((Invoke-VhcCollector -Name 'CapacityTier'     -Action { Ge
 $collectorResults.Add((Invoke-VhcCollector -Name 'ArchiveTier'      -Action { Get-VhcArchiveTier }))
 $collectorResults.Add((Invoke-VhcCollector -Name 'TrafficRules'     -Action { Get-VhcTrafficRules }))
 $collectorResults.Add((Invoke-VhcCollector -Name 'RegistrySettings' -Action {
-    Get-VhcRegistrySettings -RemoteExecution $RemoteExecution
+    Get-VhcRegistrySettings -RemoteExecution $RemoteExecution.IsPresent
 }))
 
 $repoResult = Invoke-VhcCollector -Name 'Repository' -Action { Get-VhcRepository -VBRVersion $VBRVersion }
@@ -252,7 +252,7 @@ $collectorResults.Add((Invoke-VhcCollector -Name 'ProtectedWorkloads' -Action { 
 # ---------------------------------------------------------------------------
 
 # VbrInfo runs last - reads many registry paths that must not block earlier collectors
-$collectorResults.Add((Invoke-VhcCollector -Name 'VbrInfo' -Action { Get-VhcVbrInfo -VBRVersion $VBRVersion -RemoteExecution $RemoteExecution }))
+$collectorResults.Add((Invoke-VhcCollector -Name 'VbrInfo' -Action { Get-VhcVbrInfo -VBRVersion $VBRVersion -RemoteExecution $RemoteExecution.IsPresent }))
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
