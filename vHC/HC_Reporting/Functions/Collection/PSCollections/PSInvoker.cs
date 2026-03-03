@@ -457,7 +457,12 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
             {
                 argString += "-RescanHosts ";
             }
-            
+
+            if (CGlobals.REMOTEEXEC)
+            {
+                argString += "-RemoteExecution $true ";
+            }
+
             // Add ReportPath parameter
             if (!string.IsNullOrEmpty(CVariables.vbrDir))
             {
