@@ -590,7 +590,17 @@ namespace VeeamHealthCheck.Html.VBR
             // header
             s += this.form.TableHeader("Installed Apps", string.Empty);
             s += this.form.TableHeaderEnd();
-            s += this.form.TableData("See <a href=\"" + WebUtility.HtmlEncode(CVariables.unsafeDir) + @"\Log\" + "\">Veeam.HealthCheck.ServerApplications log file</a> at " + WebUtility.HtmlEncode(CVariables.unsafeDir) + @"\Log\", string.Empty);
+            var logDirPath = Path.Combine(CVariables.unsafeDir, "Log") + Path.DirectorySeparatorChar;
+            string logDirHref;
+            try
+            {
+                logDirHref = new Uri(logDirPath).AbsoluteUri;
+            }
+            catch (UriFormatException)
+            {
+                logDirHref = WebUtility.HtmlEncode(logDirPath);
+            }
+            s += this.form.TableData("See <a href=\"" + logDirHref + "\">Veeam.HealthCheck.ServerApplications log file</a> at " + WebUtility.HtmlEncode(logDirPath), string.Empty);
             s += this.form.EndTable();
             return s;
         }
