@@ -29,9 +29,9 @@ vHC-VbrConfig\
 ```
 
 The `.psm1` dot-sources every `.ps1` file in `Public\` and `Private\` at load
-time. Only functions whose filename (without extension) is in `Public\` are
-exported via `Export-ModuleMember`. Adding a new function to `Public\` is
-sufficient to export it — no manifest edit required.
+time. The manifest (`vHC-VbrConfig.psd1`) defines an explicit `FunctionsToExport`
+list. Adding a new public function requires two steps: place the `.ps1` file in
+`Public\` **and** add the function name to `FunctionsToExport` in the manifest.
 
 ---
 
