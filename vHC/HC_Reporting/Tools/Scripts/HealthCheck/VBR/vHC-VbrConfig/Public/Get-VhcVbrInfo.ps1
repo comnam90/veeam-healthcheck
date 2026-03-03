@@ -11,7 +11,8 @@ function Get-VhcVbrInfo {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)] [int] $VBRVersion
+        [Parameter(Mandatory)] [int] $VBRVersion,
+        [Parameter(Mandatory = $false)] [bool] $RemoteExecution = $false
     )
 
     Write-LogFile "Collecting VBR Version info... (VBRVersion=$VBRVersion)"
@@ -53,15 +54,30 @@ function Get-VhcVbrInfo {
         }
 
         # DLL version and patch notes
-        $coreRegPath = Get-ItemProperty -Path "HKLM:\Software\Veeam\Veeam Backup and Replication\" `
-                                        -Name "CorePath" -ErrorAction SilentlyContinue
-        if ($coreRegPath) {
-            $dllPath = Join-Path -Path $coreRegPath.CorePath -ChildPath "Veeam.Backup.Core.dll" -Resolve -ErrorAction SilentlyContinue
-            if ($dllPath) {
-                $dllFile = Get-Item -Path $dllPath -ErrorAction SilentlyContinue
-                if ($dllFile) {
-                    $version = $dllFile.VersionInfo.ProductVersion
-                    $fixes   = $dllFile.VersionInfo.Comments
+        # TODO: Replace this entire block with a REST API call to GET /api/v1/serverInfo
+        # (default port 9419) once REST API collection is implemented. The response
+        # provides buildVersion, patches, and databaseVendor without registry access,
+        # making it the correct long-term solution for both local and remote runs.
+        if ($RemoteExecution) {
+            # Short-term workaround: registry is not accessible in remote sessions;
+            # use the VBR PowerShell API instead (same source as Get-VhcMajorVersion).
+            try {
+                $backupServer = Get-VBRBackupServerInfo
+                $version = $backupServer.Build.ToString()
+            } catch {
+                Write-LogFile "Get-VhcVbrInfo: remote version detection via Get-VBRBackupServerInfo failed: $($_.Exception.Message)" -LogLevel "WARNING"
+            }
+        } else {
+            $coreRegPath = Get-ItemProperty -Path "HKLM:\Software\Veeam\Veeam Backup and Replication\" `
+                                            -Name "CorePath" -ErrorAction SilentlyContinue
+            if ($coreRegPath) {
+                $dllPath = Join-Path -Path $coreRegPath.CorePath -ChildPath "Veeam.Backup.Core.dll" -Resolve -ErrorAction SilentlyContinue
+                if ($dllPath) {
+                    $dllFile = Get-Item -Path $dllPath -ErrorAction SilentlyContinue
+                    if ($dllFile) {
+                        $version = $dllFile.VersionInfo.ProductVersion
+                        $fixes   = $dllFile.VersionInfo.Comments
+                    }
                 }
             }
         }

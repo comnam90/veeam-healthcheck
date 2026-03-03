@@ -252,7 +252,7 @@ $collectorResults.Add((Invoke-VhcCollector -Name 'ProtectedWorkloads' -Action { 
 # ---------------------------------------------------------------------------
 
 # VbrInfo runs last - reads many registry paths that must not block earlier collectors
-$collectorResults.Add((Invoke-VhcCollector -Name 'VbrInfo' -Action { Get-VhcVbrInfo -VBRVersion $VBRVersion }))
+$collectorResults.Add((Invoke-VhcCollector -Name 'VbrInfo' -Action { Get-VhcVbrInfo -VBRVersion $VBRVersion -RemoteExecution $RemoteExecution }))
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
