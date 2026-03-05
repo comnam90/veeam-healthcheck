@@ -2,8 +2,11 @@
 // MIT License
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using CsvHelper;
+using CsvHelper.Configuration;
 using VeeamHealthCheck.Shared;
 using VeeamHealthCheck.Shared.Logging;
 
@@ -267,39 +270,15 @@ namespace VeeamHealthCheck.Functions.Collection
                 _log.Info($"{_logPrefix}Loading collection manifest: {manifestPath}");
 
                 var entries = new List<CCollectionManifestEntry>();
-                var lines = File.ReadAllLines(manifestPath);
 
-                // Parse CSV manually: first line is header, subsequent lines are data
-                if (lines.Length < 2)
+                var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
-                    _log.Info($"{_logPrefix}Collection manifest is empty.");
-                    CGlobals.CollectionManifest = entries;
-                    return;
-                }
-
-                // Header: Name,Success,DurationSeconds,Error,Timestamp
-                for (int i = 1; i < lines.Length; i++)
-                {
-                    string line = lines[i].Trim();
-                    if (string.IsNullOrEmpty(line)) continue;
-
-                    // Split respecting quoted fields
-                    var fields = SplitCsvLine(line);
-                    if (fields.Length < 5) continue;
-
-                    bool success = string.Equals(fields[1], "True", StringComparison.OrdinalIgnoreCase);
-                    double.TryParse(fields[2], System.Globalization.NumberStyles.Any,
-                        System.Globalization.CultureInfo.InvariantCulture, out double duration);
-
-                    entries.Add(new CCollectionManifestEntry
-                    {
-                        Name            = fields[0],
-                        Success         = success,
-                        DurationSeconds = duration,
-                        Error           = fields[3],
-                        Timestamp       = fields[4]
-                    });
-                }
+                    HasHeaderRecord = true,
+                    MissingFieldFound = null,
+                };
+                using var reader = new StreamReader(manifestPath, System.Text.Encoding.UTF8);
+                using var csv = new CsvReader(reader, csvConfig);
+                entries = csv.GetRecords<CCollectionManifestEntry>().ToList();
 
                 CGlobals.CollectionManifest = entries;
 
@@ -323,40 +302,5 @@ namespace VeeamHealthCheck.Functions.Collection
             }
         }
 
-        private static string[] SplitCsvLine(string line)
-        {
-            var fields = new List<string>();
-            bool inQuotes = false;
-            var current = new System.Text.StringBuilder();
-
-            for (int i = 0; i < line.Length; i++)
-            {
-                char c = line[i];
-                if (c == '"')
-                {
-                    // Handle escaped quotes ("")
-                    if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
-                    {
-                        current.Append('"');
-                        i++;
-                    }
-                    else
-                    {
-                        inQuotes = !inQuotes;
-                    }
-                }
-                else if (c == ',' && !inQuotes)
-                {
-                    fields.Add(current.ToString());
-                    current.Clear();
-                }
-                else
-                {
-                    current.Append(c);
-                }
-            }
-            fields.Add(current.ToString());
-            return fields.ToArray();
-        }
     }
 }

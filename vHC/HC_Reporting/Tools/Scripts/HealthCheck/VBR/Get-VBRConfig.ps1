@@ -288,11 +288,14 @@ foreach ($e in (Get-VhcModuleErrors)) {
 
 $manifest = foreach ($r in $collectorResults) {
     $caughtError = $moduleErrorMap[$r.Name]
+    $rawError    = if ($r.Error) { $r.Error } elseif ($caughtError) { $caughtError } else { $null }
+    # Strip embedded newlines so each manifest row occupies exactly one CSV line.
+    $errorStr    = if ($rawError) { ($rawError -replace '[\r\n]+', ' ').Trim() } else { $null }
     [PSCustomObject]@{
         Name            = $r.Name
         Success         = $r.Success -and (-not $caughtError)
         DurationSeconds = [math]::Round($r.Duration.TotalSeconds, 2)
-        Error           = if ($r.Error) { $r.Error } elseif ($caughtError) { $caughtError } else { $null }
+        Error           = $errorStr
         Timestamp       = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
     }
 }
