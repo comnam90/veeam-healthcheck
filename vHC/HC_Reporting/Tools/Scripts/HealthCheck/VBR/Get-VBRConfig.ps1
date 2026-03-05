@@ -275,9 +275,16 @@ if ($collectorResults.Count -gt 0) {
 
 # Build manifest: merge Invoke-VhcCollector results with module-level error registry.
 # $collectorResults tracks unhandled exceptions (catastrophic failures).
-# $script:ModuleErrors tracks internally-caught failures from public functions.
+# Get-VhcModuleErrors returns internally-caught failures from public functions.
+# Multiple errors for the same collector are joined with '; ' so none are lost.
 $moduleErrorMap = @{}
-foreach ($e in $script:ModuleErrors) { $moduleErrorMap[$e.CollectorName] = $e.Error }
+foreach ($e in (Get-VhcModuleErrors)) {
+    if ($moduleErrorMap.ContainsKey($e.CollectorName)) {
+        $moduleErrorMap[$e.CollectorName] = "$($moduleErrorMap[$e.CollectorName]); $($e.Error)"
+    } else {
+        $moduleErrorMap[$e.CollectorName] = $e.Error
+    }
+}
 
 $manifest = foreach ($r in $collectorResults) {
     $caughtError = $moduleErrorMap[$r.Name]
