@@ -3,8 +3,8 @@
 function Get-VhcCatalystJob {
     <#
     .Synopsis
-        Collects Catalyst copy jobs and Catalyst jobs.
-        Exports _catCopyjob.csv, _catalystJob.csv.
+        Collects Catalyst copy jobs.
+        Exports _catCopyjob.csv.
         Source: Get-VBRConfig.ps1 lines 1102-1122.
     #>
     [CmdletBinding()]
@@ -14,10 +14,8 @@ function Get-VhcCatalystJob {
     Write-LogFile $message
 
     $catCopy = Get-VBRCatalystCopyJob
-    $catJob  = Get-VBRCatalystJob
 
     $catCopy | Export-VhcCsv -FileName '_catCopyjob.csv'
-    $catJob  | Export-VhcCsv -FileName '_catalystJob.csv'
 
     Write-LogFile ($message + "DONE")
 }
