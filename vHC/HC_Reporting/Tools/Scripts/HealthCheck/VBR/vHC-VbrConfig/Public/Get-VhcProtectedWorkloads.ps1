@@ -47,6 +47,11 @@ function Get-VhcProtectedWorkloads {
     }
     catch {
         Write-LogFile "Failed on VMware workloads: $($_.Exception.Message)" -LogLevel "ERROR"
+        $script:ModuleErrors.Add([PSCustomObject]@{
+            CollectorName = 'ProtectedWorkloads'
+            Error         = $_.Exception.Message
+            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
+        })
     }
 
     # Hyper-V workloads
@@ -73,6 +78,11 @@ function Get-VhcProtectedWorkloads {
     }
     catch {
         Write-LogFile "Failed on Hyper-V workloads: $($_.Exception.Message)" -LogLevel "ERROR"
+        $script:ModuleErrors.Add([PSCustomObject]@{
+            CollectorName = 'ProtectedWorkloads'
+            Error         = $_.Exception.Message
+            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
+        })
     }
 
     # Physical workloads
@@ -96,6 +106,11 @@ function Get-VhcProtectedWorkloads {
     }
     catch {
         Write-LogFile "Failed on physical workloads: $($_.Exception.Message)" -LogLevel "ERROR"
+        $script:ModuleErrors.Add([PSCustomObject]@{
+            CollectorName = 'ProtectedWorkloads'
+            Error         = $_.Exception.Message
+            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
+        })
     }
 
     Write-LogFile "Exporting Protected Workloads files..."

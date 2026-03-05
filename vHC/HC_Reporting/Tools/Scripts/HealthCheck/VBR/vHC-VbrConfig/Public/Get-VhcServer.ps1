@@ -34,6 +34,11 @@ function Get-VhcServer {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
+        $script:ModuleErrors.Add([PSCustomObject]@{
+            CollectorName = 'Server'
+            Error         = $_.Exception.Message
+            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
+        })
         return $null
     }
 }

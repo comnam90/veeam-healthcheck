@@ -18,6 +18,11 @@ function Get-VhcMajorVersion {
         $buildMajor   = [int]$backupServer.Build.Major
     } catch {
         Write-LogFile "Get-VhcMajorVersion: failed to call Get-VBRBackupServerInfo: $($_.Exception.Message)" -LogLevel "ERROR"
+        $script:ModuleErrors.Add([PSCustomObject]@{
+            CollectorName = 'VbrInfo'
+            Error         = $_.Exception.Message
+            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
+        })
         return 0
     }
 
@@ -52,6 +57,11 @@ function Get-VhcMajorVersion {
             Write-LogFile "Falling back to BackupServerInfo major version: $buildMajor" -LogLevel "WARNING"
             return $buildMajor
         }
+        $script:ModuleErrors.Add([PSCustomObject]@{
+            CollectorName = 'VbrInfo'
+            Error         = $_.Exception.Message
+            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
+        })
         return 0
     }
 }

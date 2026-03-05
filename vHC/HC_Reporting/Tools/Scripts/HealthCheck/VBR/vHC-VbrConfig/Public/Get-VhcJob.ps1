@@ -42,12 +42,22 @@ function Get-VhcJob {
         $Jobs = Get-VBRJob -WarningAction SilentlyContinue
     } catch {
         Write-LogFile "Main jobs collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
+        $script:ModuleErrors.Add([PSCustomObject]@{
+            CollectorName = 'Jobs'
+            Error         = $_.Exception.Message
+            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
+        })
     }
 
     try {
         $configBackup = Get-VBRConfigurationBackupJob
     } catch {
         Write-LogFile "Configuration Backup Job collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
+        $script:ModuleErrors.Add([PSCustomObject]@{
+            CollectorName = 'Jobs'
+            Error         = $_.Exception.Message
+            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
+        })
     }
 
     # ------------------------------------------------------------------

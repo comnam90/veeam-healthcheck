@@ -23,10 +23,11 @@ function Initialize-VhcModule {
         [Parameter(Mandatory = $false)] [string] $LogPath = "C:\temp\vHC\Original\Log"
     )
 
-    $script:ReportPath = $ReportPath
-    $script:VBRServer  = $VBRServer
-    $script:LogLevel   = $LogLevel
-    $script:LogPath    = $LogPath
+    $script:ReportPath   = $ReportPath
+    $script:VBRServer    = $VBRServer
+    $script:LogLevel     = $LogLevel
+    $script:LogPath      = $LogPath
+    $script:ModuleErrors = [System.Collections.Generic.List[PSCustomObject]]::new()
 
     if (-not (Test-Path $ReportPath)) {
         New-Item -Path $ReportPath -ItemType Directory -Force | Out-Null

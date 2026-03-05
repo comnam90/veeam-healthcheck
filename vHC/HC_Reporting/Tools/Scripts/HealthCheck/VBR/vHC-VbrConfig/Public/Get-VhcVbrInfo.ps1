@@ -83,6 +83,11 @@ function Get-VhcVbrInfo {
         }
     } catch {
         Write-LogFile "Get-VhcVbrInfo: failed to read registry values: $($_.Exception.Message)" -LogLevel "WARNING"
+        $script:ModuleErrors.Add([PSCustomObject]@{
+            CollectorName = 'VbrInfo'
+            Error         = $_.Exception.Message
+            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
+        })
     }
 
     # MFA global setting - only available on VBR 12+; fails gracefully on earlier versions

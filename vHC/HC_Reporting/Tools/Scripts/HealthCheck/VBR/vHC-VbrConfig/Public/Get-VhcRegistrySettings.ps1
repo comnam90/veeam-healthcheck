@@ -39,6 +39,11 @@ function Get-VhcRegistrySettings {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
+        $script:ModuleErrors.Add([PSCustomObject]@{
+            CollectorName = 'RegistrySettings'
+            Error         = $_.Exception.Message
+            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
+        })
     }
 
     $output | Export-VhcCsv -FileName '_regkeys.csv'
