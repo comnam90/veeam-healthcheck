@@ -21,12 +21,11 @@ function Get-VhcNasJob {
     $nasBackup = $null
     $nasBCJ    = $null
 
-    try {
-        Write-LogFile "Calling Get-VBRUnstructuredBackupJob..."
-        $nasBackup = Get-VBRUnstructuredBackupJob
-        Write-LogFile "Found $(@($nasBackup).Count) NAS backup jobs"
+    Write-LogFile "Calling Get-VBRUnstructuredBackupJob..."
+    $nasBackup = Get-VBRUnstructuredBackupJob
+    Write-LogFile "Found $(@($nasBackup).Count) NAS backup jobs"
 
-        if (@($nasBackup).Count -gt 0) {
+    if (@($nasBackup).Count -gt 0) {
             Write-LogFile "Fetching NAS backup sessions for the last $ReportInterval days..."
             $cutoffDate = (Get-Date).AddDays(-$ReportInterval)
 
@@ -78,18 +77,10 @@ function Get-VhcNasJob {
                 $job | Add-Member -MemberType NoteProperty -Name OnDiskGB -Value $onDiskGB    -Force
                 $job | Add-Member -MemberType NoteProperty -Name SourceGB -Value $sourceGb    -Force
             }
-        }
-    } catch {
-        Write-LogFile "NAS Jobs collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        $nasBackup = $null
     }
 
-    try {
-        $nasBCJ = Get-VBRNASBackupCopyJob
-        Write-LogFile "Found $(@($nasBCJ).Count) NAS backup copy jobs"
-    } catch {
-        Write-LogFile "NAS Backup Copy Jobs collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
+    $nasBCJ = Get-VBRNASBackupCopyJob
+    Write-LogFile "Found $(@($nasBCJ).Count) NAS backup copy jobs"
 
     $nasBackup | Export-VhcCsv -FileName '_nasBackup.csv'
     $nasBCJ    | Export-VhcCsv -FileName '_nasBCJ.csv'

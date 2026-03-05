@@ -19,30 +19,12 @@ function Get-VhcReplication {
     $message = "Collecting replication data..."
     Write-LogFile $message
 
-    $replicaJobs  = $null
-    $replicas     = $null
-    $failoverPlans = $null
-
-    try {
-        $replicaJobs = @($Jobs) | Where-Object { $_.JobType -eq "Replica" }
-        Write-LogFile "Found $(@($replicaJobs).Count) replica jobs"
-    } catch {
-        Write-LogFile "Replica Jobs collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
-
-    try {
-        $replicas = Get-VBRReplica
-        Write-LogFile "Found $(@($replicas).Count) replicas"
-    } catch {
-        Write-LogFile "Replicas collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
-
-    try {
-        $failoverPlans = Get-VBRFailoverPlan
-        Write-LogFile "Found $(@($failoverPlans).Count) failover plans"
-    } catch {
-        Write-LogFile "Failover Plans collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
+    $replicaJobs = @($Jobs) | Where-Object { $_.JobType -eq "Replica" }
+    Write-LogFile "Found $(@($replicaJobs).Count) replica jobs"
+    $replicas = Get-VBRReplica
+    Write-LogFile "Found $(@($replicas).Count) replicas"
+    $failoverPlans = Get-VBRFailoverPlan
+    Write-LogFile "Found $(@($failoverPlans).Count) failover plans"
 
     $replicaJobs  | Export-VhcCsv -FileName '_ReplicaJobs.csv'
     $replicas      | Export-VhcCsv -FileName '_Replicas.csv'

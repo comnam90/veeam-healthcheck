@@ -23,11 +23,10 @@ function Get-VhcRepoGateway {
     $message = "Calculating Repository and GW Data..."
     Write-LogFile $message
 
-    try {
-        $RepoData = [System.Collections.Generic.List[PSCustomObject]]::new()
-        $GWData   = [System.Collections.Generic.List[PSCustomObject]]::new()
+    $RepoData = [System.Collections.Generic.List[PSCustomObject]]::new()
+    $GWData   = [System.Collections.Generic.List[PSCustomObject]]::new()
 
-        foreach ($Repository in $Repositories) {
+    foreach ($Repository in $Repositories) {
             $NrofRepositoryTasks = $Repository.Options.MaxTaskCount
             $gatewayServers      = $Repository.GetActualGateways()
             $NrofgatewayServers  = $gatewayServers.Count
@@ -111,11 +110,7 @@ function Get-VhcRepoGateway {
             }
         }
 
-        Write-LogFile ($message + "DONE")
-        $RepoData | Export-VhcCsv -FileName '_RepositoryServers.csv'
-        $GWData   | Export-VhcCsv -FileName '_Gateways.csv'
-    } catch {
-        Write-LogFile ($message + "FAILED!")
-        Write-LogFile $_.Exception.Message -LogLevel "ERROR"
-    }
+    Write-LogFile ($message + "DONE")
+    $RepoData | Export-VhcCsv -FileName '_RepositoryServers.csv'
+    $GWData   | Export-VhcCsv -FileName '_Gateways.csv'
 }

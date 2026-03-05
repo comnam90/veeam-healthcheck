@@ -15,30 +15,12 @@ function Get-VhcSureBackup {
     $message = "Collecting SureBackup data..."
     Write-LogFile $message
 
-    $sbJob        = $null
-    $sbAppGroups  = $null
-    $sbVirtualLabs = $null
-
-    try {
-        $sbJob = Get-VBRSureBackupJob
-        Write-LogFile "Found $(@($sbJob).Count) SureBackup jobs"
-    } catch {
-        Write-LogFile "SureBackup Jobs collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
-
-    try {
-        $sbAppGroups = Get-VBRApplicationGroup
-        Write-LogFile "Found $(@($sbAppGroups).Count) SureBackup application groups"
-    } catch {
-        Write-LogFile "SureBackup Application Groups collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
-
-    try {
-        $sbVirtualLabs = Get-VBRVirtualLab
-        Write-LogFile "Found $(@($sbVirtualLabs).Count) SureBackup virtual labs"
-    } catch {
-        Write-LogFile "SureBackup Virtual Labs collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
+    $sbJob = Get-VBRSureBackupJob
+    Write-LogFile "Found $(@($sbJob).Count) SureBackup jobs"
+    $sbAppGroups = Get-VBRApplicationGroup
+    Write-LogFile "Found $(@($sbAppGroups).Count) SureBackup application groups"
+    $sbVirtualLabs = Get-VBRVirtualLab
+    Write-LogFile "Found $(@($sbVirtualLabs).Count) SureBackup virtual labs"
 
     $sbJob         | Export-VhcCsv -FileName '_SureBackupJob.csv'
     $sbAppGroups   | Export-VhcCsv -FileName '_SureBackupAppGroups.csv'

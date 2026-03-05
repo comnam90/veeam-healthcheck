@@ -13,20 +13,8 @@ function Get-VhcCatalystJob {
     $message = "Collecting Catalyst jobs..."
     Write-LogFile $message
 
-    $catCopy = $null
-    $catJob  = $null
-
-    try {
-        $catCopy = Get-VBRCatalystCopyJob
-    } catch {
-        Write-LogFile "Catalyst Copy Job collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
-
-    try {
-        $catJob = Get-VBRCatalystJob
-    } catch {
-        Write-LogFile "Catalyst Job collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
+    $catCopy = Get-VBRCatalystCopyJob
+    $catJob  = Get-VBRCatalystJob
 
     $catCopy | Export-VhcCsv -FileName '_catCopyjob.csv'
     $catJob  | Export-VhcCsv -FileName '_catalystJob.csv'

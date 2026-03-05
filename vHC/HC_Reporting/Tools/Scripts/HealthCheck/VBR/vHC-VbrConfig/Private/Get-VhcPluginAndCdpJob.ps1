@@ -13,30 +13,12 @@ function Get-VhcPluginAndCdpJob {
     $message = "Collecting plugin, CDP, and VCD jobs..."
     Write-LogFile $message
 
-    $piJob  = $null
-    $cdpJob = $null
-    $vcdJob = $null
-
-    try {
-        $piJob = Get-VBRPluginJob
-        Write-LogFile "Found $(@($piJob).Count) plugin jobs"
-    } catch {
-        Write-LogFile "Plugin Jobs collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
-
-    try {
-        $cdpJob = Get-VBRCDPPolicy
-        Write-LogFile "Found $(@($cdpJob).Count) CDP policies"
-    } catch {
-        Write-LogFile "CDP Policy collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
-
-    try {
-        $vcdJob = Get-VBRvCDReplicaJob
-        Write-LogFile "Found $(@($vcdJob).Count) VCD replica jobs"
-    } catch {
-        Write-LogFile "VCD Replica Jobs collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
+    $piJob  = Get-VBRPluginJob
+    Write-LogFile "Found $(@($piJob).Count) plugin jobs"
+    $cdpJob = Get-VBRCDPPolicy
+    Write-LogFile "Found $(@($cdpJob).Count) CDP policies"
+    $vcdJob = Get-VBRvCDReplicaJob
+    Write-LogFile "Found $(@($vcdJob).Count) VCD replica jobs"
 
     $piJob | Export-VhcCsv -FileName '_pluginjobs.csv'
 

@@ -14,23 +14,11 @@ function Get-VhcCredentialsAndNotifications {
     $message = "Collecting credentials and notification settings..."
     Write-LogFile $message
 
-    $emailNotification = $null
-    $credentials       = $null
-
-    try {
-        $emailNotification = Get-VBRMailNotificationConfiguration
-        Write-LogFile "Email notification settings collected"
-    } catch {
-        Write-LogFile "Email Notification Settings collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
-
-    try {
-        $credentials = Get-VBRCredentials |
-            Select-Object Name, UserName, Description, CurrentUser, LastModified
-        Write-LogFile "Found $(@($credentials).Count) credentials"
-    } catch {
-        Write-LogFile "Credentials collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
+    $emailNotification = Get-VBRMailNotificationConfiguration
+    Write-LogFile "Email notification settings collected"
+    $credentials = Get-VBRCredentials |
+        Select-Object Name, UserName, Description, CurrentUser, LastModified
+    Write-LogFile "Found $(@($credentials).Count) credentials"
 
     $emailNotification | Export-VhcCsv -FileName '_EmailNotification.csv'
     $credentials       | Export-VhcCsv -FileName '_Credentials.csv'

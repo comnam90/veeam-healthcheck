@@ -13,22 +13,10 @@ function Get-VhcCloudConnect {
     $message = "Collecting Cloud Connect data..."
     Write-LogFile $message
 
-    $cloudGateways = $null
-    $cloudTenants  = $null
-
-    try {
-        $cloudGateways = Get-VBRCloudGateway
-        Write-LogFile "Found $(@($cloudGateways).Count) cloud gateways"
-    } catch {
-        Write-LogFile "Cloud Connect Gateways collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
-
-    try {
-        $cloudTenants = Get-VBRCloudTenant
-        Write-LogFile "Found $(@($cloudTenants).Count) cloud tenants"
-    } catch {
-        Write-LogFile "Cloud Connect Tenants collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
+    $cloudGateways = Get-VBRCloudGateway
+    Write-LogFile "Found $(@($cloudGateways).Count) cloud gateways"
+    $cloudTenants = Get-VBRCloudTenant
+    Write-LogFile "Found $(@($cloudTenants).Count) cloud tenants"
 
     $cloudGateways | Export-VhcCsv -FileName '_CloudGateways.csv'
     $cloudTenants  | Export-VhcCsv -FileName '_CloudTenants.csv'

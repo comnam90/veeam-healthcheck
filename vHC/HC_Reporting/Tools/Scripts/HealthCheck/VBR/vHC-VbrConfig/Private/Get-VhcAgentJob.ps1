@@ -13,20 +13,8 @@ function Get-VhcAgentJob {
     $message = "Collecting agent backup jobs..."
     Write-LogFile $message
 
-    $vaBJob = $null
-    $epJob  = $null
-
-    try {
-        $vaBJob = Get-VBRComputerBackupJob
-    } catch {
-        Write-LogFile "Computer Backup Job collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
-
-    try {
-        $epJob = Get-VBREPJob
-    } catch {
-        Write-LogFile "EP Job collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-    }
+    $vaBJob = Get-VBRComputerBackupJob
+    $epJob  = Get-VBREPJob
 
     $vaBJob | Export-VhcCsv -FileName '_AgentBackupJob.csv'
     $epJob  | Export-VhcCsv -FileName '_EndpointJob.csv'
