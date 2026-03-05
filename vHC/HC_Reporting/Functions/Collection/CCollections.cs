@@ -542,6 +542,21 @@ namespace VeeamHealthCheck.Functions.Collection
         {
             CGlobals.Logger.Info("Entering vbr config collection");
             this.SCRIPTSUCCESS = p.RunVbrConfigCollect();
+
+            if (this.SCRIPTSUCCESS && !string.IsNullOrEmpty(CVariables.vbrDir))
+            {
+                new CCsvValidator(CVariables.vbrDir).LoadManifest(CVariables.vbrDir);
+                var failed = CGlobals.CollectionManifest?.Where(e => !e.Success).ToList();
+                if (failed != null && failed.Count > 0)
+                {
+                    CGlobals.Logger.Warning($"[WARNING] Data collection completed with {failed.Count} failed collector(s):");
+                    foreach (var entry in failed)
+                    {
+                        CGlobals.Logger.Warning($"  - {entry.Name}: {entry.Error}");
+                    }
+                    CGlobals.Logger.Warning("[WARNING] Report sections for these collectors may be incomplete.");
+                }
+            }
         }
 
         private void ExecVb365Scripts(PSInvoker p)
