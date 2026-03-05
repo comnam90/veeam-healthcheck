@@ -273,6 +273,26 @@ if ($collectorResults.Count -gt 0) {
     }
 }
 
+# Build manifest: merge Invoke-VhcCollector results with module-level error registry.
+# $collectorResults tracks unhandled exceptions (catastrophic failures).
+# $script:ModuleErrors tracks internally-caught failures from public functions.
+$moduleErrorMap = @{}
+foreach ($e in $script:ModuleErrors) { $moduleErrorMap[$e.CollectorName] = $e.Error }
+
+$manifest = foreach ($r in $collectorResults) {
+    $caughtError = $moduleErrorMap[$r.Name]
+    [PSCustomObject]@{
+        Name            = $r.Name
+        Success         = $r.Success -and (-not $caughtError)
+        DurationSeconds = [math]::Round($r.Duration.TotalSeconds, 2)
+        Error           = if ($r.Error) { $r.Error } elseif ($caughtError) { $caughtError } else { $null }
+        Timestamp       = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
+    }
+}
+
+$manifest | Export-Csv -Path (Join-Path $ReportPath "${VBRServer}_CollectionManifest.csv") `
+                       -NoTypeInformation -Encoding UTF8
+
 Write-Host "[Get-VBRConfig] Collection complete. Output: $ReportPath"
 } finally {
     Disconnect-VBRServer -ErrorAction SilentlyContinue
