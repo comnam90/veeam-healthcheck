@@ -12,6 +12,7 @@
         'Get-VhcEntraId',
         'Get-VhcJob',
         'Get-VhcLicense',
+        'Get-VhcModuleErrors',
         'Get-VhcMajorVersion',
         'Get-VhcMalwareDetection',
         'Get-VhcProtectedWorkloads',
