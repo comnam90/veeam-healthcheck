@@ -46,29 +46,35 @@ Functions catch for logging, then re-throw. Standalone callers get a terminating
 **Rejected:** Same standalone safety concern as Option A. Callers must always wrap in
 try/catch, which is a burden not present today.
 
-### Option C — Module-scoped error registry (chosen)
+### Option C — Module-scoped error registry with exported accessor (chosen)
 Public functions keep their existing catch (standalone safe). The catch block additionally
 writes a failure record to `$script:ModuleErrors`, a List initialised by `Initialize-VhcModule`.
-`Get-VBRConfig.ps1` reads this registry after all collectors run and merges it with
-`$collectorResults` (which captures `Invoke-VhcCollector`-level failures) to produce an
-accurate `_CollectionManifest.csv`. Private functions, which are module-internal and never
-called standalone, have their try/catch removed so exceptions propagate naturally to their
-calling public function's catch.
+`Get-VBRConfig.ps1` reads this registry after all collectors run via the exported function
+`Get-VhcModuleErrors`, which executes in module scope so `$script:` resolves correctly.
+The results are merged with `$collectorResults` (which captures `Invoke-VhcCollector`-level
+failures) to produce an accurate `_CollectionManifest.csv`. Private functions, which are
+module-internal and never called standalone, propagate exceptions naturally to their calling
+public function's catch. Public functions that call private sub-functions wrap each call
+individually so one sub-function failure does not abort the rest.
 
 **ADR 0006 compatibility:** ADR 0006 reserves `$script:` state for "infrastructure
 configuration set by `Initialize-VhcModule` and consumed only by infrastructure helpers".
 `$script:ModuleErrors` is initialised by `Initialize-VhcModule` and consumed only by the
-orchestrator (`Get-VBRConfig.ps1`) — it is not read or written by any collector to exchange
-business data with another collector. It is analogous to `$script:LogPath`: a piece of
-infrastructure plumbing, not a data channel between collectors.
+orchestrator (`Get-VBRConfig.ps1` via the accessor) — it is not read or written by any
+collector to exchange business data with another collector. It is analogous to `$script:LogPath`:
+a piece of infrastructure plumbing, not a data channel between collectors.
 
 ## Decision
 
 Option C. The module-scoped error registry (`$script:ModuleErrors`) is infrastructure
 initialised by `Initialize-VhcModule`. Public collector functions register failures there
-without altering their standalone behaviour. Private collector functions are unprotected.
-`Get-VBRConfig.ps1` merges both failure sources into `_CollectionManifest.csv`. C# reads
-this manifest to surface per-collector failures in the HTML report and CLI output.
+without altering their standalone behaviour. Private collector functions are unprotected;
+public functions that call private ones wrap each call in an individual try/catch so one
+private failure does not cascade. `Get-VBRConfig.ps1` retrieves the registry via the exported
+accessor `Get-VhcModuleErrors` (required because `$script:` in a calling script resolves to
+that script's own scope, not the module's scope). `Get-VBRConfig.ps1` merges both failure
+sources into `_CollectionManifest.csv`. C# reads this manifest to surface per-collector
+failures in the HTML report and CLI output.
 
 ## Consequences
 
@@ -76,8 +82,15 @@ this manifest to surface per-collector failures in the HTML report and CLI outpu
 * **Good:** All collector failures are captured and visible to the report compiler.
 * **Good:** `Invoke-VhcCollector`'s contract is unchanged; callers need no modification.
 * **Good:** Private functions become simpler (no redundant catch wrapping).
+* **Good:** Individual private sub-function failures in `Get-VhcJob` are isolated — one
+  failure does not abort the remaining sub-collectors or the final CSV export.
 * **Bad:** A new `$script:` variable is introduced, which must be documented as
   infrastructure-only to avoid future misuse (this ADR serves that purpose).
+* **Bad:** `$script:` in PowerShell refers to the *current script file's* scope, not a
+  module's scope. `Get-VBRConfig.ps1` cannot read `$script:ModuleErrors` directly — it
+  would always see an empty variable from its own script scope. The exported function
+  `Get-VhcModuleErrors` is required as an accessor: calling it executes in module scope
+  so `$script:ModuleErrors` resolves to the module's registry.
 * **Bad:** Collector names in `$script:ModuleErrors` entries must match the names used in
   `Invoke-VhcCollector` calls in `Get-VBRConfig.ps1`; this coupling is a convention, not
   enforced by the type system.
@@ -93,5 +106,10 @@ Verified by:
 - Standalone call test: call `Get-VhcLicense` directly without `Invoke-VhcCollector` →
   function still catches, logs, and returns normally; no regression.
 - Private propagation test: `throw "sub error"` in `Get-VhcAgentJob.ps1` → exception
-  reaches `Get-VhcJob`'s top-level catch → registry entry for `Jobs`.
+  reaches `Get-VhcJob`'s per-call try/catch → registry entry for `Jobs`.
+- Partial Jobs failure test: `throw "sub error"` in `Get-VhcCatalystJob.ps1` → remaining
+  sub-collectors (`Get-VhcAgentJob`, etc.) still run; `_Jobs.csv` is still exported.
+- Scope verification: `Get-VhcModuleErrors` called from `Get-VBRConfig.ps1` returns the
+  module's registry (not empty); confirmed by injecting an error and observing it appears
+  in `_CollectionManifest.csv`.
 - Happy path: all collectors succeed → manifest all `Success=True`, no warnings in HTML or CLI.
