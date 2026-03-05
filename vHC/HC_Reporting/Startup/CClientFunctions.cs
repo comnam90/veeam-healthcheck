@@ -340,6 +340,18 @@ namespace VeeamHealthCheck.Startup
                 var validator = new CCsvValidator(CVariables.vbrDir);
                 CGlobals.CsvValidationResults = validator.ValidateVbrCsvFiles();
                 this.LOG.Info(this.logStart + "CSV validation complete.", false);
+
+                // Log collector-failure warnings now that the manifest is loaded.
+                var failed = CGlobals.CollectionManifest?.Where(e => !e.Success).ToList();
+                if (failed != null && failed.Count > 0)
+                {
+                    this.LOG.Warning(this.logStart + $"[WARNING] Data collection completed with {failed.Count} failed collector(s):");
+                    foreach (var entry in failed)
+                    {
+                        this.LOG.Warning(this.logStart + $"  - {entry.Name}: {entry.Error}");
+                    }
+                    this.LOG.Warning(this.logStart + "[WARNING] Report sections for these collectors may be incomplete.");
+                }
             }
             catch (Exception ex)
             {
