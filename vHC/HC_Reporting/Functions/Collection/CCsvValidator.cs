@@ -116,6 +116,8 @@ namespace VeeamHealthCheck.Functions.Collection
 
             LogValidationSummary(results);
 
+            LoadManifest(_csvDirectory);
+
             return results;
         }
 
@@ -242,6 +244,119 @@ namespace VeeamHealthCheck.Functions.Collection
                 .OrderByDescending(r => r.Severity)
                 .Select(r => $"[{r.Severity}] {r.FileName}")
                 .ToList();
+        }
+
+        /// <summary>
+        /// Finds and parses the _CollectionManifest.csv produced by Get-VBRConfig.ps1.
+        /// Stores parsed entries in CGlobals.CollectionManifest and logs warnings for
+        /// any collector that reported Success=false.
+        /// </summary>
+        /// <param name="csvDirectory">Directory containing the manifest file.</param>
+        public void LoadManifest(string csvDirectory)
+        {
+            try
+            {
+                var matches = Directory.GetFiles(csvDirectory, "*_CollectionManifest.csv", SearchOption.AllDirectories);
+                if (matches.Length == 0)
+                {
+                    _log.Info($"{_logPrefix}No _CollectionManifest.csv found — collector-level error surfacing unavailable.");
+                    return;
+                }
+
+                string manifestPath = matches.OrderBy(p => Path.GetFileName(p).Length).First();
+                _log.Info($"{_logPrefix}Loading collection manifest: {manifestPath}");
+
+                var entries = new List<CCollectionManifestEntry>();
+                var lines = File.ReadAllLines(manifestPath);
+
+                // Parse CSV manually: first line is header, subsequent lines are data
+                if (lines.Length < 2)
+                {
+                    _log.Info($"{_logPrefix}Collection manifest is empty.");
+                    CGlobals.CollectionManifest = entries;
+                    return;
+                }
+
+                // Header: Name,Success,DurationSeconds,Error,Timestamp
+                for (int i = 1; i < lines.Length; i++)
+                {
+                    string line = lines[i].Trim();
+                    if (string.IsNullOrEmpty(line)) continue;
+
+                    // Split respecting quoted fields
+                    var fields = SplitCsvLine(line);
+                    if (fields.Length < 5) continue;
+
+                    bool success = string.Equals(fields[1], "True", StringComparison.OrdinalIgnoreCase);
+                    double.TryParse(fields[2], System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture, out double duration);
+
+                    entries.Add(new CCollectionManifestEntry
+                    {
+                        Name            = fields[0],
+                        Success         = success,
+                        DurationSeconds = duration,
+                        Error           = fields[3],
+                        Timestamp       = fields[4]
+                    });
+                }
+
+                CGlobals.CollectionManifest = entries;
+
+                var failed = entries.Where(e => !e.Success).ToList();
+                if (failed.Count > 0)
+                {
+                    _log.Warning($"{_logPrefix}Collection manifest loaded: {failed.Count} collector(s) reported failures.");
+                    foreach (var e in failed)
+                    {
+                        _log.Warning($"{_logPrefix}  [{e.Name}] {e.Error}");
+                    }
+                }
+                else
+                {
+                    _log.Info($"{_logPrefix}Collection manifest loaded: all {entries.Count} collectors succeeded.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"{_logPrefix}Failed to load collection manifest: {ex.Message}");
+            }
+        }
+
+        private static string[] SplitCsvLine(string line)
+        {
+            var fields = new List<string>();
+            bool inQuotes = false;
+            var current = new System.Text.StringBuilder();
+
+            for (int i = 0; i < line.Length; i++)
+            {
+                char c = line[i];
+                if (c == '"')
+                {
+                    // Handle escaped quotes ("")
+                    if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
+                    {
+                        current.Append('"');
+                        i++;
+                    }
+                    else
+                    {
+                        inQuotes = !inQuotes;
+                    }
+                }
+                else if (c == ',' && !inQuotes)
+                {
+                    fields.Add(current.ToString());
+                    current.Clear();
+                }
+                else
+                {
+                    current.Append(c);
+                }
+            }
+            fields.Add(current.ToString());
+            return fields.ToArray();
         }
     }
 }
