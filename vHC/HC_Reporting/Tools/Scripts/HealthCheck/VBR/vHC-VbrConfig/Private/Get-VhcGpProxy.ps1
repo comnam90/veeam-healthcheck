@@ -28,9 +28,9 @@ function Get-VhcGpProxy {
 
         foreach ($GPProxy in $GPProxies) {
             $NrofGPProxyTasks = $GPProxy.ConcurrentTaskNumber
-            $Serv             = $VServers | Where-Object { $_.Name -eq $GPProxy.Server.Name }
-            $GPProxyCores     = $Serv.GetPhysicalHost().HardwareInfo.CoresCount
-            $GPProxyRAM       = ConvertToGB($Serv.GetPhysicalHost().HardwareInfo.PhysicalRAMTotal)
+            $hw           = Get-VhcHostHardware ($VServers | Where-Object { $_.Name -eq $GPProxy.Server.Name })
+            $GPProxyCores = $hw.Cores
+            $GPProxyRAM   = $hw.RAM
 
             $GPProxyDetails = [pscustomobject][ordered]@{
                 ConcurrentTaskNumber = $NrofGPProxyTasks

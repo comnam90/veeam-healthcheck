@@ -27,9 +27,10 @@ function Get-VhcCdpProxy {
         $CDPProxyData = [System.Collections.Generic.List[PSCustomObject]]::new()
 
         foreach ($CDPProxy in $CDPProxies) {
-            $CDPServer    = $VServers | Where-Object { $_.Id -eq $CDPProxy.ServerId }
-            $CDPProxyCores = $CDPServer.GetPhysicalHost().HardwareInfo.CoresCount
-            $CDPProxyRAM   = ConvertToGB($CDPServer.GetPhysicalHost().HardwareInfo.PhysicalRAMTotal)
+            $CDPServer     = $VServers | Where-Object { $_.Id -eq $CDPProxy.ServerId }
+            $hw            = Get-VhcHostHardware $CDPServer
+            $CDPProxyCores = $hw.Cores
+            $CDPProxyRAM   = $hw.RAM
 
             $CDPProxyDetails = [pscustomobject][ordered]@{
                 ServerId                 = $CDPProxy.ServerId

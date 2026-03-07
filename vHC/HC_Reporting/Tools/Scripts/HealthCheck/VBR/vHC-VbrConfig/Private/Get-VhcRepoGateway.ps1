@@ -41,8 +41,9 @@ function Get-VhcRepoGateway {
                 # the backing repo is object storage / VeeamVault / cloud.
                 foreach ($gatewayServer in $gatewayServers) {
                     $Server  = $VServers | Where-Object { $_.Name -eq $gatewayServer.Name }
-                    $GWCores = if ($null -ne $Server) { $Server.GetPhysicalHost().HardwareInfo.CoresCount } else { 0 }
-                    $GWRAM   = if ($null -ne $Server) { ConvertToGB($Server.GetPhysicalHost().HardwareInfo.PhysicalRAMTotal) } else { 0 }
+                    $hw      = Get-VhcHostHardware $Server
+                    $GWCores = $hw.Cores
+                    $GWRAM   = $hw.RAM
 
                     $GWDetails = [pscustomobject][ordered]@{
                         'Repository Name'  = $Repository.Name
@@ -80,8 +81,9 @@ function Get-VhcRepoGateway {
                 }
 
                 $Server    = $VServers | Where-Object { $_.Name -eq $Repository.Host.Name }
-                $RepoCores = if ($null -ne $Server) { $Server.GetPhysicalHost().HardwareInfo.CoresCount } else { 0 }
-                $RepoRAM   = if ($null -ne $Server) { ConvertToGB($Server.GetPhysicalHost().HardwareInfo.PhysicalRAMTotal) } else { 0 }
+                $hw        = Get-VhcHostHardware $Server
+                $RepoCores = $hw.Cores
+                $RepoRAM   = $hw.RAM
 
                 $RepoDetails = [pscustomobject][ordered]@{
                     'Repository Name'     = $Repository.Name
