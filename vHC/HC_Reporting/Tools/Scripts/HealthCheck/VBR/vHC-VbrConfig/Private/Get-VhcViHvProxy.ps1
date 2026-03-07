@@ -64,21 +64,10 @@ function Get-VhcViHvProxy {
             }
             $ProxyData.Add($ProxyDetails)
 
-            if (-not $HostRoles.ContainsKey($Proxy.Host.Name)) {
-                $HostRoles[$Proxy.Host.Name] = [ordered]@{
-                    Roles             = @('Proxy')
-                    Names             = @($Proxy.Name)
-                    TotalTasks        = 0
-                    Cores             = $ProxyCores
-                    RAM               = $ProxyRAM
-                    TotalVpProxyTasks = 0
-                }
-            } else {
-                $HostRoles[$Proxy.Host.Name].Roles += 'Proxy'
-                $HostRoles[$Proxy.Host.Name].Names += $Proxy.Name
-            }
-            $HostRoles[$Proxy.Host.Name].TotalVpProxyTasks += $NrofProxyTasks
-            $HostRoles[$Proxy.Host.Name].TotalTasks        += $NrofProxyTasks
+            Add-VhcHostRoleEntry -HostRoles $HostRoles -HostName $Proxy.Host.Name `
+                -RoleName 'Proxy' -EntryName $Proxy.Name `
+                -TaskCount $NrofProxyTasks -TaskCountKey 'TotalVpProxyTasks' `
+                -Cores $ProxyCores -RAM $ProxyRAM
         }
 
         Write-LogFile ($message + "DONE")

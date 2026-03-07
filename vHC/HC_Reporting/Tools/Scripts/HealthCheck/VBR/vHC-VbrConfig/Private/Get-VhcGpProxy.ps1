@@ -39,22 +39,10 @@ function Get-VhcGpProxy {
             }
             $GPProxyData.Add($GPProxyDetails)
 
-            if (-not $HostRoles.ContainsKey($GPProxy.Server.Name)) {
-                $HostRoles[$GPProxy.Server.Name] = [ordered]@{
-                    Roles              = @('GPProxy')
-                    Names              = @($GPProxy.Server.Name)
-                    TotalTasks         = 0
-                    Cores              = $GPProxyCores
-                    RAM                = $GPProxyRAM
-                    Task               = $NrofGPProxyTasks
-                    TotalGPProxyTasks  = 0
-                }
-            } else {
-                $HostRoles[$GPProxy.Server.Name].Roles += 'GPProxy'
-                $HostRoles[$GPProxy.Server.Name].Names += $GPProxy.Server.Name
-            }
-            $HostRoles[$GPProxy.Server.Name].TotalGPProxyTasks += $NrofGPProxyTasks
-            $HostRoles[$GPProxy.Server.Name].TotalTasks        += $NrofGPProxyTasks
+            Add-VhcHostRoleEntry -HostRoles $HostRoles -HostName $GPProxy.Server.Name `
+                -RoleName 'GPProxy' -EntryName $GPProxy.Server.Name `
+                -TaskCount $NrofGPProxyTasks -TaskCountKey 'TotalGPProxyTasks' `
+                -Cores $GPProxyCores -RAM $GPProxyRAM
         }
 
         Write-LogFile ($message + "DONE")

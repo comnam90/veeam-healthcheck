@@ -45,20 +45,10 @@ function Get-VhcCdpProxy {
             }
             $CDPProxyData.Add($CDPProxyDetails)
 
-            if (-not $HostRoles.ContainsKey($CDPServer.Name)) {
-                $HostRoles[$CDPServer.Name] = [ordered]@{
-                    Roles              = @('CDPProxy')
-                    Names              = @($CDPProxy.Name)
-                    TotalTasks         = 0
-                    Cores              = $CDPProxyCores
-                    RAM                = $CDPProxyRAM
-                    TotalCDPProxyTasks = 0
-                }
-            } else {
-                $HostRoles[$CDPServer.Name].Roles += 'CDPProxy'
-                $HostRoles[$CDPServer.Name].Names += $CDPProxy.Name
-            }
-            $HostRoles[$CDPServer.Name].TotalCDPProxyTasks += 1
+            Add-VhcHostRoleEntry -HostRoles $HostRoles -HostName $CDPServer.Name `
+                -RoleName 'CDPProxy' -EntryName $CDPProxy.Name `
+                -TaskCount 1 -TaskCountKey 'TotalCDPProxyTasks' `
+                -Cores $CDPProxyCores -RAM $CDPProxyRAM
         }
 
         Write-LogFile ($message + "DONE")

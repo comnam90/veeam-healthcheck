@@ -45,30 +45,20 @@ function Get-VhcRepoGateway {
                     $GWCores = $hw.Cores
                     $GWRAM   = $hw.RAM
 
+                    $gwTaskCount = [int][Math]::Ceiling($NrofRepositoryTasks / $NrofgatewayServers)
                     $GWDetails = [pscustomobject][ordered]@{
                         'Repository Name'  = $Repository.Name
                         'Gateway Server'   = $gatewayServer.Name
                         'Gateway Cores'    = $GWCores
                         'Gateway RAM (GB)' = $GWRAM
-                        'Concurrent Tasks' = $NrofRepositoryTasks / $NrofgatewayServers
+                        'Concurrent Tasks' = $gwTaskCount
                     }
                     $GWData.Add($GWDetails)
 
-                    if (-not $HostRoles.ContainsKey($gatewayServer.Name)) {
-                        $HostRoles[$gatewayServer.Name] = [ordered]@{
-                            Roles         = @('Gateway')
-                            Names         = @($gatewayServer.Name)
-                            TotalTasks    = 0
-                            Cores         = $GWCores
-                            RAM           = $GWRAM
-                            TotalGWTasks  = 0
-                        }
-                    } else {
-                        $HostRoles[$gatewayServer.Name].Roles += 'Gateway'
-                        $HostRoles[$gatewayServer.Name].Names += $Repository.Name
-                    }
-                    $HostRoles[$gatewayServer.Name].TotalGWTasks += $NrofRepositoryTasks / $NrofgatewayServers
-                    $HostRoles[$gatewayServer.Name].TotalTasks   += $NrofRepositoryTasks / $NrofgatewayServers
+                    Add-VhcHostRoleEntry -HostRoles $HostRoles -HostName $gatewayServer.Name `
+                        -RoleName 'Gateway' -EntryName $Repository.Name `
+                        -TaskCount $gwTaskCount -TaskCountKey 'TotalGWTasks' `
+                        -Cores $GWCores -RAM $GWRAM
                 }
             } else {
                 # No gateway - the repo host IS the storage target.
@@ -94,21 +84,10 @@ function Get-VhcRepoGateway {
                 }
                 $RepoData.Add($RepoDetails)
 
-                if (-not $HostRoles.ContainsKey($Repository.Host.Name)) {
-                    $HostRoles[$Repository.Host.Name] = [ordered]@{
-                        Roles           = @('Repository')
-                        Names           = @($Repository.Name)
-                        TotalTasks      = 0
-                        Cores           = $RepoCores
-                        RAM             = $RepoRAM
-                        TotalRepoTasks  = 0
-                    }
-                } else {
-                    $HostRoles[$Repository.Host.Name].Roles += 'Repository'
-                    $HostRoles[$Repository.Host.Name].Names += $Repository.Name
-                }
-                $HostRoles[$Repository.Host.Name].TotalRepoTasks += $NrofRepositoryTasks
-                $HostRoles[$Repository.Host.Name].TotalTasks     += $NrofRepositoryTasks
+                Add-VhcHostRoleEntry -HostRoles $HostRoles -HostName $Repository.Host.Name `
+                    -RoleName 'Repository' -EntryName $Repository.Name `
+                    -TaskCount $NrofRepositoryTasks -TaskCountKey 'TotalRepoTasks' `
+                    -Cores $RepoCores -RAM $RepoRAM
             }
         }
 
