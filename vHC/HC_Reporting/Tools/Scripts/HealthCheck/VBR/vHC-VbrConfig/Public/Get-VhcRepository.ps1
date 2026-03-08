@@ -25,24 +25,27 @@ function Get-VhcRepository {
         $Repositories = Get-VBRBackupRepository
         $SOBRs        = Get-VBRBackupRepository -ScaleOut
 
+        $repoOptionsColumns = @(
+            @{name = 'Options(maxtasks)';                    expression = { $_.Options.MaxTaskCount } },
+            @{name = 'Options(Unlimited Tasks)';             expression = { $_.Options.IsTaskCountUnlim } },
+            @{name = 'Options(MaxArchiveTaskCount)';         expression = { $_.Options.MaxArchiveTaskCount } },
+            @{name = 'Options(CombinedDataRateLimit)';       expression = { $_.Options.CombinedDataRateLimit } },
+            @{name = 'Options(Uncompress)';                  expression = { $_.Options.Uncompress } },
+            @{name = 'Options(OptimizeBlockAlign)';          expression = { $_.Options.OptimizeBlockAlign } },
+            @{name = 'Options(RemoteAccessLimitation)';      expression = { $_.Options.RemoteAccessLimitation } },
+            @{name = 'Options(EpEncryptionEnabled)';         expression = { $_.Options.EpEncryptionEnabled } },
+            @{name = 'Options(OneBackupFilePerVm)';          expression = { $_.Options.OneBackupFilePerVm } },
+            @{name = 'Options(IsAutoDetectAffinityProxies)'; expression = { $_.Options.IsAutoDetectAffinityProxies } },
+            @{name = 'Options(NfsRepositoryEncoding)';       expression = { $_.Options.NfsRepositoryEncoding } }
+        )
+
         [System.Collections.ArrayList]$RepositoryDetails = @()
 
-        foreach ($Repo in $Repositories) {
-            $RepoOutput = [pscustomobject][ordered]@{
+        foreach ($Repo in ($Repositories + $SOBRs)) {
+            $null = $RepositoryDetails.Add([pscustomobject][ordered]@{
                 'ID'   = $Repo.ID
                 'Name' = $Repo.Name
-            }
-            $null = $RepositoryDetails.Add($RepoOutput)
-            Remove-Variable RepoOutput
-        }
-
-        foreach ($Repo in $SOBRs) {
-            $RepoOutput = [pscustomobject][ordered]@{
-                'ID'   = $Repo.ID
-                'Name' = $Repo.Name
-            }
-            $null = $RepositoryDetails.Add($RepoOutput)
-            Remove-Variable RepoOutput
+            })
         }
 
         [System.Collections.ArrayList]$AllSOBRExtents = @()
@@ -81,49 +84,35 @@ function Get-VhcRepository {
             "CopyAllPluginBackupsEnabled", "CopyAllMachineBackupsEnabled",
             "Id", "Name", "Description", "ArchiveTierEncryptionEnabled"
 
-        $AllSOBRExtentsOutput = $AllSOBRExtents | Select-Object -Property `
-            @{name = 'Host'; expression = { $_.host.name } },
-            "Id", "Name", "HostId", "MountHostId", "Description", "CreationTime", "Path",
-            "FullPath", "FriendlyPath", "ShareCredsId", "Type", "Status", "IsUnavailable",
-            "Group", "UseNfsOnMountHost", "VersionOfCreation", "Tag", "IsTemporary",
-            "TypeDisplay", "IsRotatedDriveRepository", "EndPointCryptoKeyId",
-            "HasBackupChainLengthLimitation", "IsSanSnapshotOnly", "IsDedupStorage",
-            "SplitStoragesPerVm", "IsImmutabilitySupported", "SOBR_Name",
-            @{name = 'Options(maxtasks)';                 expression = { $_.Options.MaxTaskCount } },
-            @{name = 'Options(Unlimited Tasks)';          expression = { $_.Options.IsTaskCountUnlim } },
-            @{name = 'Options(MaxArchiveTaskCount)';      expression = { $_.Options.MaxArchiveTaskCount } },
-            @{name = 'Options(CombinedDataRateLimit)';    expression = { $_.Options.CombinedDataRateLimit } },
-            @{name = 'Options(Uncompress)';               expression = { $_.Options.Uncompress } },
-            @{name = 'Options(OptimizeBlockAlign)';       expression = { $_.Options.OptimizeBlockAlign } },
-            @{name = 'Options(RemoteAccessLimitation)';   expression = { $_.Options.RemoteAccessLimitation } },
-            @{name = 'Options(EpEncryptionEnabled)';      expression = { $_.Options.EpEncryptionEnabled } },
-            @{name = 'Options(OneBackupFilePerVm)';       expression = { $_.Options.OneBackupFilePerVm } },
-            @{name = 'Options(IsAutoDetectAffinityProxies)'; expression = { $_.Options.IsAutoDetectAffinityProxies } },
-            @{name = 'Options(NfsRepositoryEncoding)';    expression = { $_.Options.NfsRepositoryEncoding } },
-            "CachedFreeSpace", "CachedTotalSpace", "gatewayHosts", "ObjectLockEnabled"
+        $AllSOBRExtentsOutput = $AllSOBRExtents | Select-Object -Property (
+            @(
+                @{name = 'Host'; expression = { $_.host.name } },
+                "Id", "Name", "HostId", "MountHostId", "Description", "CreationTime", "Path",
+                "FullPath", "FriendlyPath", "ShareCredsId", "Type", "Status", "IsUnavailable",
+                "Group", "UseNfsOnMountHost", "VersionOfCreation", "Tag", "IsTemporary",
+                "TypeDisplay", "IsRotatedDriveRepository", "EndPointCryptoKeyId",
+                "HasBackupChainLengthLimitation", "IsSanSnapshotOnly", "IsDedupStorage",
+                "SplitStoragesPerVm", "IsImmutabilitySupported", "SOBR_Name"
+            ) + $repoOptionsColumns + @(
+                "CachedFreeSpace", "CachedTotalSpace", "gatewayHosts", "ObjectLockEnabled"
+            )
+        )
 
-        $repoInfo = $Repositories | Select-Object `
-            "Id", "Name", "HostId", "Description", "CreationTime", "Path",
-            "FullPath", "FriendlyPath", "ShareCredsId", "Type", "Status", "IsUnavailable",
-            "Group", "UseNfsOnMountHost", "VersionOfCreation", "Tag", "IsTemporary",
-            "TypeDisplay", "IsRotatedDriveRepository", "EndPointCryptoKeyId",
-            "Options", "HasBackupChainLengthLimitation", "IsSanSnapshotOnly", "IsDedupStorage",
-            "SplitStoragesPerVm",
-            @{n = "IsImmutabilitySupported"; e = { $_.GetImmutabilitySettings().IsEnabled } },
-            @{name = 'Options(maxtasks)';                 expression = { $_.Options.MaxTaskCount } },
-            @{name = 'Options(Unlimited Tasks)';          expression = { $_.Options.IsTaskCountUnlim } },
-            @{name = 'Options(MaxArchiveTaskCount)';      expression = { $_.Options.MaxArchiveTaskCount } },
-            @{name = 'Options(CombinedDataRateLimit)';    expression = { $_.Options.CombinedDataRateLimit } },
-            @{name = 'Options(Uncompress)';               expression = { $_.Options.Uncompress } },
-            @{name = 'Options(OptimizeBlockAlign)';       expression = { $_.Options.OptimizeBlockAlign } },
-            @{name = 'Options(RemoteAccessLimitation)';   expression = { $_.Options.RemoteAccessLimitation } },
-            @{name = 'Options(EpEncryptionEnabled)';      expression = { $_.Options.EpEncryptionEnabled } },
-            @{name = 'Options(OneBackupFilePerVm)';       expression = { $_.Options.OneBackupFilePerVm } },
-            @{name = 'Options(IsAutoDetectAffinityProxies)'; expression = { $_.Options.IsAutoDetectAffinityProxies } },
-            @{name = 'Options(NfsRepositoryEncoding)';    expression = { $_.Options.NfsRepositoryEncoding } },
-            @{n = 'CachedTotalSpace'; e = { $_.GetContainer().CachedTotalSpace.InGigabytes } },
-            @{n = 'CachedFreeSpace';  e = { $_.GetContainer().CachedFreeSpace.InGigabytes } },
-            @{name = 'gatewayHosts';  expression = { $_.GetActualGateways().Name } }
+        $repoInfo = $Repositories | Select-Object -Property (
+            @(
+                "Id", "Name", "HostId", "Description", "CreationTime", "Path",
+                "FullPath", "FriendlyPath", "ShareCredsId", "Type", "Status", "IsUnavailable",
+                "Group", "UseNfsOnMountHost", "VersionOfCreation", "Tag", "IsTemporary",
+                "TypeDisplay", "IsRotatedDriveRepository", "EndPointCryptoKeyId",
+                "Options", "HasBackupChainLengthLimitation", "IsSanSnapshotOnly", "IsDedupStorage",
+                "SplitStoragesPerVm",
+                @{n = "IsImmutabilitySupported"; e = { $_.GetImmutabilitySettings().IsEnabled } }
+            ) + $repoOptionsColumns + @(
+                @{n = 'CachedTotalSpace'; e = { $_.GetContainer().CachedTotalSpace.InGigabytes } },
+                @{n = 'CachedFreeSpace';  e = { $_.GetContainer().CachedFreeSpace.InGigabytes } },
+                @{name = 'gatewayHosts';  expression = { $_.GetActualGateways().Name } }
+            )
+        )
 
         $repoInfo             | Export-VhcCsv -FileName '_Repositories.csv'
         $SOBROutput           | Export-VhcCsv -FileName '_SOBRs.csv'
