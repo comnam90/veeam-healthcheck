@@ -46,11 +46,7 @@ function Get-VhcEntraId {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile "Error on Entra ID collection. $($_.Exception.Message)" -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{
-            CollectorName = 'EntraId'
-            Error         = $_.Exception.Message
-            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
-        })
+        Add-VhcModuleError -CollectorName 'EntraId' -ErrorMessage $_.Exception.Message
     }
 
     $entraIdLogJobs  | Export-VhcCsv -FileName '_entraLogJob.csv'

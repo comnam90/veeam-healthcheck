@@ -42,22 +42,14 @@ function Get-VhcJob {
         $Jobs = Get-VBRJob -WarningAction SilentlyContinue
     } catch {
         Write-LogFile "Main jobs collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{
-            CollectorName = 'Jobs'
-            Error         = $_.Exception.Message
-            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
-        })
+        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }
 
     try {
         $configBackup = Get-VBRConfigurationBackupJob
     } catch {
         Write-LogFile "Configuration Backup Job collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{
-            CollectorName = 'Jobs'
-            Error         = $_.Exception.Message
-            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
-        })
+        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }
 
     # ------------------------------------------------------------------
@@ -67,39 +59,39 @@ function Get-VhcJob {
     # ------------------------------------------------------------------
     try { Get-VhcCatalystJob } catch {
         Write-LogFile "Get-VhcCatalystJob failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{ CollectorName = 'Jobs'; Error = $_.Exception.Message; Timestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss' })
+        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }
     try { Get-VhcAgentJob } catch {
         Write-LogFile "Get-VhcAgentJob failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{ CollectorName = 'Jobs'; Error = $_.Exception.Message; Timestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss' })
+        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }
     try { Get-VhcSureBackup } catch {
         Write-LogFile "Get-VhcSureBackup failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{ CollectorName = 'Jobs'; Error = $_.Exception.Message; Timestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss' })
+        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }
     try { Get-VhcTapeInfrastructure } catch {
         Write-LogFile "Get-VhcTapeInfrastructure failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{ CollectorName = 'Jobs'; Error = $_.Exception.Message; Timestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss' })
+        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }
     try { Get-VhcNasJob -ReportInterval $ReportInterval } catch {
         Write-LogFile "Get-VhcNasJob failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{ CollectorName = 'Jobs'; Error = $_.Exception.Message; Timestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss' })
+        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }
     try { Get-VhcPluginAndCdpJob } catch {
         Write-LogFile "Get-VhcPluginAndCdpJob failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{ CollectorName = 'Jobs'; Error = $_.Exception.Message; Timestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss' })
+        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }
     try { Get-VhcReplication -Jobs @($Jobs) } catch {
         Write-LogFile "Get-VhcReplication failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{ CollectorName = 'Jobs'; Error = $_.Exception.Message; Timestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss' })
+        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }
     try { Get-VhcCloudConnect } catch {
         Write-LogFile "Get-VhcCloudConnect failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{ CollectorName = 'Jobs'; Error = $_.Exception.Message; Timestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss' })
+        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }
     try { Get-VhcCredentialsAndNotifications } catch {
         Write-LogFile "Get-VhcCredentialsAndNotifications failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{ CollectorName = 'Jobs'; Error = $_.Exception.Message; Timestamp = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss' })
+        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }
 
     # ------------------------------------------------------------------

@@ -18,11 +18,7 @@ function Get-VhcWanAccelerator {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{
-            CollectorName = 'WanAccelerator'
-            Error         = $_.Exception.Message
-            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
-        })
+        Add-VhcModuleError -CollectorName 'WanAccelerator' -ErrorMessage $_.Exception.Message
     }
 
     $wan | Export-VhcCsv -FileName '_WanAcc.csv'

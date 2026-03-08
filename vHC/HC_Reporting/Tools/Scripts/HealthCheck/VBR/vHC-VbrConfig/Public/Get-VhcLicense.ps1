@@ -19,11 +19,7 @@ function Get-VhcLicense {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{
-            CollectorName = 'License'
-            Error         = $_.Exception.Message
-            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
-        })
+        Add-VhcModuleError -CollectorName 'License' -ErrorMessage $_.Exception.Message
     }
 
     if ($null -ne $lic) {

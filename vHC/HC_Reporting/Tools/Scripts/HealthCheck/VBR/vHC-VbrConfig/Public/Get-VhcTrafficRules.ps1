@@ -18,11 +18,7 @@ function Get-VhcTrafficRules {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{
-            CollectorName = 'TrafficRules'
-            Error         = $_.Exception.Message
-            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
-        })
+        Add-VhcModuleError -CollectorName 'TrafficRules' -ErrorMessage $_.Exception.Message
     }
 
     $trafficRules | Export-VhcCsv -FileName '_trafficRules.csv'

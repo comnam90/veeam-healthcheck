@@ -27,11 +27,7 @@ function Get-VhcArchiveTier {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{
-            CollectorName = 'ArchiveTier'
-            Error         = $_.Exception.Message
-            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
-        })
+        Add-VhcModuleError -CollectorName 'ArchiveTier' -ErrorMessage $_.Exception.Message
     }
 
     $archOut | Export-VhcCsv -FileName '_archTier.csv'

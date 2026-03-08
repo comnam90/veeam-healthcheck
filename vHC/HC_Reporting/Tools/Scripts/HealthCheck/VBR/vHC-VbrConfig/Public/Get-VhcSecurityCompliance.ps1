@@ -211,10 +211,6 @@ function Get-VhcSecurityCompliance {
         Write-LogFile "Security & Compliance collection failed: $errMsg" -LogLevel "ERROR"
         Write-LogFile "Exception Type: $errType"                         -LogLevel "ERROR"
         Write-LogFile "Stack Trace: $stackTrace"                         -LogLevel "ERROR"
-        $script:ModuleErrors.Add([PSCustomObject]@{
-            CollectorName = 'SecurityCompliance'
-            Error         = $errMsg
-            Timestamp     = Get-Date -Format 'yyyy-MM-ddTHH:mm:ss'
-        })
+        Add-VhcModuleError -CollectorName 'SecurityCompliance' -ErrorMessage $errMsg
     }
 }

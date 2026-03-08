@@ -97,6 +97,20 @@ failures in the HTML report and CLI output.
 * **Neutral:** `_CollectionManifest.csv` is a new output file. The `CCsvValidator` expected-
   file registry does not need to track it (it is metadata, not report data).
 
+## Amendment (2026-03-05): Add-VhcModuleError canonical helper
+
+During the DRY/SOLID refactor (docs/plans/2026-03-05-vbr-config-dry-solid-refactor.md),
+the repeated `$script:ModuleErrors.Add([PSCustomObject]@{...})` call was extracted into
+a private helper `Add-VhcModuleError`. The canonical registration pattern is now:
+
+```powershell
+Add-VhcModuleError -CollectorName 'MyCollector' -ErrorMessage $_.Exception.Message
+```
+
+The helper executes in module scope (dot-sourced via psm1), so `$script:ModuleErrors`
+resolves to the module's registry, exactly as described in the original ADR. The
+`$script:` scope behaviour is unchanged; only the call site is standardised.
+
 ## Validation
 
 Verified by:
