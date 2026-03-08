@@ -50,17 +50,6 @@ function Invoke-VhcConcurrencyAnalysis {
         $CDPProxyRAMReq = $t.CdpProxyRAM
         $CDPProxyCPUReq = $t.CdpProxyCPU
 
-        # OS overhead (fixed per-role, applied once regardless of task count)
-        $VPProxyOSCPUReq  = $t.VpProxyOSCPU
-        $VPProxyOSRAMReq  = $t.VpProxyOSRAM
-        $GPProxyOSCPUReq  = $t.GpProxyOSCPU
-        $GPProxyOSRAMReq  = $t.GpProxyOSRAM
-        $RepoOSCPUReq     = $t.RepoOSCPU
-        $RepoOSRAMReq     = $t.RepoOSRAM
-        # Fix: was undefined in source - read from config (defaults to 0, no output change)
-        $CDPProxyOSCPUReq = $t.CdpProxyOSCPU
-        $CDPProxyOSRAMReq = $t.CdpProxyOSRAM
-
         # Backup Server thresholds vary by version
         $BSCPUReq = if ($VBRVersion -eq 13) { $t.BackupServerCPU_v13 } else { $t.BackupServerCPU_v12 }
         $BSRAMReq = if ($VBRVersion -eq 13) { $t.BackupServerRAM_v13 } else { $t.BackupServerRAM_v12 }
@@ -72,18 +61,7 @@ function Invoke-VhcConcurrencyAnalysis {
             $SuggestedTasksByRAM   = 0
             $serverName            = $server.Key
 
-            # Pre-compute OS overhead conditionals (PS 5.1 compatible - no ternary operator)
-            $RepoGWOSCPUOverhead   = if ((SafeValue $server.Value.TotalRepoTasks)    -gt 0 -or
-                                         (SafeValue $server.Value.TotalGWTasks)      -gt 0) { $RepoOSCPUReq     } else { 0 }
-            $VpProxyOSCPUOverhead  = if ((SafeValue $server.Value.TotalVpProxyTasks) -gt 0) { $VPProxyOSCPUReq  } else { 0 }
-            $GPProxyOSCPUOverhead  = if ((SafeValue $server.Value.TotalGPProxyTasks) -gt 0) { $GPProxyOSCPUReq  } else { 0 }
-            $CDPProxyOSCPUOverhead = if ((SafeValue $server.Value.TotalCDPProxyTasks) -gt 0) { $CDPProxyOSCPUReq } else { 0 }
-
-            $RepoGWOSRAMOverhead   = if ((SafeValue $server.Value.TotalRepoTasks)    -gt 0 -or
-                                         (SafeValue $server.Value.TotalGWTasks)      -gt 0) { $RepoOSRAMReq     } else { 0 }
-            $VpProxyOSRAMOverhead  = if ((SafeValue $server.Value.TotalVpProxyTasks) -gt 0) { $VPProxyOSRAMReq  } else { 0 }
-            $GPProxyOSRAMOverhead  = if ((SafeValue $server.Value.TotalGPProxyTasks) -gt 0) { $GPProxyOSRAMReq  } else { 0 }
-            $CDPProxyOSRAMOverhead = if ((SafeValue $server.Value.TotalCDPProxyTasks) -gt 0) { $CDPProxyOSRAMReq } else { 0 }
+            $overhead = Get-VhcServerOsOverhead -Entry $server.Value -Thresholds $t
 
             $RequiredCores = [Math]::Ceiling(
                 (SafeValue $server.Value.TotalRepoTasks)     * $RepoGWCPUReq   +
@@ -91,10 +69,7 @@ function Invoke-VhcConcurrencyAnalysis {
                 (SafeValue $server.Value.TotalVpProxyTasks)  * $VPProxyCPUReq  +
                 (SafeValue $server.Value.TotalGPProxyTasks)  * $GPProxyCPUReq  +
                 (SafeValue $server.Value.TotalCDPProxyTasks) * $CDPProxyCPUReq +
-                $RepoGWOSCPUOverhead  +
-                $VpProxyOSCPUOverhead +
-                $GPProxyOSCPUOverhead +
-                $CDPProxyOSCPUOverhead
+                $overhead.CPU
             )
 
             $RequiredRAM = [Math]::Ceiling(
@@ -103,31 +78,16 @@ function Invoke-VhcConcurrencyAnalysis {
                 (SafeValue $server.Value.TotalVpProxyTasks)  * $VPProxyRAMReq  +
                 (SafeValue $server.Value.TotalGPProxyTasks)  * $GPProxyRAMReq  +
                 (SafeValue $server.Value.TotalCDPProxyTasks) * $CDPProxyRAMReq +
-                $RepoGWOSRAMOverhead  +
-                $VpProxyOSRAMOverhead +
-                $GPProxyOSRAMOverhead +
-                $CDPProxyOSRAMOverhead
+                $overhead.RAM
             )
 
             $coresAvailable = $server.Value.Cores
             $ramAvailable   = $server.Value.RAM
             $totalTasks     = $server.Value.TotalTasks
 
-            $SuggestedTasksByCores = [Math]::Floor(
-                (SafeValue $coresAvailable) -
-                $RepoGWOSCPUOverhead  -
-                $VpProxyOSCPUOverhead -
-                $GPProxyOSCPUOverhead -
-                $CDPProxyOSCPUOverhead
-            )
+            $SuggestedTasksByCores = [Math]::Floor((SafeValue $coresAvailable) - $overhead.CPU)
 
-            $SuggestedTasksByRAM = [Math]::Floor(
-                (SafeValue $ramAvailable) -
-                $RepoGWOSRAMOverhead  -
-                $VpProxyOSRAMOverhead -
-                $GPProxyOSRAMOverhead -
-                $CDPProxyOSRAMOverhead
-            )
+            $SuggestedTasksByRAM = [Math]::Floor((SafeValue $ramAvailable) - $overhead.RAM)
 
             # Fix: source used ($serverName -contains $BackupServerName) which is semantically
             # wrong (scalar -contains). Changed to -eq; no output change.
