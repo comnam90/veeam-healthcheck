@@ -46,7 +46,7 @@ function Get-VhcGpProxy {
         }
 
         Write-LogFile ($message + "DONE")
-        $GPProxyData | Export-VhcCsv -FileName '_NasProxy.csv'
+        $GPProxyData | Export-VhciCsv -FileName '_NasProxy.csv'
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"

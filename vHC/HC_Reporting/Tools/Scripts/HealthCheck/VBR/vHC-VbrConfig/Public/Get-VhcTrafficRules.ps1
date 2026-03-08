@@ -18,8 +18,8 @@ function Get-VhcTrafficRules {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'TrafficRules' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'TrafficRules' -ErrorMessage $_.Exception.Message
     }
 
-    $trafficRules | Export-VhcCsv -FileName '_trafficRules.csv'
+    $trafficRules | Export-VhciCsv -FileName '_trafficRules.csv'
 }

@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Export-VhcCsv {
+function Export-VhciCsv {
     <#
     .Synopsis
         Exports pipeline objects to a CSV file under the module's configured report path.
@@ -19,7 +19,7 @@ function Export-VhcCsv {
     begin {
         # Validate module state on first call, not per-object
         if (-not $script:ReportPath -or -not $script:VBRServer) {
-            throw "Initialize-VhcModule must be called before Export-VhcCsv"
+            throw "Initialize-VhcModule must be called before Export-VhciCsv"
         }
         $file = Join-Path $script:ReportPath ($script:VBRServer + $FileName)
         Write-LogFile "Exporting data to file: $file"
@@ -34,7 +34,7 @@ function Export-VhcCsv {
         try {
             $allObjects | Export-Csv -Path $file -NoTypeInformation -ErrorAction Stop
         } catch {
-            Write-LogFile "Export-VhcCsv failed writing '$file': $($_.Exception.Message)" -LogLevel "ERROR"
+            Write-LogFile "Export-VhciCsv failed writing '$file': $($_.Exception.Message)" -LogLevel "ERROR"
             throw
         }
     }

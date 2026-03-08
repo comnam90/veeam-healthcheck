@@ -27,8 +27,8 @@ function Get-VhcArchiveTier {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'ArchiveTier' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'ArchiveTier' -ErrorMessage $_.Exception.Message
     }
 
-    $archOut | Export-VhcCsv -FileName '_archTier.csv'
+    $archOut | Export-VhciCsv -FileName '_archTier.csv'
 }

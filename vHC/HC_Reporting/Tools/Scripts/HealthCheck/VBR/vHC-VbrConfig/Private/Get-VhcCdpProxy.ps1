@@ -52,7 +52,7 @@ function Get-VhcCdpProxy {
         }
 
         Write-LogFile ($message + "DONE")
-        $CDPProxyData | Export-VhcCsv -FileName '_CdpProxy.csv'
+        $CDPProxyData | Export-VhciCsv -FileName '_CdpProxy.csv'
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"

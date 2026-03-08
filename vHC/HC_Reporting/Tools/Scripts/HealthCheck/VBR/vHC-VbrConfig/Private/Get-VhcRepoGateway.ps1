@@ -92,6 +92,6 @@ function Get-VhcRepoGateway {
         }
 
     Write-LogFile ($message + "DONE")
-    $RepoData | Export-VhcCsv -FileName '_RepositoryServers.csv'
-    $GWData   | Export-VhcCsv -FileName '_Gateways.csv'
+    $RepoData | Export-VhciCsv -FileName '_RepositoryServers.csv'
+    $GWData   | Export-VhciCsv -FileName '_Gateways.csv'
 }

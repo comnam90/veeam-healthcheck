@@ -15,7 +15,7 @@ function Get-VhcCatalystJob {
 
     $catCopy = Get-VBRCatalystCopyJob
 
-    $catCopy | Export-VhcCsv -FileName '_catCopyjob.csv'
+    $catCopy | Export-VhciCsv -FileName '_catCopyjob.csv'
 
     Write-LogFile ($message + "DONE")
 }

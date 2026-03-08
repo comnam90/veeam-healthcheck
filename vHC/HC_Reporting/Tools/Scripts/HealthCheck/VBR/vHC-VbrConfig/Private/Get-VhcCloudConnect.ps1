@@ -27,8 +27,8 @@ function Get-VhcCloudConnect {
     $cloudTenants = Get-VBRCloudTenant
     Write-LogFile "Found $(@($cloudTenants).Count) cloud tenants"
 
-    $cloudGateways | Export-VhcCsv -FileName '_CloudGateways.csv'
-    $cloudTenants  | Export-VhcCsv -FileName '_CloudTenants.csv'
+    $cloudGateways | Export-VhciCsv -FileName '_CloudGateways.csv'
+    $cloudTenants  | Export-VhciCsv -FileName '_CloudTenants.csv'
 
     Write-LogFile ($message + "DONE")
 }

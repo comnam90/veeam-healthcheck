@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Add-VhcModuleError {
+function Add-VhciModuleError {
     <#
     .Synopsis
         Registers a failure in the module-level error registry ($script:ModuleErrors).

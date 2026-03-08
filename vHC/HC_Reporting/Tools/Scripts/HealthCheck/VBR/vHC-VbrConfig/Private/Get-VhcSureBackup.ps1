@@ -22,9 +22,9 @@ function Get-VhcSureBackup {
     $sbVirtualLabs = Get-VBRVirtualLab
     Write-LogFile "Found $(@($sbVirtualLabs).Count) SureBackup virtual labs"
 
-    $sbJob         | Export-VhcCsv -FileName '_SureBackupJob.csv'
-    $sbAppGroups   | Export-VhcCsv -FileName '_SureBackupAppGroups.csv'
-    $sbVirtualLabs | Export-VhcCsv -FileName '_SureBackupVirtualLabs.csv'
+    $sbJob         | Export-VhciCsv -FileName '_SureBackupJob.csv'
+    $sbAppGroups   | Export-VhciCsv -FileName '_SureBackupAppGroups.csv'
+    $sbVirtualLabs | Export-VhciCsv -FileName '_SureBackupVirtualLabs.csv'
 
     Write-LogFile ($message + "DONE")
 }

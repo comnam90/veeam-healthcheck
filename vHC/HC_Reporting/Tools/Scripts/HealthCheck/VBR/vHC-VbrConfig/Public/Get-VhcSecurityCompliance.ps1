@@ -176,7 +176,7 @@ function Get-VhcSecurityCompliance {
         if ($OutObj.Count -gt 0) {
             try {
                 Write-LogFile "Exporting $($OutObj.Count) compliance items to CSV..."
-                $OutObj | Export-VhcCsv -FileName '_SecurityCompliance.csv'
+                $OutObj | Export-VhciCsv -FileName '_SecurityCompliance.csv'
                 Write-LogFile "Security Compliance CSV export completed successfully"
             }
             catch {
@@ -199,6 +199,6 @@ function Get-VhcSecurityCompliance {
         Write-LogFile "Security & Compliance collection failed: $errMsg" -LogLevel "ERROR"
         Write-LogFile "Exception Type: $errType"                         -LogLevel "ERROR"
         Write-LogFile "Stack Trace: $stackTrace"                         -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'SecurityCompliance' -ErrorMessage $errMsg
+        Add-VhciModuleError -CollectorName 'SecurityCompliance' -ErrorMessage $errMsg
     }
 }

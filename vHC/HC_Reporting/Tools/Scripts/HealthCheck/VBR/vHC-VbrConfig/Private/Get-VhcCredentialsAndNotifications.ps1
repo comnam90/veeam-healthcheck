@@ -20,8 +20,8 @@ function Get-VhcCredentialsAndNotifications {
         Select-Object Name, UserName, Description, CurrentUser, LastModified
     Write-LogFile "Found $(@($credentials).Count) credentials"
 
-    $emailNotification | Export-VhcCsv -FileName '_EmailNotification.csv'
-    $credentials       | Export-VhcCsv -FileName '_Credentials.csv'
+    $emailNotification | Export-VhciCsv -FileName '_EmailNotification.csv'
+    $credentials       | Export-VhciCsv -FileName '_Credentials.csv'
 
     Write-LogFile ($message + "DONE")
 }

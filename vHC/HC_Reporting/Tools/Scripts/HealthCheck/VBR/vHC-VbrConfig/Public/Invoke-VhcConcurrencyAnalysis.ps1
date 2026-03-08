@@ -117,7 +117,7 @@ function Invoke-VhcConcurrencyAnalysis {
         }
 
         Write-LogFile ($message + "DONE")
-        $RequirementsComparison | Export-VhcCsv -FileName '_AllServersRequirementsComparison.csv'
+        $RequirementsComparison | Export-VhciCsv -FileName '_AllServersRequirementsComparison.csv'
         Write-LogFile "Concurrency inspection files are exported."
     } catch {
         Write-LogFile ($message + "FAILED!")

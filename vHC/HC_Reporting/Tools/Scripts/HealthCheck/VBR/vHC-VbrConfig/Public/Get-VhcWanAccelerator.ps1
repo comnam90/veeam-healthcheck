@@ -18,8 +18,8 @@ function Get-VhcWanAccelerator {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'WanAccelerator' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'WanAccelerator' -ErrorMessage $_.Exception.Message
     }
 
-    $wan | Export-VhcCsv -FileName '_WanAcc.csv'
+    $wan | Export-VhciCsv -FileName '_WanAcc.csv'
 }

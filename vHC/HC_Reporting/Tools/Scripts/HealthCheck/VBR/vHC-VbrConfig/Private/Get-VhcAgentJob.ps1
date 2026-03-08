@@ -16,8 +16,8 @@ function Get-VhcAgentJob {
     $vaBJob = Get-VBRComputerBackupJob
     $epJob  = Get-VBREPJob
 
-    $vaBJob | Export-VhcCsv -FileName '_AgentBackupJob.csv'
-    $epJob  | Export-VhcCsv -FileName '_EndpointJob.csv'
+    $vaBJob | Export-VhciCsv -FileName '_AgentBackupJob.csv'
+    $epJob  | Export-VhciCsv -FileName '_EndpointJob.csv'
 
     Write-LogFile ($message + "DONE")
 }

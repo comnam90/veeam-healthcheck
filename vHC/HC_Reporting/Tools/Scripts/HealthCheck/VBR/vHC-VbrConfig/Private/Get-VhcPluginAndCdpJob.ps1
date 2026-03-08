@@ -20,13 +20,13 @@ function Get-VhcPluginAndCdpJob {
     $vcdJob = Get-VBRvCDReplicaJob
     Write-LogFile "Found $(@($vcdJob).Count) VCD replica jobs"
 
-    $piJob | Export-VhcCsv -FileName '_pluginjobs.csv'
+    $piJob | Export-VhciCsv -FileName '_pluginjobs.csv'
 
     $vcdJob | Add-Member -MemberType NoteProperty -Name JobType -Value "VCD Replica" -ErrorAction SilentlyContinue
-    $vcdJob | Export-VhcCsv -FileName '_vcdjobs.csv'
+    $vcdJob | Export-VhciCsv -FileName '_vcdjobs.csv'
 
     $cdpJob | Add-Member -MemberType NoteProperty -Name JobType -Value "CDP Policy" -ErrorAction SilentlyContinue
-    $cdpJob | Export-VhcCsv -FileName '_cdpjobs.csv'
+    $cdpJob | Export-VhciCsv -FileName '_cdpjobs.csv'
 
     Write-LogFile ($message + "DONE")
 }

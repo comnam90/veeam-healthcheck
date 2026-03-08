@@ -82,8 +82,8 @@ function Get-VhcNasJob {
     $nasBCJ = Get-VBRNASBackupCopyJob
     Write-LogFile "Found $(@($nasBCJ).Count) NAS backup copy jobs"
 
-    $nasBackup | Export-VhcCsv -FileName '_nasBackup.csv'
-    $nasBCJ    | Export-VhcCsv -FileName '_nasBCJ.csv'
+    $nasBackup | Export-VhciCsv -FileName '_nasBackup.csv'
+    $nasBCJ    | Export-VhciCsv -FileName '_nasBCJ.csv'
 
     Write-LogFile ($message + "DONE")
 }

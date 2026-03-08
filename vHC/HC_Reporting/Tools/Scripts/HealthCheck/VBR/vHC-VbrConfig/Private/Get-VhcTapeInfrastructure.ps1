@@ -23,11 +23,11 @@ function Get-VhcTapeInfrastructure {
     $tapeVaults = Get-VBRTapeVault
     Write-LogFile "Found $(@($tapeVaults).Count) tape vaults"
 
-    $tapeJob        | Export-VhcCsv -FileName '_TapeJobs.csv'
-    $tapeServers    | Export-VhcCsv -FileName '_TapeServers.csv'
-    $tapeLibraries  | Export-VhcCsv -FileName '_TapeLibraries.csv'
-    $tapeMediaPools | Export-VhcCsv -FileName '_TapeMediaPools.csv'
-    $tapeVaults     | Export-VhcCsv -FileName '_TapeVaults.csv'
+    $tapeJob        | Export-VhciCsv -FileName '_TapeJobs.csv'
+    $tapeServers    | Export-VhciCsv -FileName '_TapeServers.csv'
+    $tapeLibraries  | Export-VhciCsv -FileName '_TapeLibraries.csv'
+    $tapeMediaPools | Export-VhciCsv -FileName '_TapeMediaPools.csv'
+    $tapeVaults     | Export-VhciCsv -FileName '_TapeVaults.csv'
 
     Write-LogFile ($message + "DONE")
 }

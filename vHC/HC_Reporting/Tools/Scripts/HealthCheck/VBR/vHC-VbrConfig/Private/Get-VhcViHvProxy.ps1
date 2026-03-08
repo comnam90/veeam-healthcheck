@@ -72,14 +72,14 @@ function Get-VhcViHvProxy {
 
         Write-LogFile ($message + "DONE")
 
-        $ProxyData | Export-VhcCsv -FileName '_Proxies.csv'
+        $ProxyData | Export-VhciCsv -FileName '_Proxies.csv'
 
         $HyperVProxies | Select-Object `
             Id, Name, Description,
             @{ n = 'HostId'; e = { $_.Host.Id   } },
             @{ n = 'Host';   e = { $_.Host.Name } },
             Type, IsDisabled, Options, MaxTasksCount, Info |
-            Export-VhcCsv -FileName '_HvProxy.csv'
+            Export-VhciCsv -FileName '_HvProxy.csv'
 
     } catch {
         Write-LogFile ($message + "FAILED!")

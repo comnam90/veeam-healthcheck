@@ -39,8 +39,8 @@ function Get-VhcRegistrySettings {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'RegistrySettings' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'RegistrySettings' -ErrorMessage $_.Exception.Message
     }
 
-    $output | Export-VhcCsv -FileName '_regkeys.csv'
+    $output | Export-VhciCsv -FileName '_regkeys.csv'
 }

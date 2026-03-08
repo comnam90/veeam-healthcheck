@@ -47,7 +47,7 @@ function Get-VhcProtectedWorkloads {
     }
     catch {
         Write-LogFile "Failed on VMware workloads: $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'ProtectedWorkloads' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'ProtectedWorkloads' -ErrorMessage $_.Exception.Message
     }
 
     # Hyper-V workloads
@@ -74,7 +74,7 @@ function Get-VhcProtectedWorkloads {
     }
     catch {
         Write-LogFile "Failed on Hyper-V workloads: $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'ProtectedWorkloads' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'ProtectedWorkloads' -ErrorMessage $_.Exception.Message
     }
 
     # Physical workloads
@@ -98,19 +98,19 @@ function Get-VhcProtectedWorkloads {
     }
     catch {
         Write-LogFile "Failed on physical workloads: $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'ProtectedWorkloads' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'ProtectedWorkloads' -ErrorMessage $_.Exception.Message
     }
 
     Write-LogFile "Exporting Protected Workloads files..."
-    $protected             | Export-VhcCsv -FileName '_PhysProtected.csv'
-    $notprotected          | Export-VhcCsv -FileName '_PhysNotProtected.csv'
+    $protected             | Export-VhciCsv -FileName '_PhysProtected.csv'
+    $notprotected          | Export-VhciCsv -FileName '_PhysNotProtected.csv'
     $protectedHvEntityInfo   | Select-Object Name, PowerState, ProvisionedSize, UsedSize, Path |
-        Sort-Object PoweredOn, Path, Name | Export-VhcCsv -FileName '_HvProtected.csv'
+        Sort-Object PoweredOn, Path, Name | Export-VhciCsv -FileName '_HvProtected.csv'
     $unprotectedHvEntityInfo | Select-Object Name, PowerState, ProvisionedSize, UsedSize, Path, Type |
-        Sort-Object Type, PoweredOn, Path, Name | Export-VhcCsv -FileName '_HvUnprotected.csv'
+        Sort-Object Type, PoweredOn, Path, Name | Export-VhciCsv -FileName '_HvUnprotected.csv'
     $protectedEntityInfo     | Select-Object Name, PowerState, ProvisionedSize, UsedSize, Path |
-        Sort-Object PoweredOn, Path, Name | Export-VhcCsv -FileName '_ViProtected.csv'
+        Sort-Object PoweredOn, Path, Name | Export-VhciCsv -FileName '_ViProtected.csv'
     $unprotectedEntityInfo   | Select-Object Name, PowerState, ProvisionedSize, UsedSize, Path, Type |
-        Sort-Object Type, PoweredOn, Path, Name | Export-VhcCsv -FileName '_ViUnprotected.csv'
+        Sort-Object Type, PoweredOn, Path, Name | Export-VhciCsv -FileName '_ViUnprotected.csv'
     Write-LogFile "Exporting Protected Workloads files...OK"
 }

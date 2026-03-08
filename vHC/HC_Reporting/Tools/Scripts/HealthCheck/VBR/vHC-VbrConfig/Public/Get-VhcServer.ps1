@@ -28,13 +28,13 @@ function Get-VhcServer {
             @{ name = 'OSInfo';   expression = { $_.Info.Info                                        } }
 
         Write-LogFile ($message + "DONE")
-        $Servers | Export-VhcCsv -FileName '_Servers.csv'
+        $Servers | Export-VhciCsv -FileName '_Servers.csv'
 
         return $VServers
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'Server' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'Server' -ErrorMessage $_.Exception.Message
         return $null
     }
 }

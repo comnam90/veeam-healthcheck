@@ -41,8 +41,8 @@ function Get-VhcCapacityTier {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'CapacityTier' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'CapacityTier' -ErrorMessage $_.Exception.Message
     }
 
-    $capOut | Export-VhcCsv -FileName '_capTier.csv'
+    $capOut | Export-VhciCsv -FileName '_capTier.csv'
 }

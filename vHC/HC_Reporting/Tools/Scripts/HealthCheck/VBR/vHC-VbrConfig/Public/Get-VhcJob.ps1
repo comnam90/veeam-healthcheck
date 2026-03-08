@@ -42,14 +42,14 @@ function Get-VhcJob {
         $Jobs = Get-VBRJob -WarningAction SilentlyContinue
     } catch {
         Write-LogFile "Main jobs collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }
 
     try {
         $configBackup = Get-VBRConfigurationBackupJob
     } catch {
         Write-LogFile "Configuration Backup Job collection failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }
 
     # ------------------------------------------------------------------
@@ -153,8 +153,8 @@ function Get-VhcJob {
         $AllJobs.Add($JobDetails) | Out-Null
     }
 
-    $AllJobs      | Export-VhcCsv -FileName '_Jobs.csv'
-    $configBackup | Export-VhcCsv -FileName '_configBackup.csv'
+    $AllJobs      | Export-VhciCsv -FileName '_Jobs.csv'
+    $configBackup | Export-VhciCsv -FileName '_configBackup.csv'
 
     Write-LogFile ($message + "DONE")
 }

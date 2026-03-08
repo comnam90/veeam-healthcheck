@@ -19,7 +19,7 @@ function Get-VhcLicense {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'License' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'License' -ErrorMessage $_.Exception.Message
     }
 
     if ($null -ne $lic) {
@@ -43,8 +43,8 @@ function Get-VhcLicense {
             LicensedCapacityTB                   = $lic.CapacityLicenseSummary.LicensedCapacityTb
             UsedCapacityTb                       = $lic.CapacityLicenseSummary.UsedCapacityTb
             Status                               = $lic.Status
-        } | Export-VhcCsv -FileName '_LicInfo.csv'
+        } | Export-VhciCsv -FileName '_LicInfo.csv'
     } else {
-        $null | Export-VhcCsv -FileName '_LicInfo.csv'
+        $null | Export-VhciCsv -FileName '_LicInfo.csv'
     }
 }

@@ -83,7 +83,7 @@ function Get-VhcVbrInfo {
         }
     } catch {
         Write-LogFile "Get-VhcVbrInfo: failed to read registry values: $($_.Exception.Message)" -LogLevel "WARNING"
-        Add-VhcModuleError -CollectorName 'VbrInfo' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'VbrInfo' -ErrorMessage $_.Exception.Message
     }
 
     # MFA global setting - only available on VBR 12+; fails gracefully on earlier versions
@@ -106,7 +106,7 @@ function Get-VhcVbrInfo {
         'MsDb'      = $msDbName.SqlDatabaseName
         'DbType'    = $dbType.SqlActiveConfiguration
         'MFA'       = $MFAGlobalSetting
-    } | Export-VhcCsv -FileName '_vbrinfo.csv'
+    } | Export-VhciCsv -FileName '_vbrinfo.csv'
 
     Write-LogFile "Collecting VBR Version info...DONE"
 }

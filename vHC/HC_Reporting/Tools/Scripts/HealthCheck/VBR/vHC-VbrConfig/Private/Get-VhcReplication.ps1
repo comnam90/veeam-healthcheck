@@ -26,9 +26,9 @@ function Get-VhcReplication {
     $failoverPlans = Get-VBRFailoverPlan
     Write-LogFile "Found $(@($failoverPlans).Count) failover plans"
 
-    $replicaJobs  | Export-VhcCsv -FileName '_ReplicaJobs.csv'
-    $replicas      | Export-VhcCsv -FileName '_Replicas.csv'
-    $failoverPlans | Export-VhcCsv -FileName '_FailoverPlans.csv'
+    $replicaJobs  | Export-VhciCsv -FileName '_ReplicaJobs.csv'
+    $replicas      | Export-VhciCsv -FileName '_Replicas.csv'
+    $failoverPlans | Export-VhciCsv -FileName '_FailoverPlans.csv'
 
     Write-LogFile ($message + "DONE")
 }

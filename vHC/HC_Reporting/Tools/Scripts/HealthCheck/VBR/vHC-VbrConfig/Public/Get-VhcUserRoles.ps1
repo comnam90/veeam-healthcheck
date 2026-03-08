@@ -12,11 +12,11 @@ function Get-VhcUserRoles {
     Write-LogFile $message
 
     try {
-        Get-VBRUserRoleAssignment | Export-VhcCsv -FileName '_UserRoles.csv'
+        Get-VBRUserRoleAssignment | Export-VhciCsv -FileName '_UserRoles.csv'
         Write-LogFile ($message + "DONE")
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'UserRoles' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'UserRoles' -ErrorMessage $_.Exception.Message
     }
 }

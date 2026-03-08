@@ -114,9 +114,9 @@ function Get-VhcRepository {
             )
         )
 
-        $repoInfo             | Export-VhcCsv -FileName '_Repositories.csv'
-        $SOBROutput           | Export-VhcCsv -FileName '_SOBRs.csv'
-        $AllSOBRExtentsOutput | Export-VhcCsv -FileName '_SOBRExtents.csv'
+        $repoInfo             | Export-VhciCsv -FileName '_Repositories.csv'
+        $SOBROutput           | Export-VhciCsv -FileName '_SOBRs.csv'
+        $AllSOBRExtentsOutput | Export-VhciCsv -FileName '_SOBRExtents.csv'
 
         Write-LogFile ($message + "DONE")
 
@@ -124,7 +124,7 @@ function Get-VhcRepository {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'Repository' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'Repository' -ErrorMessage $_.Exception.Message
         return $null
     }
 }

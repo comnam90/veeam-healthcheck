@@ -46,10 +46,10 @@ function Get-VhcEntraId {
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile "Error on Entra ID collection. $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'EntraId' -ErrorMessage $_.Exception.Message
+        Add-VhciModuleError -CollectorName 'EntraId' -ErrorMessage $_.Exception.Message
     }
 
-    $entraIdLogJobs  | Export-VhcCsv -FileName '_entraLogJob.csv'
-    $entraIDTenant   | Export-VhcCsv -FileName '_entraTenants.csv'
-    $entraIdTenantJobs | Export-VhcCsv -FileName '_entraTenantJob.csv'
+    $entraIdLogJobs  | Export-VhciCsv -FileName '_entraLogJob.csv'
+    $entraIDTenant   | Export-VhciCsv -FileName '_entraTenants.csv'
+    $entraIdTenantJobs | Export-VhciCsv -FileName '_entraTenantJob.csv'
 }
