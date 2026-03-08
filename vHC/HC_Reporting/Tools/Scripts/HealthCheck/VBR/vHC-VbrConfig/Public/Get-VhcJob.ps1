@@ -54,45 +54,8 @@ function Get-VhcJob {
 
     # ------------------------------------------------------------------
     # Sub-function collectors (each exports its own CSVs)
-    # Wrapped individually so a single sub-collector failure does not abort
-    # the remaining ones or the _Jobs.csv export below.
     # ------------------------------------------------------------------
-    try { Get-VhcCatalystJob } catch {
-        Write-LogFile "Get-VhcCatalystJob failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
-    }
-    try { Get-VhcAgentJob } catch {
-        Write-LogFile "Get-VhcAgentJob failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
-    }
-    try { Get-VhcSureBackup } catch {
-        Write-LogFile "Get-VhcSureBackup failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
-    }
-    try { Get-VhcTapeInfrastructure } catch {
-        Write-LogFile "Get-VhcTapeInfrastructure failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
-    }
-    try { Get-VhcNasJob -ReportInterval $ReportInterval } catch {
-        Write-LogFile "Get-VhcNasJob failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
-    }
-    try { Get-VhcPluginAndCdpJob } catch {
-        Write-LogFile "Get-VhcPluginAndCdpJob failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
-    }
-    try { Get-VhcReplication -Jobs @($Jobs) } catch {
-        Write-LogFile "Get-VhcReplication failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
-    }
-    try { Get-VhcCloudConnect } catch {
-        Write-LogFile "Get-VhcCloudConnect failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
-    }
-    try { Get-VhcCredentialsAndNotifications } catch {
-        Write-LogFile "Get-VhcCredentialsAndNotifications failed: $($_.Exception.Message)" -LogLevel "ERROR"
-        Add-VhcModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
-    }
+    Invoke-VhcJobSubCollectors -Jobs @($Jobs) -ReportInterval $ReportInterval
 
     # ------------------------------------------------------------------
     # Main VBR job processing loop - restore point size calculation
