@@ -35,7 +35,7 @@ function Get-VhciViHvProxy {
 
             try {
                 $ProxyCores = $Proxy.GetPhysicalHost().HardwareInfo.CoresCount
-                $ProxyRAM   = ConvertToGB($Proxy.GetPhysicalHost().HardwareInfo.PhysicalRAMTotal)
+                $ProxyRAM   = ConvertTo-GB($Proxy.GetPhysicalHost().HardwareInfo.PhysicalRAMTotal)
             } catch {
                 $hw         = Get-VhciHostHardware ($VServers | Where-Object { $_.Name -eq $Proxy.Name })
                 $ProxyCores = $hw.Cores

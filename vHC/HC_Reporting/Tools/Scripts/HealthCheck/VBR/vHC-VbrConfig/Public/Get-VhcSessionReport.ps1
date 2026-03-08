@@ -48,7 +48,7 @@ function Get-VhcSessionReport {
 
     foreach ($task in $taskSessions) {
         try {
-            $logRecords = Get-VhcSessionLogWithTimeout -Session $task -TimeoutSeconds 30
+            $logRecords = Get-VhciSessionLogWithTimeout -Session $task -TimeoutSeconds 30
 
             $ProcessingLogMatches = $logRecords | Where-Object Title -match $LogRegex
             $ProcessingLogTitles  = $(($ProcessingLogMatches.Title -replace '\bUsing \b.+\s\[', '') -replace ']', '')

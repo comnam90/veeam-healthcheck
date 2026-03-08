@@ -25,7 +25,7 @@ function Get-VhciHostHardware {
         $physHost = $Server.GetPhysicalHost()
         return @{
             Cores = $physHost.HardwareInfo.CoresCount
-            RAM   = ConvertToGB($physHost.HardwareInfo.PhysicalRAMTotal)
+            RAM   = ConvertTo-GB($physHost.HardwareInfo.PhysicalRAMTotal)
         }
     } catch {
         Write-LogFile "Hardware info unavailable for '$($Server.Name)' - defaulting to 0 cores / 0 RAM." -LogLevel "WARNING"

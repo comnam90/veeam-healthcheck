@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function ConvertToGB {
+function ConvertTo-GB {
     <#
     .Synopsis
         Converts a value in bytes to whole gigabytes (floor).

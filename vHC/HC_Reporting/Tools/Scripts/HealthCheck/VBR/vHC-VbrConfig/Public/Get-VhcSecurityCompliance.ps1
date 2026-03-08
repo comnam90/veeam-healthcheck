@@ -74,7 +74,7 @@ function Get-VhcSecurityCompliance {
             Start-Sleep -Seconds $pollIntervalSeconds
             $elapsed += $pollIntervalSeconds
             try {
-                $SecurityCompliances = Get-VhcComplianceResults -VBRVersion $VBRVersion
+                $SecurityCompliances = Get-VhciComplianceResults -VBRVersion $VBRVersion
                 if ($SecurityCompliances -and $SecurityCompliances.Count -gt 0) {
                     Write-LogFile "Scan results ready after ${elapsed}s - retrieved $($SecurityCompliances.Count) compliance items"
                     break
@@ -89,7 +89,7 @@ function Get-VhcSecurityCompliance {
         if (-not $SecurityCompliances -or $SecurityCompliances.Count -eq 0) {
             Write-LogFile "Polling timed out after ${maxWaitSeconds}s. Final retrieval attempt..."
             try {
-                $SecurityCompliances = Get-VhcComplianceResults -VBRVersion $VBRVersion
+                $SecurityCompliances = Get-VhciComplianceResults -VBRVersion $VBRVersion
                 Write-LogFile "Retrieved $($SecurityCompliances.Count) compliance items"
             }
             catch {

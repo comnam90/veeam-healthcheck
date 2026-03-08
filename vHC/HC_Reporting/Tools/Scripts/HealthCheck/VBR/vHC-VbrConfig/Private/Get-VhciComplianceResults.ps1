@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcComplianceResults {
+function Get-VhciComplianceResults {
     <#
     .Synopsis
         Retrieves raw Security & Compliance Analyzer results for the given VBR version.

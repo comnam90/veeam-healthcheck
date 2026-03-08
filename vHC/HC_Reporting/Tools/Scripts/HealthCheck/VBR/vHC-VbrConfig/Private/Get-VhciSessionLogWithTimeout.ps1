@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcSessionLogWithTimeout {
+function Get-VhciSessionLogWithTimeout {
     <#
     .Synopsis
         Retrieves log records from a VBR session object using a timeout-guarded runspace.
