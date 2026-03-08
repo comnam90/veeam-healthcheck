@@ -11,6 +11,7 @@ function Get-VhcServerOsOverhead {
     .Parameter Thresholds
         The Thresholds object from VbrConfig.json (Config.Thresholds).
     #>
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory)] $Entry,
         [Parameter(Mandatory)] $Thresholds

@@ -54,6 +54,7 @@ function Get-VhcJob {
 
     # ------------------------------------------------------------------
     # Sub-function collectors (each exports its own CSVs)
+    # Each sub-collector is individually fault-isolated inside Invoke-VhcJobSubCollectors.
     # ------------------------------------------------------------------
     Invoke-VhcJobSubCollectors -Jobs @($Jobs) -ReportInterval $ReportInterval
 
