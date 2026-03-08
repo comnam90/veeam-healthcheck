@@ -4,8 +4,9 @@ function Get-VhcConcurrencyData {
     <#
     .Synopsis
         Collects all concurrency-related infrastructure data: GP proxies, VMware/HV proxies,
-        CDP proxies, and repository/gateway servers. Adds BackupServer and SQL Server roles
-        to the same host-role map.
+        CDP proxies, and repository/gateway servers. Each sub-collector returns role-entry
+        descriptors; this function merges them into the host-role map and appends BackupServer
+        and SQL Server roles.
         Source: Get-VBRConfig.ps1 lines 374-717.
     .Parameter VServers
         Array of VBR server objects returned by Get-VhcServer. Required for hardware info lookup.
@@ -50,16 +51,28 @@ function Get-VhcConcurrencyData {
     }
 
     # ---------------------------------------------------------------------------
-    # Shared host-role map - passed by reference to each sub-collector
+    # Collect role-entry descriptors from each sub-collector, then merge
     # ---------------------------------------------------------------------------
-    $hostRoles = @{}
+    $gpEntries   = @(Get-VhciGpProxy    -GPProxies     $GPProxies       -VServers $VServers)
+    $viHvEntries = @(Get-VhciViHvProxy  -VMwareProxies $VMwareProxies `
+                                        -HyperVProxies $HyperVProxies `
+                                        -VServers      $VServers)
+    $cdpEntries  = @(Get-VhciCdpProxy   -CDPProxies    $CDPProxies      -VServers $VServers)
+    $repoEntries = @(Get-VhciRepoGateway -Repositories $VBRRepositories -VServers $VServers)
 
-    Get-VhciGpProxy    -GPProxies     $GPProxies        -VServers $VServers -HostRoles $hostRoles
-    Get-VhciViHvProxy  -VMwareProxies $VMwareProxies `
-                      -HyperVProxies $HyperVProxies `
-                      -VServers      $VServers           -HostRoles $hostRoles
-    Get-VhciCdpProxy   -CDPProxies    $CDPProxies         -VServers $VServers -HostRoles $hostRoles
-    Get-VhciRepoGateway -Repositories $VBRRepositories    -VServers $VServers -HostRoles $hostRoles
+    $hostRoles = @{}
+    $allEntries = (@($gpEntries) + @($viHvEntries) + @($cdpEntries) + @($repoEntries)) |
+        Where-Object { $null -ne $_ }
+    foreach ($entry in $allEntries) {
+        Add-VhciHostRoleEntry -HostRoles $hostRoles `
+            -HostName     $entry.HostName `
+            -RoleName     $entry.RoleName `
+            -EntryName    $entry.EntryName `
+            -TaskCount    $entry.TaskCount `
+            -TaskCountKey $entry.TaskCountKey `
+            -Cores        $entry.Cores `
+            -RAM          $entry.RAM
+    }
 
     # ---------------------------------------------------------------------------
     # Add BackupServer role to the host-role map

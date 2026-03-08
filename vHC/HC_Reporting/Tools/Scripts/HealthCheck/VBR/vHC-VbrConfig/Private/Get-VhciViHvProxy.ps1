@@ -4,7 +4,7 @@ function Get-VhciViHvProxy {
     <#
     .Synopsis
         Collects VMware and Hyper-V proxy data and exports to _Proxies.csv and _HvProxy.csv.
-        Appends Proxy role data to the shared HostRoles hashtable.
+        Returns an array of role-entry descriptors (one per proxy) for merging by the caller.
         Source: Get-VBRConfig.ps1 lines 492-553.
     .Parameter VMwareProxies
         Array of VMware proxy objects returned by Get-VBRViProxy.
@@ -12,19 +12,18 @@ function Get-VhciViHvProxy {
         Array of Hyper-V proxy objects returned by Get-VBRHvProxy.
     .Parameter VServers
         Array of VBR server objects (from Get-VBRServer) for hardware info fallback.
-    .Parameter HostRoles
-        Shared hashtable keyed by server name. Modified in-place.
     #>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $false)] [object[]] $VMwareProxies = @(),
         [Parameter(Mandatory = $false)] [object[]] $HyperVProxies = @(),
-        [Parameter(Mandatory)] [object[]] $VServers,
-        [Parameter(Mandatory)] [hashtable] $HostRoles
+        [Parameter(Mandatory)] [object[]] $VServers
     )
 
     $message = "Calculating Vi and HV Proxy Data..."
     Write-LogFile $message
+
+    $roleEntries = [System.Collections.Generic.List[PSCustomObject]]::new()
 
     try {
         $VPProxies  = $VMwareProxies + $HyperVProxies
@@ -64,10 +63,15 @@ function Get-VhciViHvProxy {
             }
             $ProxyData.Add($ProxyDetails)
 
-            Add-VhciHostRoleEntry -HostRoles $HostRoles -HostName $Proxy.Host.Name `
-                -RoleName 'Proxy' -EntryName $Proxy.Name `
-                -TaskCount $NrofProxyTasks -TaskCountKey 'TotalVpProxyTasks' `
-                -Cores $ProxyCores -RAM $ProxyRAM
+            $roleEntries.Add([PSCustomObject]@{
+                HostName     = $Proxy.Host.Name
+                RoleName     = 'Proxy'
+                EntryName    = $Proxy.Name
+                TaskCount    = $NrofProxyTasks
+                TaskCountKey = 'TotalVpProxyTasks'
+                Cores        = $ProxyCores
+                RAM          = $ProxyRAM
+            })
         }
 
         Write-LogFile ($message + "DONE")
@@ -81,8 +85,10 @@ function Get-VhciViHvProxy {
             Type, IsDisabled, Options, MaxTasksCount, Info |
             Export-VhciCsv -FileName '_HvProxy.csv'
 
+        return $roleEntries.ToArray()
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
+        return @()
     }
 }

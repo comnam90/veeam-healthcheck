@@ -4,24 +4,23 @@ function Get-VhciGpProxy {
     <#
     .Synopsis
         Collects General Purpose (NAS) proxy data and exports to _NasProxy.csv.
-        Appends GPProxy role data to the shared HostRoles hashtable.
+        Returns an array of role-entry descriptors (one per proxy) for merging by the caller.
         Source: Get-VBRConfig.ps1 lines 447-490.
     .Parameter GPProxies
         Array of GP/NAS proxy objects returned by Get-VBRNASProxyServer.
     .Parameter VServers
         Array of VBR server objects (from Get-VBRServer) for hardware info lookup.
-    .Parameter HostRoles
-        Shared hashtable keyed by server name. Modified in-place.
     #>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $false)] [object[]] $GPProxies = @(),
-        [Parameter(Mandatory)] [object[]] $VServers,
-        [Parameter(Mandatory)] [hashtable] $HostRoles
+        [Parameter(Mandatory)] [object[]] $VServers
     )
 
     $message = "Calculating GP Proxy Data..."
     Write-LogFile $message
+
+    $roleEntries = [System.Collections.Generic.List[PSCustomObject]]::new()
 
     try {
         $GPProxyData = [System.Collections.Generic.List[PSCustomObject]]::new()
@@ -39,16 +38,23 @@ function Get-VhciGpProxy {
             }
             $GPProxyData.Add($GPProxyDetails)
 
-            Add-VhciHostRoleEntry -HostRoles $HostRoles -HostName $GPProxy.Server.Name `
-                -RoleName 'GPProxy' -EntryName $GPProxy.Server.Name `
-                -TaskCount $NrofGPProxyTasks -TaskCountKey 'TotalGPProxyTasks' `
-                -Cores $GPProxyCores -RAM $GPProxyRAM
+            $roleEntries.Add([PSCustomObject]@{
+                HostName     = $GPProxy.Server.Name
+                RoleName     = 'GPProxy'
+                EntryName    = $GPProxy.Server.Name
+                TaskCount    = $NrofGPProxyTasks
+                TaskCountKey = 'TotalGPProxyTasks'
+                Cores        = $GPProxyCores
+                RAM          = $GPProxyRAM
+            })
         }
 
         Write-LogFile ($message + "DONE")
         $GPProxyData | Export-VhciCsv -FileName '_NasProxy.csv'
+        return $roleEntries.ToArray()
     } catch {
         Write-LogFile ($message + "FAILED!")
         Write-LogFile $_.Exception.Message -LogLevel "ERROR"
+        return @()
     }
 }

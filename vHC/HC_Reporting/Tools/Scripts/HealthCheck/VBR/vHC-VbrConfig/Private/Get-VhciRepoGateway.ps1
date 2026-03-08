@@ -4,25 +4,23 @@ function Get-VhciRepoGateway {
     <#
     .Synopsis
         Collects repository and gateway server data, exports _RepositoryServers.csv and _Gateways.csv.
-        Appends Repository and Gateway role data to the shared HostRoles hashtable.
+        Returns an array of role-entry descriptors (Gateway and Repository roles) for merging by the caller.
         Source: Get-VBRConfig.ps1 lines 604-689.
     .Parameter Repositories
         Array of backup repository objects returned by Get-VBRBackupRepository.
     .Parameter VServers
         Array of VBR server objects (from Get-VBRServer) for hardware info lookup.
-    .Parameter HostRoles
-        Shared hashtable keyed by server name. Modified in-place.
     #>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $false)] [object[]] $Repositories = @(),
-        [Parameter(Mandatory)] [object[]] $VServers,
-        [Parameter(Mandatory)] [hashtable] $HostRoles
+        [Parameter(Mandatory)] [object[]] $VServers
     )
 
     $message = "Calculating Repository and GW Data..."
     Write-LogFile $message
 
+    $roleEntries = [System.Collections.Generic.List[PSCustomObject]]::new()
     $RepoData = [System.Collections.Generic.List[PSCustomObject]]::new()
     $GWData   = [System.Collections.Generic.List[PSCustomObject]]::new()
 
@@ -55,10 +53,15 @@ function Get-VhciRepoGateway {
                     }
                     $GWData.Add($GWDetails)
 
-                    Add-VhciHostRoleEntry -HostRoles $HostRoles -HostName $gatewayServer.Name `
-                        -RoleName 'Gateway' -EntryName $Repository.Name `
-                        -TaskCount $gwTaskCount -TaskCountKey 'TotalGWTasks' `
-                        -Cores $GWCores -RAM $GWRAM
+                    $roleEntries.Add([PSCustomObject]@{
+                        HostName     = $gatewayServer.Name
+                        RoleName     = 'Gateway'
+                        EntryName    = $Repository.Name
+                        TaskCount    = $gwTaskCount
+                        TaskCountKey = 'TotalGWTasks'
+                        Cores        = $GWCores
+                        RAM          = $GWRAM
+                    })
                 }
             } else {
                 # No gateway - the repo host IS the storage target.
@@ -84,14 +87,20 @@ function Get-VhciRepoGateway {
                 }
                 $RepoData.Add($RepoDetails)
 
-                Add-VhciHostRoleEntry -HostRoles $HostRoles -HostName $Repository.Host.Name `
-                    -RoleName 'Repository' -EntryName $Repository.Name `
-                    -TaskCount $NrofRepositoryTasks -TaskCountKey 'TotalRepoTasks' `
-                    -Cores $RepoCores -RAM $RepoRAM
+                $roleEntries.Add([PSCustomObject]@{
+                    HostName     = $Repository.Host.Name
+                    RoleName     = 'Repository'
+                    EntryName    = $Repository.Name
+                    TaskCount    = $NrofRepositoryTasks
+                    TaskCountKey = 'TotalRepoTasks'
+                    Cores        = $RepoCores
+                    RAM          = $RepoRAM
+                })
             }
         }
 
     Write-LogFile ($message + "DONE")
     $RepoData | Export-VhciCsv -FileName '_RepositoryServers.csv'
     $GWData   | Export-VhciCsv -FileName '_Gateways.csv'
+    return $roleEntries.ToArray()
 }
