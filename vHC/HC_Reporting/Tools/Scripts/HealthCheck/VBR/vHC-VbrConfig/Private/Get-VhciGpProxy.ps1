@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcGpProxy {
+function Get-VhciGpProxy {
     <#
     .Synopsis
         Collects General Purpose (NAS) proxy data and exports to _NasProxy.csv.
@@ -28,7 +28,7 @@ function Get-VhcGpProxy {
 
         foreach ($GPProxy in $GPProxies) {
             $NrofGPProxyTasks = $GPProxy.ConcurrentTaskNumber
-            $hw           = Get-VhcHostHardware ($VServers | Where-Object { $_.Name -eq $GPProxy.Server.Name })
+            $hw           = Get-VhciHostHardware ($VServers | Where-Object { $_.Name -eq $GPProxy.Server.Name })
             $GPProxyCores = $hw.Cores
             $GPProxyRAM   = $hw.RAM
 
@@ -39,7 +39,7 @@ function Get-VhcGpProxy {
             }
             $GPProxyData.Add($GPProxyDetails)
 
-            Add-VhcHostRoleEntry -HostRoles $HostRoles -HostName $GPProxy.Server.Name `
+            Add-VhciHostRoleEntry -HostRoles $HostRoles -HostName $GPProxy.Server.Name `
                 -RoleName 'GPProxy' -EntryName $GPProxy.Server.Name `
                 -TaskCount $NrofGPProxyTasks -TaskCountKey 'TotalGPProxyTasks' `
                 -Cores $GPProxyCores -RAM $GPProxyRAM

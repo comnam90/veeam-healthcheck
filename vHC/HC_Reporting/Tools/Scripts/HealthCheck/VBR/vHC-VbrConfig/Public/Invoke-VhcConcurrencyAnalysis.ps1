@@ -61,7 +61,7 @@ function Invoke-VhcConcurrencyAnalysis {
             $SuggestedTasksByRAM   = 0
             $serverName            = $server.Key
 
-            $overhead = Get-VhcServerOsOverhead -Entry $server.Value -Thresholds $t
+            $overhead = Get-VhciServerOsOverhead -Entry $server.Value -Thresholds $t
 
             $RequiredCores = [Math]::Ceiling(
                 (SafeValue $server.Value.TotalRepoTasks)     * $RepoGWCPUReq   +

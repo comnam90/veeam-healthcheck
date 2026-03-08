@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcHostHardware {
+function Get-VhciHostHardware {
     <#
     .Synopsis
         Returns CPU core count and RAM in GB for a VBR server object.

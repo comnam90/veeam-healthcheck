@@ -54,12 +54,12 @@ function Get-VhcConcurrencyData {
     # ---------------------------------------------------------------------------
     $hostRoles = @{}
 
-    Get-VhcGpProxy    -GPProxies     $GPProxies        -VServers $VServers -HostRoles $hostRoles
-    Get-VhcViHvProxy  -VMwareProxies $VMwareProxies `
+    Get-VhciGpProxy    -GPProxies     $GPProxies        -VServers $VServers -HostRoles $hostRoles
+    Get-VhciViHvProxy  -VMwareProxies $VMwareProxies `
                       -HyperVProxies $HyperVProxies `
                       -VServers      $VServers           -HostRoles $hostRoles
-    Get-VhcCdpProxy   -CDPProxies    $CDPProxies         -VServers $VServers -HostRoles $hostRoles
-    Get-VhcRepoGateway -Repositories $VBRRepositories    -VServers $VServers -HostRoles $hostRoles
+    Get-VhciCdpProxy   -CDPProxies    $CDPProxies         -VServers $VServers -HostRoles $hostRoles
+    Get-VhciRepoGateway -Repositories $VBRRepositories    -VServers $VServers -HostRoles $hostRoles
 
     # ---------------------------------------------------------------------------
     # Add BackupServer role to the host-role map

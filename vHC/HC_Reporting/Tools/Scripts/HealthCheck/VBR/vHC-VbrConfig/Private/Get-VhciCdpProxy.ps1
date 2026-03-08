@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcCdpProxy {
+function Get-VhciCdpProxy {
     <#
     .Synopsis
         Collects CDP proxy data and exports to _CdpProxy.csv.
@@ -28,7 +28,7 @@ function Get-VhcCdpProxy {
 
         foreach ($CDPProxy in $CDPProxies) {
             $CDPServer     = $VServers | Where-Object { $_.Id -eq $CDPProxy.ServerId }
-            $hw            = Get-VhcHostHardware $CDPServer
+            $hw            = Get-VhciHostHardware $CDPServer
             $CDPProxyCores = $hw.Cores
             $CDPProxyRAM   = $hw.RAM
 
@@ -45,7 +45,7 @@ function Get-VhcCdpProxy {
             }
             $CDPProxyData.Add($CDPProxyDetails)
 
-            Add-VhcHostRoleEntry -HostRoles $HostRoles -HostName $CDPServer.Name `
+            Add-VhciHostRoleEntry -HostRoles $HostRoles -HostName $CDPServer.Name `
                 -RoleName 'CDPProxy' -EntryName $CDPProxy.Name `
                 -TaskCount 1 -TaskCountKey 'TotalCDPProxyTasks' `
                 -Cores $CDPProxyCores -RAM $CDPProxyRAM

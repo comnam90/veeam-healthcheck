@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcViHvProxy {
+function Get-VhciViHvProxy {
     <#
     .Synopsis
         Collects VMware and Hyper-V proxy data and exports to _Proxies.csv and _HvProxy.csv.
@@ -37,7 +37,7 @@ function Get-VhcViHvProxy {
                 $ProxyCores = $Proxy.GetPhysicalHost().HardwareInfo.CoresCount
                 $ProxyRAM   = ConvertToGB($Proxy.GetPhysicalHost().HardwareInfo.PhysicalRAMTotal)
             } catch {
-                $hw         = Get-VhcHostHardware ($VServers | Where-Object { $_.Name -eq $Proxy.Name })
+                $hw         = Get-VhciHostHardware ($VServers | Where-Object { $_.Name -eq $Proxy.Name })
                 $ProxyCores = $hw.Cores
                 $ProxyRAM   = $hw.RAM
             }
@@ -64,7 +64,7 @@ function Get-VhcViHvProxy {
             }
             $ProxyData.Add($ProxyDetails)
 
-            Add-VhcHostRoleEntry -HostRoles $HostRoles -HostName $Proxy.Host.Name `
+            Add-VhciHostRoleEntry -HostRoles $HostRoles -HostName $Proxy.Host.Name `
                 -RoleName 'Proxy' -EntryName $Proxy.Name `
                 -TaskCount $NrofProxyTasks -TaskCountKey 'TotalVpProxyTasks' `
                 -Cores $ProxyCores -RAM $ProxyRAM

@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Add-VhcHostRoleEntry {
+function Add-VhciHostRoleEntry {
     <#
     .Synopsis
         Upserts a server entry in the shared HostRoles hashtable and increments the

@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcRepoGateway {
+function Get-VhciRepoGateway {
     <#
     .Synopsis
         Collects repository and gateway server data, exports _RepositoryServers.csv and _Gateways.csv.
@@ -41,7 +41,7 @@ function Get-VhcRepoGateway {
                 # the backing repo is object storage / VeeamVault / cloud.
                 foreach ($gatewayServer in $gatewayServers) {
                     $Server  = $VServers | Where-Object { $_.Name -eq $gatewayServer.Name }
-                    $hw      = Get-VhcHostHardware $Server
+                    $hw      = Get-VhciHostHardware $Server
                     $GWCores = $hw.Cores
                     $GWRAM   = $hw.RAM
 
@@ -55,7 +55,7 @@ function Get-VhcRepoGateway {
                     }
                     $GWData.Add($GWDetails)
 
-                    Add-VhcHostRoleEntry -HostRoles $HostRoles -HostName $gatewayServer.Name `
+                    Add-VhciHostRoleEntry -HostRoles $HostRoles -HostName $gatewayServer.Name `
                         -RoleName 'Gateway' -EntryName $Repository.Name `
                         -TaskCount $gwTaskCount -TaskCountKey 'TotalGWTasks' `
                         -Cores $GWCores -RAM $GWRAM
@@ -71,7 +71,7 @@ function Get-VhcRepoGateway {
                 }
 
                 $Server    = $VServers | Where-Object { $_.Name -eq $Repository.Host.Name }
-                $hw        = Get-VhcHostHardware $Server
+                $hw        = Get-VhciHostHardware $Server
                 $RepoCores = $hw.Cores
                 $RepoRAM   = $hw.RAM
 
@@ -84,7 +84,7 @@ function Get-VhcRepoGateway {
                 }
                 $RepoData.Add($RepoDetails)
 
-                Add-VhcHostRoleEntry -HostRoles $HostRoles -HostName $Repository.Host.Name `
+                Add-VhciHostRoleEntry -HostRoles $HostRoles -HostName $Repository.Host.Name `
                     -RoleName 'Repository' -EntryName $Repository.Name `
                     -TaskCount $NrofRepositoryTasks -TaskCountKey 'TotalRepoTasks' `
                     -Cores $RepoCores -RAM $RepoRAM

@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcServerOsOverhead {
+function Get-VhciServerOsOverhead {
     <#
     .Synopsis
         Computes the total OS-level CPU and RAM overhead for a server entry by summing
