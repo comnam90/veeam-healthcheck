@@ -26,11 +26,11 @@ namespace VhcXTests.Integration
                 "..", "..", "..", "..", "HC_Reporting"));
             _exportCsvScriptPath = Path.Combine(
                 projectRoot, "Tools", "Scripts", "HealthCheck", "VBR",
-                "vHC-VbrConfig", "Private", "Export-VhcCsv.ps1");
+                "vHC-VbrConfig", "Private", "Export-VhciCsv.ps1");
         }
 
         /// <summary>
-        /// Verifies that Export-VhcCsv preserves [pscustomobject][ordered] column order.
+        /// Verifies that Export-VhciCsv preserves [pscustomobject][ordered] column order.
         /// A known object is piped through the function and the resulting CSV header row
         /// is asserted to be an exact string match.
         /// </summary>
@@ -39,7 +39,7 @@ namespace VhcXTests.Integration
         {
             if (!File.Exists(_exportCsvScriptPath))
             {
-                Assert.Fail($"Export-VhcCsv.ps1 not found at: {_exportCsvScriptPath}");
+                Assert.Fail($"Export-VhciCsv.ps1 not found at: {_exportCsvScriptPath}");
             }
 
             var tmpDir       = Path.Combine(Path.GetTempPath(), $"vhc-test-{Guid.NewGuid():N}");
@@ -48,7 +48,7 @@ namespace VhcXTests.Integration
             Directory.CreateDirectory(tmpDir);
 
             // Write the test script to a temp file to avoid complex argument escaping.
-            // The script dot-sources Export-VhcCsv (and Write-LogFile which it calls internally),
+            // The script dot-sources Export-VhciCsv (and Write-LogFile which it calls internally),
             // injects the module-level vars it reads, pipes a known [pscustomobject][ordered]
             // through it, then asserts the CSV header is an exact column-order match.
             var moduleRoot    = Path.GetFullPath(Path.Combine(
@@ -69,7 +69,7 @@ $script:LogLevel   = 'ERROR'
     Bravo   = 2
     Charlie = 3
     Delta   = 4
-}} | Export-VhcCsv -FileName '_ColumnOrder.csv'
+}} | Export-VhciCsv -FileName '_ColumnOrder.csv'
 
 $csvPath = (Join-Path '{tmpDir}' 'test_ColumnOrder.csv')
 $header  = (Get-Content $csvPath | Select-Object -First 1)
@@ -106,7 +106,7 @@ exit 0
                 process.WaitForExit();
 
                 Assert.True(process.ExitCode == 0,
-                    $"Export-VhcCsv column-order check failed (exit {process.ExitCode}).\n" +
+                    $"Export-VhciCsv column-order check failed (exit {process.ExitCode}).\n" +
                     $"STDOUT: {stdout}\nSTDERR: {stderr}");
             }
             finally
@@ -117,7 +117,7 @@ exit 0
         }
 
         /// <summary>
-        /// Verifies that Export-VhcCsv propagates file I/O failures rather than swallowing them.
+        /// Verifies that Export-VhciCsv propagates file I/O failures rather than swallowing them.
         /// A non-existent output directory is used to trigger Export-Csv failure reliably.
         /// </summary>
         [Fact]
@@ -127,14 +127,14 @@ exit 0
                 AppDomain.CurrentDomain.BaseDirectory,
                 "..", "..", "..", "..", "HC_Reporting"));
             var moduleRoot       = Path.Combine(projectRoot, "Tools", "Scripts", "HealthCheck", "VBR", "vHC-VbrConfig");
-            var exportCsvPath    = Path.Combine(moduleRoot, "Private", "Export-VhcCsv.ps1");
+            var exportCsvPath    = Path.Combine(moduleRoot, "Private", "Export-VhciCsv.ps1");
             var writeLogPath     = Path.Combine(moduleRoot, "Public",  "Write-LogFile.ps1");
 
             var tmpDir       = Path.Combine(Path.GetTempPath(), $"vhc-ioerr-{Guid.NewGuid():N}");
             var tmpScriptPath = Path.Combine(tmpDir, "Test-IoFailure.ps1");
             Directory.CreateDirectory(tmpDir);
 
-            // ReportPath points to a path that does not exist and cannot be created by Export-VhcCsv.
+            // ReportPath points to a path that does not exist and cannot be created by Export-VhciCsv.
             // (Export-Csv fails when the parent directory doesn't exist.)
             var nonExistentPath = Path.Combine(tmpDir, "does-not-exist", "nested");
 
@@ -149,9 +149,9 @@ $script:LogPath    = '{tmpDir}'
 $script:LogLevel   = 'ERROR'
 
 try {{
-    [pscustomobject]@{{ A = 1 }} | Export-VhcCsv -FileName '_test.csv'
+    [pscustomobject]@{{ A = 1 }} | Export-VhciCsv -FileName '_test.csv'
     # Should NOT reach here - expect an exception from the missing directory
-    Write-Error 'Export-VhcCsv did not throw on I/O failure'
+    Write-Error 'Export-VhciCsv did not throw on I/O failure'
     exit 1
 }} catch {{
     # Exception propagated as expected
@@ -179,7 +179,7 @@ try {{
                 process.WaitForExit();
 
                 Assert.True(process.ExitCode == 0,
-                    $"Export-VhcCsv should have thrown on I/O failure and been caught by the test's try/catch.\n" +
+                    $"Export-VhciCsv should have thrown on I/O failure and been caught by the test's try/catch.\n" +
                     $"Exit code {process.ExitCode} means the exception was swallowed.\nSTDOUT: {stdout}\nSTDERR: {stderr}");
             }
             finally
@@ -278,8 +278,8 @@ exit 0
             var moduleRoot       = Path.Combine(projectRoot, "Tools", "Scripts", "HealthCheck", "VBR", "vHC-VbrConfig");
             var sessionRptPath   = Path.Combine(moduleRoot, "Public",  "Get-VhcSessionReport.ps1");
             var writeLogPath     = Path.Combine(moduleRoot, "Public",  "Write-LogFile.ps1");
-            var exportCsvPath    = Path.Combine(moduleRoot, "Private", "Export-VhcCsv.ps1");
-            var sessionLogPath   = Path.Combine(moduleRoot, "Private", "Get-VhcSessionLogWithTimeout.ps1");
+            var exportCsvPath    = Path.Combine(moduleRoot, "Private", "Export-VhciCsv.ps1");
+            var sessionLogPath   = Path.Combine(moduleRoot, "Private", "Get-VhciSessionLogWithTimeout.ps1");
 
             var tmpDir       = Path.Combine(Path.GetTempPath(), $"vhc-sess-{Guid.NewGuid():N}");
             var tmpScriptPath = Path.Combine(tmpDir, "Test-NullSessionGuard.ps1");

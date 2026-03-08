@@ -62,7 +62,7 @@ updating to pass `$null` as a parameter rather than setting `$script:AllBackupSe
 Option B. All collector functions must receive their data inputs as explicit parameters and
 return their outputs as pipeline/return values. `$script:` module state is reserved for
 infrastructure configuration set by `Initialize-VhcModule` and consumed only by the
-infrastructure helpers (`Write-LogFile`, `Export-VhcCsv`). Collector business logic must
+infrastructure helpers (`Write-LogFile`, `Export-VhciCsv`). Collector business logic must
 not read or write `$script:` variables to exchange data with other collectors.
 
 ## Consequences
@@ -73,7 +73,7 @@ not read or write `$script:` variables to exchange data with other collectors.
 * **Bad:** One existing test (`GetVhcSessionReport_NullSessions_ThrowsDescriptiveError`)
   must be updated to use the new parameter signature.
 * **Neutral:** `$script:AllBackupSessions` is removed entirely from the module.
-  `Write-LogFile` and `Export-VhcCsv` may continue to use `$script:` state — they are
+  `Write-LogFile` and `Export-VhciCsv` may continue to use `$script:` state — they are
   infrastructure, not business logic.
 
 ## Validation

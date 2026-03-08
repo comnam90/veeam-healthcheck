@@ -1,4 +1,4 @@
-# ADR 0008: Host-Role Accumulation via Add-VhcHostRoleEntry Helper
+# ADR 0008: Host-Role Accumulation via Add-VhciHostRoleEntry Helper
 
 * **Status:** Accepted
 * **Date:** 2026-03-05
@@ -8,7 +8,7 @@
 ## Context and Problem Statement
 
 `Get-VhcConcurrencyData` orchestrates four private sub-collectors
-(Get-VhcGpProxy, Get-VhcViHvProxy, Get-VhcCdpProxy, Get-VhcRepoGateway)
+(Get-VhciGpProxy, Get-VhciViHvProxy, Get-VhciCdpProxy, Get-VhciRepoGateway)
 that all mutate a shared `$hostRoles` hashtable. Each sub-collector
 contained an identical "upsert + task-count increment" block:
 
@@ -48,14 +48,14 @@ them. Eliminates mutable shared state.
 `Get-VhcConcurrencyData` (ADR 0006 break) and adds merge complexity that
 exceeds the problem being solved.
 
-### Option B - Single `Add-VhcHostRoleEntry` private helper (chosen)
+### Option B - Single `Add-VhciHostRoleEntry` private helper (chosen)
 Extract the upsert pattern into a private function with a `$TaskCountKey`
 parameter. The shared hashtable remains the accumulation mechanism;
 the helper encapsulates the entry-shape and increment logic.
 
 ## Decision
 
-Option B. `Add-VhcHostRoleEntry` is the canonical way to add or update
+Option B. `Add-VhciHostRoleEntry` is the canonical way to add or update
 a server entry in the `$HostRoles` map. All four sub-collectors call this
 helper instead of duplicating the upsert block.
 

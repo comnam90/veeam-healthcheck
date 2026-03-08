@@ -112,34 +112,43 @@ These are available within the module but not exported. Do not call them directl
 
 ### Concurrency sub-collectors (called by `Get-VhcConcurrencyData`)
 
+Each sub-collector exports its CSV(s) and returns an array of role-entry descriptors. `Get-VhcConcurrencyData` merges all descriptors into the `$hostRoles` hashtable via `Add-VhciHostRoleEntry`.
+
 | Function | Purpose |
 |----------|---------|
-| `Get-VhcViHvProxy` | Collects VMware and Hyper-V proxy data; exports `_Proxies.csv`, `_HvProxy.csv`; populates `Proxy` role in `$hostRoles`. |
-| `Get-VhcGpProxy` | Collects General Purpose (NAS/File) proxy data; exports `_NasProxy.csv`; populates `GPProxy` role in `$hostRoles`. |
-| `Get-VhcCdpProxy` | Collects CDP proxy data; exports `_CdpProxy.csv`; populates `CDPProxy` role in `$hostRoles`. |
-| `Get-VhcRepoGateway` | Collects repository and gateway server data; exports `_RepositoryServers.csv`, `_Gateways.csv`; populates `Repository` and `Gateway` roles in `$hostRoles`. Cloud-backed repos (`Type=Cloud`, VeeamVault, AmazonS3) are filtered from the no-gateway path because they have no local storage host; however, any gateway server fronting such a repo is always included. |
+| `Get-VhciViHvProxy` | Collects VMware and Hyper-V proxy data; exports `_Proxies.csv`, `_HvProxy.csv`; returns `Proxy` role descriptors. |
+| `Get-VhciGpProxy` | Collects General Purpose (NAS/File) proxy data; exports `_NasProxy.csv`; returns `GPProxy` role descriptors. |
+| `Get-VhciCdpProxy` | Collects CDP proxy data; exports `_CdpProxy.csv`; returns `CDPProxy` role descriptors. |
+| `Get-VhciRepoGateway` | Collects repository and gateway server data; exports `_RepositoryServers.csv`, `_Gateways.csv`; returns `Repository` and `Gateway` role descriptors. Cloud-backed repos (`Type=Cloud`, VeeamVault, AmazonS3) are filtered from the no-gateway path because they have no local storage host; however, any gateway server fronting such a repo is always included. |
 
-### Job sub-collectors (called by `Get-VhcJob`)
+### Job sub-collectors (called by `Get-VhcJob` via `Invoke-VhciJobSubCollectors`)
 
 | Function | CSV outputs | Notes |
 |----------|-------------|-------|
-| `Get-VhcCatalystJob` | `_catCopyjob.csv` `_catalystJob.csv` | `Get-VBRCatalystJob` is optional — error is caught and logged if the cmdlet is unavailable. |
-| `Get-VhcAgentJob` | `_AgentBackupJob.csv` `_EndpointJob.csv` | Computer backup jobs and legacy endpoint jobs. |
-| `Get-VhcSureBackup` | `_SureBackupJob.csv` `_SureBackupAppGroups.csv` `_SureBackupVirtualLabs.csv` | |
-| `Get-VhcTapeInfrastructure` | `_TapeJobs.csv` `_TapeServers.csv` `_TapeLibraries.csv` `_TapeMediaPools.csv` `_TapeVaults.csv` | |
-| `Get-VhcNasJob` | `_nasBackup.csv` `_nasBCJ.csv` | Session-based size metrics require `-ReportInterval` days lookback. |
-| `Get-VhcPluginAndCdpJob` | `_pluginjobs.csv` `_cdpjobs.csv` `_vcdjobs.csv` | |
-| `Get-VhcReplication` | `_ReplicaJobs.csv` `_Replicas.csv` `_FailoverPlans.csv` | Receives the already-fetched `$Jobs` array to avoid a second `Get-VBRJob` call. |
-| `Get-VhcCloudConnect` | `_CloudGateways.csv` `_CloudTenants.csv` | Errors when VCC service provider licence is not installed — caught and logged. |
-| `Get-VhcCredentialsAndNotifications` | `_EmailNotification.csv` `_Credentials.csv` | `Get-VBRMailNotification` is optional — error caught if cmdlet unavailable. Veeam cmdlets never expose credential passwords. |
+| `Invoke-VhciJobSubCollectors` | _(orchestrator — no direct CSV output)_ | Calls all 9 job sub-collectors below, each individually fault-isolated. |
+| `Get-VhciCatalystJob` | `_catCopyjob.csv` `_catalystJob.csv` | `Get-VBRCatalystJob` is optional — error is caught and logged if the cmdlet is unavailable. |
+| `Get-VhciAgentJob` | `_AgentBackupJob.csv` `_EndpointJob.csv` | Computer backup jobs and legacy endpoint jobs. |
+| `Get-VhciSureBackup` | `_SureBackupJob.csv` `_SureBackupAppGroups.csv` `_SureBackupVirtualLabs.csv` | |
+| `Get-VhciTapeInfrastructure` | `_TapeJobs.csv` `_TapeServers.csv` `_TapeLibraries.csv` `_TapeMediaPools.csv` `_TapeVaults.csv` | |
+| `Get-VhciNasJob` | `_nasBackup.csv` `_nasBCJ.csv` | Session-based size metrics require `-ReportInterval` days lookback. |
+| `Get-VhciPluginAndCdpJob` | `_pluginjobs.csv` `_cdpjobs.csv` `_vcdjobs.csv` | |
+| `Get-VhciReplication` | `_ReplicaJobs.csv` `_Replicas.csv` `_FailoverPlans.csv` | Receives the already-fetched `$Jobs` array to avoid a second `Get-VBRJob` call. |
+| `Get-VhciCloudConnect` | `_CloudGateways.csv` `_CloudTenants.csv` | Errors when VCC service provider licence is not installed — caught and logged. |
+| `Get-VhciCredentialsAndNotifications` | `_EmailNotification.csv` `_Credentials.csv` | `Get-VBRMailNotification` is optional — error caught if cmdlet unavailable. Veeam cmdlets never expose credential passwords. |
 
 ### Utility helpers
 
 | Function | Purpose |
 |----------|---------|
-| `Export-VhcCsv` | Pipeline-aware CSV writer. Constructs the full output path as `<ReportPath>\<VBRServer><FileName>` from module state set by `Initialize-VhcModule`. |
+| `Export-VhciCsv` | Pipeline-aware CSV writer. Constructs the full output path as `<ReportPath>\<VBRServer><FileName>` from module state set by `Initialize-VhcModule`. |
+| `Add-VhciModuleError` | Appends a failure record to `$script:ModuleErrors` (ADR 0007). Called from public collector catch blocks. |
+| `Add-VhciHostRoleEntry` | Merges a role-entry descriptor into the `$hostRoles` hashtable. Called exclusively by `Get-VhcConcurrencyData` after collecting all sub-collector results. |
+| `Get-VhciHostHardware` | Resolves physical core and RAM values for a VBR server object. Used by the concurrency sub-collectors. |
+| `Get-VhciServerOsOverhead` | Returns the configured OS overhead allocation for a server entry. Used by `Invoke-VhcConcurrencyAnalysis`. |
+| `Get-VhciComplianceResults` | Polls `Get-VBRSecurityComplianceAnalyzerResults` with a 45-second timeout. Called by `Get-VhcSecurityCompliance`. |
+| `Get-VhciSessionLogWithTimeout` | Fetches backup task session log with a configurable timeout. Called by `Get-VhcSessionReport`. |
 | `Get-SqlSName` | Reads the VBR database server hostname from the Windows registry. Resolves `"localhost"` to the actual FQDN using the `-VBRServer` parameter. |
-| `ConvertToGB` | Converts bytes to whole gigabytes (floor division). |
+| `ConvertTo-GB` | Converts bytes to whole gigabytes (floor division). |
 | `EnsureNonNegative` | Clamps a value to 0 if negative. Used in concurrency requirement calculations. |
 | `SafeValue` | Returns `0` if the input is `$null`; otherwise returns the value unchanged. Guards against `$null` arithmetic. |
 
