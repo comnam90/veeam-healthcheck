@@ -11,6 +11,7 @@ function Get-VhcHostHardware {
     .Outputs
         [hashtable] @{ Cores = [int]; RAM = [int] }
     #>
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory = $false)] $Server
     )
