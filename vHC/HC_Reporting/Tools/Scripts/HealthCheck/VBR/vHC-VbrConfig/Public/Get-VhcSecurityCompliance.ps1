@@ -74,12 +74,7 @@ function Get-VhcSecurityCompliance {
             Start-Sleep -Seconds $pollIntervalSeconds
             $elapsed += $pollIntervalSeconds
             try {
-                if ($VBRVersion -ge 13) {
-                    $SecurityCompliances = Get-VBRSecurityComplianceAnalyzerResults
-                }
-                else {
-                    $SecurityCompliances = [Veeam.Backup.DBManager.CDBManager]::Instance.BestPractices.GetAll()
-                }
+                $SecurityCompliances = Get-VhcComplianceResults -VBRVersion $VBRVersion
                 if ($SecurityCompliances -and $SecurityCompliances.Count -gt 0) {
                     Write-LogFile "Scan results ready after ${elapsed}s - retrieved $($SecurityCompliances.Count) compliance items"
                     break
@@ -94,14 +89,7 @@ function Get-VhcSecurityCompliance {
         if (-not $SecurityCompliances -or $SecurityCompliances.Count -eq 0) {
             Write-LogFile "Polling timed out after ${maxWaitSeconds}s. Final retrieval attempt..."
             try {
-                if ($VBRVersion -ge 13) {
-                    Write-LogFile "Using Get-VBRSecurityComplianceAnalyzerResults for VBR v13+"
-                    $SecurityCompliances = Get-VBRSecurityComplianceAnalyzerResults
-                }
-                else {
-                    Write-LogFile "Using database method for VBR v12"
-                    $SecurityCompliances = [Veeam.Backup.DBManager.CDBManager]::Instance.BestPractices.GetAll()
-                }
+                $SecurityCompliances = Get-VhcComplianceResults -VBRVersion $VBRVersion
                 Write-LogFile "Retrieved $($SecurityCompliances.Count) compliance items"
             }
             catch {
