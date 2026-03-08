@@ -10,6 +10,7 @@ function Get-VhcComplianceResults {
     .Parameter VBRVersion
         Major VBR version integer.
     #>
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory)] [int] $VBRVersion
     )

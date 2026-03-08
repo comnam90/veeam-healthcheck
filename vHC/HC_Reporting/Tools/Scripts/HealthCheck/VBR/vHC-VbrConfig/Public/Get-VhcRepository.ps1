@@ -41,7 +41,7 @@ function Get-VhcRepository {
 
         [System.Collections.ArrayList]$RepositoryDetails = @()
 
-        foreach ($Repo in ($Repositories + $SOBRs)) {
+        foreach ($Repo in (@($Repositories) + @($SOBRs))) {
             $null = $RepositoryDetails.Add([pscustomobject][ordered]@{
                 'ID'   = $Repo.ID
                 'Name' = $Repo.Name
