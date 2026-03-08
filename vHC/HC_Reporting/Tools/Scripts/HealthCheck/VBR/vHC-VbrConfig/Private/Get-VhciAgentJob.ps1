@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcAgentJob {
+function Get-VhciAgentJob {
     <#
     .Synopsis
         Collects computer backup jobs and legacy endpoint (EP) backup jobs.

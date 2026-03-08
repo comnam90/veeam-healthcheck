@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcNasJob {
+function Get-VhciNasJob {
     <#
     .Synopsis
         Collects NAS backup jobs (with session-based size metrics) and NAS backup copy jobs.

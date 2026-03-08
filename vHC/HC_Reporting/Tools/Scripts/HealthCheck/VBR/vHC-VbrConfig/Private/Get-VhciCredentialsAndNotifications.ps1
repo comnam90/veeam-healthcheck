@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcCredentialsAndNotifications {
+function Get-VhciCredentialsAndNotifications {
     <#
     .Synopsis
         Collects email notification settings and stored credentials (name/username only -

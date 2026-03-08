@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcTapeInfrastructure {
+function Get-VhciTapeInfrastructure {
     <#
     .Synopsis
         Collects tape infrastructure: jobs, servers, libraries, media pools, and vaults.

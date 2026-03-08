@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcSureBackup {
+function Get-VhciSureBackup {
     <#
     .Synopsis
         Collects SureBackup jobs, application groups, and virtual labs.

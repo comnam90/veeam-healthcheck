@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcPluginAndCdpJob {
+function Get-VhciPluginAndCdpJob {
     <#
     .Synopsis
         Collects plugin backup jobs, CDP policies, and VCD replica jobs.

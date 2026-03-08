@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcReplication {
+function Get-VhciReplication {
     <#
     .Synopsis
         Collects replica jobs, replica objects, and failover plans.

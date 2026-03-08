@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcCatalystJob {
+function Get-VhciCatalystJob {
     <#
     .Synopsis
         Collects Catalyst copy jobs.

@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-function Get-VhcCloudConnect {
+function Get-VhciCloudConnect {
     <#
     .Synopsis
         Collects Cloud Connect gateway and tenant data.
