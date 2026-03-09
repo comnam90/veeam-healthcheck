@@ -10,18 +10,18 @@ C# report compiler.
 
 ```
 C# invoker (PSInvoker.cs / PowerShell7Executor.cs)
-    └── Get-VBRConfig.ps1          (backward-compat shim)
-            └── VBR-Orchestrator.ps1   (canonical entry point)
-                    ├── VbrConfig.json             (static configuration)
-                    └── vHC-VbrConfig\             (collector module)
-                            ├── Initialize-VhcModule
-                            ├── Invoke-VhcCollector  (wraps each collector)
-                            └── Get-Vhc*, Invoke-Vhc*  (individual collectors)
+    └── Get-VBRConfig.ps1          (canonical entry point)
+            ├── VbrConfig.json             (static configuration)
+            └── vHC-VbrConfig\             (collector module)
+                    ├── Initialize-VhcModule
+                    ├── Invoke-VhcCollector  (wraps each collector)
+                    └── Get-Vhc*, Invoke-Vhc*  (individual collectors)
 ```
 
-The C# invoker always calls `Get-VBRConfig.ps1`. The shim exists so the C#
-layer does not need to change until CSV parity between the old monolith and the
-new module is confirmed (Task 11C).
+The C# invoker always calls `Get-VBRConfig.ps1`, which is the single canonical
+entry point. It reads configuration, imports the module, connects to VBR, runs
+all collectors in dependency order, exports the collection manifest, and
+disconnects.
 
 ---
 
@@ -29,11 +29,8 @@ new module is confirmed (Task 11C).
 
 | File | Purpose |
 |------|---------|
-| `VBR-Orchestrator.ps1` | Canonical entry point. Reads `VbrConfig.json`, imports the `vHC-VbrConfig` module, connects to VBR, runs all collectors in dependency order, disconnects, and prints a run summary. |
-| `Get-VBRConfig.ps1` | Backward-compatibility shim. Accepts the same parameters as the old monolith and forwards them to `VBR-Orchestrator.ps1`. **Do not add logic here.** Retained until the C# invoker is updated (Task 11C). |
+| `Get-VBRConfig.ps1` | Canonical entry point. Reads `VbrConfig.json`, imports the `vHC-VbrConfig` module, connects to VBR, runs all collectors via `Invoke-VhcCollector`, exports the collection manifest, and disconnects. |
 | `VbrConfig.json` | Static configuration for the collection run. Contains `LogLevel`, `DefaultOutputPath`, resource sizing `Thresholds` used by the concurrency analysis, and the `SecurityComplianceRuleNames` mapping (rule key → human-readable label). Edit this file to adjust thresholds or add new compliance rule mappings without touching script logic. |
-| `Get-VeeamSessionReport.ps1` | Standalone script that produces a per-task session detail report for VMware backup jobs. Not part of the main health-check pipeline; intended for ad-hoc use. |
-| `Get-VeeamSessionReportVersion13.ps1` | VBR v13+ variant of the session report. Same purpose as above, updated for v13 API changes. |
 | `Get-NasInfo.ps1` | Legacy standalone NAS information collector. Not part of the main health-check pipeline. |
 | `vHC-VbrConfig\` | PowerShell module containing all individual collector functions. See [`vHC-VbrConfig/README.md`](vHC-VbrConfig/README.md) for full documentation. |
 
@@ -43,15 +40,12 @@ new module is confirmed (Task 11C).
 
 ```powershell
 # Minimal (integrated auth, default output path)
-& ".\VBR-Orchestrator.ps1" -VBRServer myserver -VBRVersion 12
+& ".\Get-VBRConfig.ps1" -VBRServer myserver -VBRVersion 12
 
 # With credentials and explicit output path
-& ".\VBR-Orchestrator.ps1" -VBRServer myserver -VBRVersion 12 `
+& ".\Get-VBRConfig.ps1" -VBRServer myserver -VBRVersion 12 `
     -User admin -PasswordBase64 <base64-encoded-password> `
     -ReportPath "C:\temp\vHC\Original\VBR\myserver\20260101_120000"
-
-# Via the shim (same parameters - forwarded transparently)
-& ".\Get-VBRConfig.ps1" -VBRServer myserver -VBRVersion 12
 ```
 
 CSV output is written to `<ReportPath>\<VBRServer>_<FileName>.csv`.
@@ -61,9 +55,9 @@ CSV output is written to `<ReportPath>\<VBRServer>_<FileName>.csv`.
 ## Key design notes
 
 **PowerShell version compatibility**
-`VBR-Orchestrator.ps1` and all module files target PowerShell 5.1
+`Get-VBRConfig.ps1` and all module files target PowerShell 5.1
 (`#Requires -Version 5.1`) and are also compatible with PowerShell 7+. VBR
-versions below 13 require PS 5.1 (the Orchestrator enforces this at runtime).
+versions below 13 require PS 5.1 (enforced at runtime).
 The Veeam PS snapin is used under PS 5.1; the `Veeam.Backup.PowerShell` module
 is used under PS 7+.
 
@@ -76,7 +70,7 @@ directory and in `vHC-VbrConfig\` must contain **only ASCII characters** and
 must **not include a UTF-8 BOM**.
 
 **`$ErrorActionPreference = 'Stop'` and `Set-StrictMode -Version Latest`**
-Both are set in `VBR-Orchestrator.ps1` and inherited by module functions. This
+Both are set in `Get-VBRConfig.ps1` and inherited by module functions. This
 means:
 - All non-terminating errors become terminating (caught by collector try/catch blocks).
 - Accessing `.Count` on a single-object `Where-Object` result (not an array) throws
@@ -88,5 +82,17 @@ Any function with at least one `[Parameter()]` attribute implicitly gets
 `[CmdletBinding()]`, which injects all PowerShell common parameters (`-Verbose`,
 `-Confirm`, `-WhatIf`, etc.) into `$PSBoundParameters`. Splatting
 `@PSBoundParameters` to a target that lacks `[CmdletBinding()]` will throw
-`NamedParameterNotFound`. The shim explicitly filters common parameters before
-forwarding to the Orchestrator for exactly this reason.
+`NamedParameterNotFound`.
+
+**Collection manifest (ADR 0007)**
+After each run, `Get-VBRConfig.ps1` writes `{VBRServer}_CollectionManifest.csv`
+alongside the other CSVs. Schema: `Name, Success, DurationSeconds, Error, Timestamp`.
+Failures are recorded from two sources:
+- Catastrophic failures caught by `Invoke-VhcCollector` (the collector did not
+  complete at all).
+- Partial failures logged by individual collectors via `Add-VhciModuleError` and
+  read back with `Get-VhcModuleErrors` before the manifest is written.
+
+The C# layer reads this manifest via `CCsvValidator.LoadManifest()` and surfaces
+failures in the HTML report (`DataCollectionSummaryTable()`), CLI warnings, and
+GUI amber status indicators.
