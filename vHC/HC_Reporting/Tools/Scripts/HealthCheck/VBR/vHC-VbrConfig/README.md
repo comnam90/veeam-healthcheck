@@ -37,7 +37,7 @@ list. Adding a new public function requires two steps: place the `.ps1` file in
 
 ## Calling pattern
 
-`VBR-Orchestrator.ps1` uses `Invoke-VhcCollector` for all collectors. Collectors
+`Get-VBRConfig.ps1` uses `Invoke-VhcCollector` for all collectors. Collectors
 whose return values feed downstream collectors are captured via the `.Output` field:
 
 ```powershell
@@ -59,15 +59,16 @@ $collectorResults.Add((Invoke-VhcCollector -Name 'License' -Action { Get-VhcLice
 
 ## Public functions
 
-These functions are exported by the module and available to the Orchestrator.
+These functions are exported by the module and available to `Get-VBRConfig.ps1`.
 
 ### Infrastructure / control
 
 | Function | Signature | Purpose |
 |----------|-----------|---------|
-| `Initialize-VhcModule` | `-ReportPath` `-VBRServer` `-LogLevel` `-ReportInterval` `-LogPath` | Sets module-scoped state (`$script:ReportPath`, `$script:VBRServer`, etc.). Must be called once before any collector. |
+| `Initialize-VhcModule` | `-ReportPath` `-VBRServer` `-LogLevel` `-ReportInterval` `-LogPath` | Sets module-scoped state (`$script:ReportPath`, `$script:VBRServer`, etc.). Must be called once before any collector. Also initialises `$script:ModuleErrors` (empty `List[PSCustomObject]`) for ADR 0007 error tracking. |
 | `Write-LogFile` | `-Message` `-LogLevel` (TRACE/PROFILE/DEBUG/INFO/WARNING/ERROR/FATAL) `-LogName` | Writes a timestamped log entry to the console and log file. In `Public\` because the Orchestrator calls it directly outside module scope. |
 | `Invoke-VhcCollector` | `-Name [string]` `-Action [scriptblock]` | Executes a collector scriptblock with timing and error isolation. Returns `[PSCustomObject]@{Name; Success; Duration; Error; Output}`. |
+| `Get-VhcModuleErrors` | _(none)_ | Returns `$script:ModuleErrors` — the module-scoped list of partial-failure records appended by `Add-VhciModuleError`. Called by `Get-VBRConfig.ps1` to merge internal errors into the collection manifest. A dedicated exported accessor is required because `$script:` resolves to the *caller's* scope when read from outside the module. (ADR 0007) |
 
 ### Version detection
 
@@ -82,6 +83,7 @@ These functions are exported by the module and available to the Orchestrator.
 | `Get-VhcServer` | _(none)_ | `[object[]]` raw VBR server objects | `_Servers.csv` |
 | `Get-VhcConcurrencyData` | `-VServers` `-Config` `-VBRServer` `-VBRVersion` | `[hashtable]` `$hostRoles` keyed by server name | `_NasProxy.csv` `_Proxies.csv` `_HvProxy.csv` `_CdpProxy.csv` |
 | `Get-VhcRepository` | `-VBRVersion` | `[ArrayList]` of `@{ID; Name}` rows, or `$null` | `_Repositories.csv` `_SOBRs.csv` `_SOBRExtents.csv` |
+| `Get-VhcBackupSessions` | `-ReportInterval [int]` | `[object[]]` VBR backup session objects | _(none — returns data to caller)_ |
 
 ### Fire-and-forget collectors
 
@@ -103,12 +105,13 @@ These write CSVs and return nothing meaningful. Invoke via `Invoke-VhcCollector`
 | `Get-VhcSecurityCompliance` | `-VBRVersion [int]` `-Config` | `_SecurityCompliance.csv` | Triggers `Start-VBRSecurityComplianceAnalyzer` and polls up to 45 s. Uses internal API (v12) or `Get-VBRSecurityComplianceAnalyzerResults` cmdlet (v13+). Rule keys resolved from `$Config.SecurityComplianceRuleNames`. Unknown rule types are included with their raw type string rather than dropped. No-op for VBR versions 11 and below. |
 | `Get-VhcProtectedWorkloads` | _(none)_ | `_PhysProtected.csv` `_PhysNotProtected.csv` `_HvProtected.csv` `_HvUnprotected.csv` `_ViProtected.csv` `_ViUnprotected.csv` | Per-platform inner try/catch — a failure on VMware does not skip Hyper-V or physical. |
 | `Get-VhcVbrInfo` | `-VBRVersion [int]` | `_vbrinfo.csv` | VBR version, database configuration, MFA global setting. Runs last in the Orchestrator — reads many registry paths that must not block earlier collectors. |
+| `Get-VhcSessionReport` | `-BackupSessions [object[]]` (AllowNull) | `_VeeamSessionReport.csv` | Receives the pre-fetched session array from `Get-VhcBackupSessions`. Calls `GetTaskSessions()` on each session to produce one row per VM with task-level detail (processing mode, duration, backup stats). |
 
 ---
 
 ## Private functions
 
-These are available within the module but not exported. Do not call them directly from the Orchestrator.
+These are available within the module but not exported. Do not call them directly from `Get-VBRConfig.ps1`.
 
 ### Concurrency sub-collectors (called by `Get-VhcConcurrencyData`)
 
@@ -156,9 +159,9 @@ Each sub-collector exports its CSV(s) and returns an array of role-entry descrip
 
 ## Error handling conventions
 
-- **`$ErrorActionPreference = 'Stop'`** is set in `VBR-Orchestrator.ps1` and inherited by all module functions. All non-terminating errors become terminating.
+- **`$ErrorActionPreference = 'Stop'`** is set in `Get-VBRConfig.ps1` and inherited by all module functions. All non-terminating errors become terminating.
 - Every public collector wraps its body in `try/catch`. Errors are logged via `Write-LogFile` and the function returns normally (empty / `$null` output).
-- `Invoke-VhcCollector` provides an outer catch so that even an unhandled exception in a collector does not propagate to the Orchestrator.
+- `Invoke-VhcCollector` provides an outer catch so that even an unhandled exception in a collector does not propagate to `Get-VBRConfig.ps1`.
 - Functions with multiple independent sub-sections (e.g. `Get-VhcProtectedWorkloads` across VMware / Hyper-V / Physical) use **per-section** inner try/catch blocks so a failure on one platform does not suppress data from the others.
 - `Get-VhcJob` similarly wraps each of its nine sub-collector calls individually.
 
