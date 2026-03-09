@@ -186,7 +186,7 @@ if ($failed.Count -gt 0) { ... }
 **Cloud / VeeamVault / AmazonS3 repository filtering**
 `Get-VBRBackupRepository` returns all repository types, including cloud-backed
 ones (`Type=Cloud`, `VeeamVault`, `AmazonS3`). These have no physical host and
-must be excluded from concurrency analysis. The filter in `Get-VhcRepoGateway`
+must be excluded from concurrency analysis. The filter in `Get-VhciRepoGateway`
 is applied only in the **no-gateway branch** of the loop. A repo that has
 gateway servers — even if cloud-backed — contributes those gateway servers to
 the concurrency map as normal local infrastructure.

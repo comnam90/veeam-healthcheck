@@ -95,3 +95,45 @@ the hardware belongs to the host, not to the role.
 * **Neutral:** Mutable hashtable pattern is unchanged - ADR 0006 compliance
   is unaffected (shared state is infrastructure accumulation, not business
   data exchange between collectors).
+
+---
+
+## Amendment (2026-03-09): Orchestrator-owned merge (ADR 0006 fix)
+
+* **Status:** Supersedes Option B decision above for sub-collector call sites.
+* **Date:** 2026-03-09
+
+### Change
+
+The four sub-collectors (`Get-VhciGpProxy`, `Get-VhciViHvProxy`,
+`Get-VhciCdpProxy`, `Get-VhciRepoGateway`) no longer accept a
+`[hashtable] $HostRoles` parameter and no longer call
+`Add-VhciHostRoleEntry` directly. This was an ADR 0006 violation —
+passing shared business-accumulation state by reference and mutating
+it as a side-effect.
+
+Each sub-collector now returns an array of role-entry descriptor objects:
+
+```powershell
+[PSCustomObject]@{
+    HostName     = [string]
+    RoleName     = [string]
+    EntryName    = [string]
+    TaskCount    = [int]
+    TaskCountKey = [string]
+    Cores        = [int]
+    RAM          = [int]
+}
+```
+
+`Get-VhcConcurrencyData` collects all four result arrays, concatenates
+them, filters nulls, and calls `Add-VhciHostRoleEntry` once per
+descriptor in a single merge loop. This is the Option A pattern that
+the original decision rejected; it was reconsidered under ADR 0006 and
+implemented in full once the Vhci-prefix rename made the call graph
+unambiguous.
+
+`Add-VhciHostRoleEntry` itself is unchanged — it remains the single
+canonical implementation of the upsert/increment logic (Option B's
+DRY benefit is preserved). The difference is that it is now called
+exclusively by the orchestrator rather than by each sub-collector.

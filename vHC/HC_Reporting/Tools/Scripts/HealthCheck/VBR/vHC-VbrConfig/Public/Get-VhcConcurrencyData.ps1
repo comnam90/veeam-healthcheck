@@ -51,7 +51,10 @@ function Get-VhcConcurrencyData {
     }
 
     # ---------------------------------------------------------------------------
-    # Collect role-entry descriptors from each sub-collector, then merge
+    # Collect role-entry descriptors from each sub-collector, then merge.
+    # Get-VhciGpProxy, Get-VhciViHvProxy, Get-VhciCdpProxy catch internally
+    # and return @() on failure. Get-VhciRepoGateway has no try/catch and
+    # will propagate exceptions; this is intentional (pre-existing behaviour).
     # ---------------------------------------------------------------------------
     $gpEntries   = @(Get-VhciGpProxy    -GPProxies     $GPProxies       -VServers $VServers)
     $viHvEntries = @(Get-VhciViHvProxy  -VMwareProxies $VMwareProxies `
