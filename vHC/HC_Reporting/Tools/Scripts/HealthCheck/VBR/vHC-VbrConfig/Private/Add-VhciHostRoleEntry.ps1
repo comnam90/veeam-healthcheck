@@ -50,7 +50,7 @@ function Add-VhciHostRoleEntry {
         $HostRoles[$HostName].Roles += $RoleName
         $HostRoles[$HostName].Names += $EntryName
         # Ensure the role-specific counter exists for hosts gaining a new role
-        if (-not $HostRoles[$HostName].ContainsKey($TaskCountKey)) {
+        if (-not $HostRoles[$HostName].Contains($TaskCountKey)) {
             $HostRoles[$HostName][$TaskCountKey] = 0
         }
     }
