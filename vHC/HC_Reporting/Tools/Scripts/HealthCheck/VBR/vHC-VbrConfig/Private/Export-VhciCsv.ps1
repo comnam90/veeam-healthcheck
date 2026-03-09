@@ -31,6 +31,10 @@ function Export-VhciCsv {
         }
     }
     end {
+        if ($allObjects.Count -eq 0) {
+            Write-LogFile "No records to export for '$file', skipping." -LogLevel "WARN"
+            return
+        }
         try {
             $allObjects | Export-Csv -Path $file -NoTypeInformation -ErrorAction Stop
         } catch {
