@@ -2,7 +2,7 @@
 
 * **Status:** Accepted
 * **Date:** 2026-02-21
-* **Decider:** Nam
+* **Decider:** Ben Thomas (@comnam90)
 * **Consulted:** GitHub Copilot / Claude Code
 
 ## Context and Problem Statement

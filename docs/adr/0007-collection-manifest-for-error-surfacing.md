@@ -2,7 +2,7 @@
 
 * **Status:** Accepted
 * **Date:** 2026-03-05
-* **Decider:** Nam
+* **Decider:** Ben Thomas (@comnam90)
 * **Consulted:** Claude Code (architecture review)
 
 ## Context and Problem Statement

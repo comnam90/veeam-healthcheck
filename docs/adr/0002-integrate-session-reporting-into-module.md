@@ -3,7 +3,7 @@
 * **Status:** Accepted
 * **Superseded in part by:** ADR 0004 (unified `GetTaskSessions()` path replaces the two-path architecture described in Implementation Overview below)
 * **Date:** 2026-02-26
-* **Decider:** Ben Thomas
+* **Decider:** Ben Thomas (@comnam90)
 * **Consulted:** GitHub Copilot
 
 ## Context and Problem Statement

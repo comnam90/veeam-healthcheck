@@ -2,7 +2,7 @@
 
 * **Status:** Accepted
 * **Date:** 2026-02-26
-* **Decider:** Ben Thomas
+* **Decider:** Ben Thomas (@comnam90)
 * **Consulted:** GitHub Copilot
 * **Supersedes (in part):** ADR 0002 (Implementation Overview, two-path architecture)
 
