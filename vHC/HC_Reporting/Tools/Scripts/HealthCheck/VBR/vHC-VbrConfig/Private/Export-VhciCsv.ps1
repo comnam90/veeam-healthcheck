@@ -32,7 +32,7 @@ function Export-VhciCsv {
     }
     end {
         if ($allObjects.Count -eq 0) {
-            Write-LogFile "No records to export for '$file', skipping." -LogLevel "WARN"
+            Write-LogFile "No records to export for '$file', skipping." -LogLevel "WARNING"
             return
         }
         try {
