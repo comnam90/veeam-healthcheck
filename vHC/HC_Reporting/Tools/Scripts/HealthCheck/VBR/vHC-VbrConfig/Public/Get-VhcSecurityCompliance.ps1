@@ -108,6 +108,7 @@ function Get-VhcSecurityCompliance {
         Write-LogFile "Processing $($SecurityCompliances.Count) compliance rules..."
         Write-LogFile "SecurityComplianceRuleNames has $($Config.SecurityComplianceRuleNames.PSObject.Properties.Count) entries"
 
+        $unmappedTypes  = [System.Collections.Generic.List[string]]::new()
         $processedCount = 0
         $skippedCount   = 0
         $errorCount     = 0
@@ -139,7 +140,7 @@ function Get-VhcSecurityCompliance {
                 # so that new compliance checks remain visible even when VbrConfig.json is stale.
                 $ruleName = $Config.SecurityComplianceRuleNames.$complianceType
                 if (-not $ruleName) {
-                    Write-LogFile "Warning: Unknown compliance type '$complianceType' - using raw type as name" -LogLevel "WARNING"
+                    $unmappedTypes.Add($complianceType)
                     $ruleName = $complianceType
                 }
 
@@ -172,6 +173,15 @@ function Get-VhcSecurityCompliance {
 
         Write-LogFile "Processed $processedCount compliance rules, skipped $skippedCount, errors $errorCount"
         Write-LogFile "OutObj count: $($OutObj.Count)"
+
+        if ($unmappedTypes.Count -gt 0) {
+            $validatedFor = $Config.SecurityComplianceRulesValidatedForVbrVersion
+            $msg = "$($unmappedTypes.Count) compliance rule(s) have no label mapping in VbrConfig.json " +
+                   "(mapping validated for VBR $validatedFor, running VBR $VBRVersion): " +
+                   ($unmappedTypes -join ', ')
+            Write-LogFile $msg -LogLevel "WARNING"
+            Add-VhciModuleError -CollectorName 'SecurityCompliance' -ErrorMessage $msg
+        }
 
         if ($OutObj.Count -gt 0) {
             try {

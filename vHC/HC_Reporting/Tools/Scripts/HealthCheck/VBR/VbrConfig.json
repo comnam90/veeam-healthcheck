@@ -1,5 +1,6 @@
 {
   "ConfigVersion": 1,
+  "SecurityComplianceRulesValidatedForVbrVersion": "12.3.2",
   "LogLevel": "INFO",
   "DefaultOutputPath": "C:\\temp\\vHC\\Original\\VBR",
   "Thresholds": {

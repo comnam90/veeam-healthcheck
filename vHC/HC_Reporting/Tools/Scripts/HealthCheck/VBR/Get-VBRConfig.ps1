@@ -58,7 +58,7 @@ if (-not (Test-Path $configPath)) {
 
 $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
 
-foreach ($key in @('ConfigVersion', 'Thresholds', 'SecurityComplianceRuleNames')) {
+foreach ($key in @('ConfigVersion', 'Thresholds', 'SecurityComplianceRuleNames', 'SecurityComplianceRulesValidatedForVbrVersion')) {
     if ($null -eq $config.$key) {
         throw "VbrConfig.json is missing required key: '$key'"
     }
