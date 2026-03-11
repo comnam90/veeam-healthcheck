@@ -1,4 +1,4 @@
-"JobName","VMName","Status","IsRetry","ProcessingMode","JobDuration","TaskDuration","TaskAlgorithm","CreationTime","BackupSize(GB)","DataSize(GB)","DedupRatio","CompressRatio","BottleneckDetails","PrimaryBottleneck","JobType"
+"JobName","VMName","Status","IsRetry","ProcessingMode","JobDuration","TaskDuration","TaskAlgorithm","CreationTime","BackupSizeGB","DataSizeGB","DedupRatio","CompressRatio","BottleneckDetails","PrimaryBottleneck","JobType"
 "Production-VM-Backup","DC01","Success","False","DirectStorageAccess","01:23:45","00:15:32","CBTIncremental","2024-03-01T22:00:00.0000000","12.5","45.2","1.8","2.1","Source 15% > Proxy 25% > Network 10% > Target 50%","Target","EVmware"
 "Production-VM-Backup","SQL-PROD01","Success","False","DirectStorageAccess","01:23:45","00:45:18","CBTIncremental","2024-03-01T22:00:00.0000000","85.3","165.7","1.6","1.9","Source 20% > Proxy 30% > Network 15% > Target 35%","Target","EVmware"
 "Production-VM-Backup","WEB-PROD01","Success","False","VirtualAppliance","01:23:45","00:08:45","CBTIncremental","2024-03-01T22:00:00.0000000","5.2","32.4","2.1","2.4","Source 30% > Proxy 40% > Network 20% > Target 10%","Proxy","EVmware"

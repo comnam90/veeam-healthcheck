@@ -74,12 +74,12 @@ function Get-VhcSessionReport {
                 'TaskAlgorithm'     = $task.WorkDetails.TaskAlgorithm
                 'CreationTime'      = $task.JobSess.CreationTime
                 # NAS jobs leave BackupStats at 0; fall back to Progress fields (see ADR 0005)
-                'BackupSize(GB)'    = if ($task.JobSess.BackupStats.BackupSize -gt 0) {
+                'BackupSizeGB'      = if ($task.JobSess.BackupStats.BackupSize -gt 0) {
                     [math]::Round(($task.JobSess.BackupStats.BackupSize / 1GB), 4)
                 } else {
                     [math]::Round(($task.JobSess.Progress.TransferedSize / 1GB), 4)
                 }
-                'DataSize(GB)'      = if ($task.JobSess.BackupStats.DataSize -gt 0) {
+                'DataSizeGB'        = if ($task.JobSess.BackupStats.DataSize -gt 0) {
                     [math]::Round(($task.JobSess.BackupStats.DataSize / 1GB), 4)
                 } else {
                     [math]::Round(($task.JobSess.Progress.ReadSize / 1GB), 4)
@@ -106,7 +106,7 @@ function Get-VhcSessionReport {
         $headerLine = ([pscustomobject][ordered]@{
             'JobName'=''; 'VMName'=''; 'Status'=''; 'IsRetry'=''; 'ProcessingMode'='';
             'JobDuration'=''; 'TaskDuration'=''; 'TaskAlgorithm'=''; 'CreationTime'='';
-            'BackupSize(GB)'=''; 'DataSize(GB)'=''; 'DedupRatio'=''; 'CompressRatio'='';
+            'BackupSizeGB'=''; 'DataSizeGB'=''; 'DedupRatio'=''; 'CompressRatio'='';
             'BottleneckDetails'=''; 'PrimaryBottleneck'=''; 'JobType'=''
         } | ConvertTo-Csv -NoTypeInformation | Select-Object -First 1)
         Out-File -FilePath $csvPath -InputObject $headerLine -Encoding UTF8
