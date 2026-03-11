@@ -10,7 +10,7 @@ function Get-VhcBackupSessions {
         Number of days back to collect sessions for. Matches the -ReportInterval parameter
         passed to Get-VBRConfig.ps1.
     .Outputs
-        [object[]] — Veeam backup session objects.
+        [object[]] -- Veeam backup session objects.
     #>
     [CmdletBinding()]
     param (
