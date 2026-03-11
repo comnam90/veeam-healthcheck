@@ -16,6 +16,8 @@ function Invoke-VhcConcurrencyAnalysis {
            Now read from $Config.Thresholds.CdpProxyOSCPU / CdpProxyOSRAM (both default to 0).
            CDPProxy OS overhead is now correctly included in $RequiredCores / $RequiredRAM,
            but the default value of 0 means no change in practice.
+        3. BackupServer CPU/RAM requirement applied via Max(overhead, BS requirement) rather than
+           additively — eliminates OS double-count on backup server rows (ADR 0010 extension).
 
     .Parameter HostRoles
         Hashtable returned by Get-VhcConcurrencyData.
@@ -63,13 +65,22 @@ function Invoke-VhcConcurrencyAnalysis {
 
             $overhead = Get-VhciServerOsOverhead -Entry $server.Value -Thresholds $t
 
+            # BackupServer requirement is a total figure (includes OS). Take max rather than
+            # adding additively on top of the role OS floor — same max-of-roles principle as ADR 0010.
+            $fixedCPU = $overhead.CPU
+            $fixedRAM = $overhead.RAM
+            if ($serverName -eq $BackupServerName) {
+                $fixedCPU = [Math]::Max($fixedCPU, $BSCPUReq)
+                $fixedRAM = [Math]::Max($fixedRAM, $BSRAMReq)
+            }
+
             $RequiredCores = [Math]::Ceiling(
                 (SafeValue $server.Value.TotalRepoTasks)     * $RepoGWCPUReq   +
                 (SafeValue $server.Value.TotalGWTasks)       * $RepoGWCPUReq   +
                 (SafeValue $server.Value.TotalVpProxyTasks)  * $VPProxyCPUReq  +
                 (SafeValue $server.Value.TotalGPProxyTasks)  * $GPProxyCPUReq  +
                 (SafeValue $server.Value.TotalCDPProxyTasks) * $CDPProxyCPUReq +
-                $overhead.CPU
+                $fixedCPU
             )
 
             $RequiredRAM = [Math]::Ceiling(
@@ -78,25 +89,16 @@ function Invoke-VhcConcurrencyAnalysis {
                 (SafeValue $server.Value.TotalVpProxyTasks)  * $VPProxyRAMReq  +
                 (SafeValue $server.Value.TotalGPProxyTasks)  * $GPProxyRAMReq  +
                 (SafeValue $server.Value.TotalCDPProxyTasks) * $CDPProxyRAMReq +
-                $overhead.RAM
+                $fixedRAM
             )
 
             $coresAvailable = $server.Value.Cores
             $ramAvailable   = $server.Value.RAM
             $totalTasks     = $server.Value.TotalTasks
 
-            $SuggestedTasksByCores = [Math]::Floor((SafeValue $coresAvailable) - $overhead.CPU)
+            $SuggestedTasksByCores = [Math]::Floor((SafeValue $coresAvailable) - $fixedCPU)
 
-            $SuggestedTasksByRAM = [Math]::Floor((SafeValue $ramAvailable) - $overhead.RAM)
-
-            # Fix: source used ($serverName -contains $BackupServerName) which is semantically
-            # wrong (scalar -contains). Changed to -eq; no output change.
-            if ($serverName -eq $BackupServerName) {
-                $RequiredCores         += $BSCPUReq
-                $RequiredRAM           += $BSRAMReq
-                $SuggestedTasksByCores -= $BSCPUReq
-                $SuggestedTasksByRAM   -= $BSRAMReq
-            }
+            $SuggestedTasksByRAM = [Math]::Floor((SafeValue $ramAvailable) - $fixedRAM)
 
             $NonNegativeCores = EnsureNonNegative($SuggestedTasksByCores * 2)
             $NonNegativeRAM   = EnsureNonNegative($SuggestedTasksByRAM)
