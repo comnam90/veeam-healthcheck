@@ -17,7 +17,7 @@ function Invoke-VhcConcurrencyAnalysis {
            CDPProxy OS overhead is now correctly included in $RequiredCores / $RequiredRAM,
            but the default value of 0 means no change in practice.
         3. BackupServer CPU/RAM requirement applied via Max(overhead, BS requirement) rather than
-           additively — eliminates OS double-count on backup server rows (ADR 0010 extension).
+           additively - eliminates OS double-count on backup server rows (ADR 0010 extension).
         4. Cores-to-tasks multiplier is now role-aware: 1/CPUPerTask per active role type, taking
            the minimum across all active roles (most conservative wins). Fixes GP Proxy (2 cores/task)
            and CDP Proxy (4 cores/task) over-reporting suggested tasks (ADR 0011).
@@ -69,7 +69,7 @@ function Invoke-VhcConcurrencyAnalysis {
             $overhead = Get-VhciServerOsOverhead -Entry $server.Value -Thresholds $t
 
             # BackupServer requirement is a total figure (includes OS). Take max rather than
-            # adding additively on top of the role OS floor — same max-of-roles principle as ADR 0010.
+            # adding additively on top of the role OS floor - same max-of-roles principle as ADR 0010.
             $fixedCPU = $overhead.CPU
             $fixedRAM = $overhead.RAM
             if ($serverName -eq $BackupServerName) {
@@ -104,13 +104,13 @@ function Invoke-VhcConcurrencyAnalysis {
             $SuggestedTasksByRAM = [Math]::Floor((SafeValue $ramAvailable) - $fixedRAM)
 
             # Use the most conservative (highest cores-per-task) ratio among active roles.
-            # Default covers VP Proxy and Repo/GW (both 0.5 cores/task → 2 tasks/core).
+            # Default covers VP Proxy and Repo/GW (both 0.5 cores/task -> 2 tasks/core).
             $tasksPerCore = 1.0 / $VPProxyCPUReq
             if ((SafeValue $server.Value.TotalGPProxyTasks) -gt 0) {
-                $tasksPerCore = [Math]::Min($tasksPerCore, 1.0 / $GPProxyCPUReq)   # 2 cores/task → 0.5
+                $tasksPerCore = [Math]::Min($tasksPerCore, 1.0 / $GPProxyCPUReq)   # 2 cores/task -> 0.5
             }
             if ((SafeValue $server.Value.TotalCDPProxyTasks) -gt 0) {
-                $tasksPerCore = [Math]::Min($tasksPerCore, 1.0 / $CDPProxyCPUReq)  # 4 cores/task → 0.25
+                $tasksPerCore = [Math]::Min($tasksPerCore, 1.0 / $CDPProxyCPUReq)  # 4 cores/task -> 0.25
             }
             $NonNegativeCores = EnsureNonNegative($SuggestedTasksByCores * $tasksPerCore)
             $NonNegativeRAM   = EnsureNonNegative($SuggestedTasksByRAM)
