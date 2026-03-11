@@ -419,6 +419,250 @@ exit 0
         }
 
         /// <summary>
+        /// Verifies that Get-VhciServerOsOverhead returns the MAX of active role overheads
+        /// (independently for CPU and RAM) rather than summing them.
+        /// ADR 0010: a multi-role server runs one OS instance; the overhead floor is the
+        /// largest single-role value, not an additive stack.
+        /// </summary>
+        [Fact]
+        public void GetVhciServerOsOverhead_MultiRole_ReturnsMaxNotSum()
+        {
+            var projectRoot = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..", "HC_Reporting"));
+            var moduleRoot      = Path.Combine(projectRoot, "Tools", "Scripts", "HealthCheck", "VBR", "vHC-VbrConfig");
+            var overheadPath    = Path.Combine(moduleRoot, "Private", "Get-VhciServerOsOverhead.ps1");
+            var safeValuePath   = Path.Combine(moduleRoot, "Private", "SafeValue.ps1");
+
+            var tmpDir        = Path.Combine(Path.GetTempPath(), $"vhc-overhead-{Guid.NewGuid():N}");
+            var tmpScriptPath = Path.Combine(tmpDir, "Test-OverheadMultiRole.ps1");
+            Directory.CreateDirectory(tmpDir);
+
+            // Entry: Repo(10) + VpProxy(4) + GpProxy(2) → all three overhead blocks active.
+            // Additive (wrong): CPU=2+2+2=6, RAM=4+2+4=10
+            // Max (correct):    CPU=max(2,2,2)=2, RAM=max(4,2,4)=4
+            var scriptContent = $@"
+$ErrorActionPreference = 'Stop'
+. '{safeValuePath}'
+. '{overheadPath}'
+
+$entry = @{{
+    TotalRepoTasks     = 10
+    TotalGWTasks       = 0
+    TotalVpProxyTasks  = 4
+    TotalGPProxyTasks  = 2
+    TotalCDPProxyTasks = 0
+}}
+$thresholds = [PSCustomObject]@{{
+    RepoOSCPU      = 2;  RepoOSRAM      = 4
+    VpProxyOSCPU   = 2;  VpProxyOSRAM   = 2
+    GpProxyOSCPU   = 2;  GpProxyOSRAM   = 4
+    CdpProxyOSCPU  = 0;  CdpProxyOSRAM  = 0
+}}
+
+$result = Get-VhciServerOsOverhead -Entry $entry -Thresholds $thresholds
+
+if ($result.CPU -ne 2) {{
+    Write-Error ""Expected CPU=2 (max) but got $($result.CPU) (additive would be 6)""
+    exit 1
+}}
+if ($result.RAM -ne 4) {{
+    Write-Error ""Expected RAM=4 (max) but got $($result.RAM) (additive would be 10)""
+    exit 1
+}}
+Write-Host ""OK: CPU=$($result.CPU), RAM=$($result.RAM)""
+exit 0
+";
+            File.WriteAllText(tmpScriptPath, scriptContent);
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName               = "pwsh",
+                    Arguments              = $"-NoProfile -NonInteractive -File \"{tmpScriptPath}\"",
+                    RedirectStandardError  = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute        = false,
+                    CreateNoWindow         = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process == null) { Assert.Fail("Failed to start pwsh"); return; }
+                var stdout = process.StandardOutput.ReadToEnd();
+                var stderr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                Assert.True(process.ExitCode == 0,
+                    $"Get-VhciServerOsOverhead multi-role check failed (exit {process.ExitCode}).\n" +
+                    $"STDOUT: {stdout}\nSTDERR: {stderr}");
+            }
+            finally
+            {
+                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, recursive: true);
+            }
+        }
+
+        /// <summary>
+        /// Verifies that a single-role server returns that role's overhead values exactly
+        /// (max of one value == that value).
+        /// </summary>
+        [Fact]
+        public void GetVhciServerOsOverhead_SingleRole_ReturnsRoleOverhead()
+        {
+            var projectRoot = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..", "HC_Reporting"));
+            var moduleRoot      = Path.Combine(projectRoot, "Tools", "Scripts", "HealthCheck", "VBR", "vHC-VbrConfig");
+            var overheadPath    = Path.Combine(moduleRoot, "Private", "Get-VhciServerOsOverhead.ps1");
+            var safeValuePath   = Path.Combine(moduleRoot, "Private", "SafeValue.ps1");
+
+            var tmpDir        = Path.Combine(Path.GetTempPath(), $"vhc-overhead-{Guid.NewGuid():N}");
+            var tmpScriptPath = Path.Combine(tmpDir, "Test-OverheadSingleRole.ps1");
+            Directory.CreateDirectory(tmpDir);
+
+            var scriptContent = $@"
+$ErrorActionPreference = 'Stop'
+. '{safeValuePath}'
+. '{overheadPath}'
+
+$entry = @{{
+    TotalRepoTasks     = 0
+    TotalGWTasks       = 0
+    TotalVpProxyTasks  = 4
+    TotalGPProxyTasks  = 0
+    TotalCDPProxyTasks = 0
+}}
+$thresholds = [PSCustomObject]@{{
+    RepoOSCPU      = 2;  RepoOSRAM      = 4
+    VpProxyOSCPU   = 2;  VpProxyOSRAM   = 2
+    GpProxyOSCPU   = 2;  GpProxyOSRAM   = 4
+    CdpProxyOSCPU  = 0;  CdpProxyOSRAM  = 0
+}}
+
+$result = Get-VhciServerOsOverhead -Entry $entry -Thresholds $thresholds
+
+if ($result.CPU -ne 2) {{
+    Write-Error ""Expected CPU=2 for VP proxy role but got $($result.CPU)""
+    exit 1
+}}
+if ($result.RAM -ne 2) {{
+    Write-Error ""Expected RAM=2 for VP proxy role but got $($result.RAM)""
+    exit 1
+}}
+Write-Host ""OK: CPU=$($result.CPU), RAM=$($result.RAM)""
+exit 0
+";
+            File.WriteAllText(tmpScriptPath, scriptContent);
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName               = "pwsh",
+                    Arguments              = $"-NoProfile -NonInteractive -File \"{tmpScriptPath}\"",
+                    RedirectStandardError  = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute        = false,
+                    CreateNoWindow         = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process == null) { Assert.Fail("Failed to start pwsh"); return; }
+                var stdout = process.StandardOutput.ReadToEnd();
+                var stderr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                Assert.True(process.ExitCode == 0,
+                    $"Get-VhciServerOsOverhead single-role check failed (exit {process.ExitCode}).\n" +
+                    $"STDOUT: {stdout}\nSTDERR: {stderr}");
+            }
+            finally
+            {
+                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, recursive: true);
+            }
+        }
+
+        /// <summary>
+        /// Verifies that a server with no active role tasks returns zero overhead.
+        /// </summary>
+        [Fact]
+        public void GetVhciServerOsOverhead_NoRoles_ReturnsZero()
+        {
+            var projectRoot = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..", "HC_Reporting"));
+            var moduleRoot      = Path.Combine(projectRoot, "Tools", "Scripts", "HealthCheck", "VBR", "vHC-VbrConfig");
+            var overheadPath    = Path.Combine(moduleRoot, "Private", "Get-VhciServerOsOverhead.ps1");
+            var safeValuePath   = Path.Combine(moduleRoot, "Private", "SafeValue.ps1");
+
+            var tmpDir        = Path.Combine(Path.GetTempPath(), $"vhc-overhead-{Guid.NewGuid():N}");
+            var tmpScriptPath = Path.Combine(tmpDir, "Test-OverheadNoRoles.ps1");
+            Directory.CreateDirectory(tmpDir);
+
+            var scriptContent = $@"
+$ErrorActionPreference = 'Stop'
+. '{safeValuePath}'
+. '{overheadPath}'
+
+$entry = @{{
+    TotalRepoTasks     = 0
+    TotalGWTasks       = 0
+    TotalVpProxyTasks  = 0
+    TotalGPProxyTasks  = 0
+    TotalCDPProxyTasks = 0
+}}
+$thresholds = [PSCustomObject]@{{
+    RepoOSCPU      = 2;  RepoOSRAM      = 4
+    VpProxyOSCPU   = 2;  VpProxyOSRAM   = 2
+    GpProxyOSCPU   = 2;  GpProxyOSRAM   = 4
+    CdpProxyOSCPU  = 0;  CdpProxyOSRAM  = 0
+}}
+
+$result = Get-VhciServerOsOverhead -Entry $entry -Thresholds $thresholds
+
+if ($result.CPU -ne 0) {{
+    Write-Error ""Expected CPU=0 for no active roles but got $($result.CPU)""
+    exit 1
+}}
+if ($result.RAM -ne 0) {{
+    Write-Error ""Expected RAM=0 for no active roles but got $($result.RAM)""
+    exit 1
+}}
+Write-Host ""OK: CPU=$($result.CPU), RAM=$($result.RAM)""
+exit 0
+";
+            File.WriteAllText(tmpScriptPath, scriptContent);
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName               = "pwsh",
+                    Arguments              = $"-NoProfile -NonInteractive -File \"{tmpScriptPath}\"",
+                    RedirectStandardError  = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute        = false,
+                    CreateNoWindow         = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process == null) { Assert.Fail("Failed to start pwsh"); return; }
+                var stdout = process.StandardOutput.ReadToEnd();
+                var stderr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                Assert.True(process.ExitCode == 0,
+                    $"Get-VhciServerOsOverhead no-roles check failed (exit {process.ExitCode}).\n" +
+                    $"STDOUT: {stdout}\nSTDERR: {stderr}");
+            }
+            finally
+            {
+                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, recursive: true);
+            }
+        }
+
+        /// <summary>
         /// Verifies the orchestrator throws a clear error when VbrConfig.json is missing
         /// a required threshold key, rather than silently using $null.
         /// </summary>

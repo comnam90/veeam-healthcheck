@@ -14,7 +14,7 @@
     "GpProxyOSRAM": 4,
     "RepoGwRAMPerTask": 1,
     "RepoGwCPUPerTask": 0.5,
-    "RepoOSCPU": 1,
+    "RepoOSCPU": 2,
     "RepoOSRAM": 4,
     "CdpProxyRAM": 8,
     "CdpProxyCPU": 4,
