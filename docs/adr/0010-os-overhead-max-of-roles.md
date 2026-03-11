@@ -143,7 +143,67 @@ changes in `Get-VhciServerOsOverhead`, `Invoke-VhcConcurrencyAnalysis`, and
   `Invoke-VhcConcurrencyAnalysis` remain additive by design — overhead per
   role is legitimately additive for sizing *requirements*; only the
   `SuggestedTasks` overhead path changes.
-* **Bad:** Slightly underestimates fixed overhead on servers where multiple
-  Veeam service processes genuinely run concurrently. Accepted trade-off:
-  the under-estimate is small relative to per-task resource requirements and
-  is preferable to clamping `SuggestedTasks` to 0.
+
+* **Bad:** Under-estimates fixed RAM overhead on multi-role servers that
+  combine roles with a 4 GB OS base (GP Proxy, Repo/GW). Specifically:
+  may under-report by up to **(N−1) × 2 GB** relative to the Veeam docs
+  "subtract 2 GB from each but one role" formula. See Amendment 2026-03-12
+  for full analysis. Accepted trade-off: the delta is bounded and the
+  max-of-roles approach avoids clamping `SuggestedTasks` to 0 on
+  multi-role servers.
+
+## Amendments
+
+### 2026-03-12 — Quantify RAM under-estimation vs Veeam docs formula
+
+**Trigger:** External review noted that the Veeam limitations page
+([system_requirements_limitations.html](https://helpcenter.veeam.com/docs/vbr/userguide/system_requirements_limitations.html))
+describes a different model for all-in-one installations:
+
+> "For all-in-one installations, you can subtract 2 GB of memory resources
+> from each but one role. These 2 GB are allotted to the OS itself, assuming
+> each component is installed on the dedicated server."
+
+This is an **additive-minus-deduction** model:
+
+```
+Total base RAM = Σ(role base RAM) − 2 GB × (N − 1)
+```
+
+**Divergence from max-of-roles:**
+
+The two models agree only when all active roles share the same 2 GB OS base
+(e.g. VP Proxy only). They diverge when roles with a 4 GB base
+(`GpProxyOSRAM`, `RepoOSRAM`) are co-installed:
+
+| Active roles | Docs model | Max-of-roles | Delta |
+|---|---|---|---|
+| VP Proxy only (2 GB base) | 2 GB | 2 GB | 0 |
+| VP Proxy + Repo (2 + 4 GB) | 4 GB | 4 GB | 0 |
+| VP Proxy + Repo + GP Proxy (2 + 4 + 4 GB) | 6 GB | 4 GB | **−2 GB** |
+| Repo + GP Proxy (4 + 4 GB) | 6 GB | 4 GB | **−2 GB** |
+
+In general, this implementation may **under-report fixed RAM overhead by up
+to (N−1) × 2 GB** on multi-role servers that combine roles with a 4 GB OS
+base.
+
+**Why max-of-roles is retained (deliberate simplification):**
+
+Implementing the docs formula correctly would require distinguishing the
+"OS share" (always 2 GB, the deductible component) from the "service
+minimum" (role-specific non-deductible floor) within each role's base value.
+The current threshold keys (`GpProxyOSRAM`, `RepoOSRAM`) encode the full
+role base, not the OS share alone. Splitting them would require new threshold
+keys, updated validation, and corresponding logic changes across
+`Get-VhciServerOsOverhead`, `Invoke-VhcConcurrencyAnalysis`, and
+`VbrConfig.json`.
+
+The max-of-roles model is retained as a deliberate simplification. The
+under-estimate is bounded — at most 2 GB per additional 4 GB-base role
+beyond the first — which is small relative to per-task RAM requirements
+(4 GB per GP Proxy task, 1 GB per repo task). Implementing the full docs
+formula is deferred unless Veeam clarifies that the "subtract 2 GB" rule
+applies to the full role base rather than solely the OS layer.
+
+**No code changes in this amendment.** The "Bad" consequence entry above
+is updated to reflect this quantification.
