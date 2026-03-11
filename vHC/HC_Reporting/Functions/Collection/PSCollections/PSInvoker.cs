@@ -35,6 +35,8 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
         private readonly string exportLogsScript = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Tools\Scripts\HotfixDetection\Collect-VBRLogs.ps1");
         private readonly string dumpServers = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Tools\Scripts\HotfixDetection\DumpManagedServerToText.ps1");
 
+        private readonly string vbrConfigModuleDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Tools\Scripts\HealthCheck\VBR\vHC-VbrConfig");
+
         public static readonly string SERVERLISTFILE = "serverlist.txt";
 
         private readonly CLogger log = CGlobals.Logger;
@@ -220,6 +222,15 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
             this.UnblockFile(this.exportLogsScript);
             this.UnblockFile(this.dumpServers);
             this.UnblockFile(this.vb365Script);
+
+            // Unblock all scripts in the vHC-VbrConfig PowerShell module
+            if (Directory.Exists(this.vbrConfigModuleDir))
+            {
+                foreach (var script in Directory.GetFiles(this.vbrConfigModuleDir, "*.ps1", SearchOption.AllDirectories))
+                {
+                    this.UnblockFile(script);
+                }
+            }
         }
 
         public bool TestMfa()
