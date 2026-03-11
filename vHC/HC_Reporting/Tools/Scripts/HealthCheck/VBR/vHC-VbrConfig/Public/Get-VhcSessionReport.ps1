@@ -89,6 +89,7 @@ function Get-VhcSessionReport {
                 'BottleneckDetails' = $BottleneckDetails
                 'PrimaryBottleneck' = $PrimaryBottleneckDetails
                 'JobType'           = $task.ObjectPlatform.Platform
+                'JobAlgorithm'      = $task.JobSess.Info.SessionAlgorithm
             }
             if ($row) { $null = $allOutput.Add($row) }
         } catch {
@@ -107,7 +108,7 @@ function Get-VhcSessionReport {
             'JobName'=''; 'VMName'=''; 'Status'=''; 'IsRetry'=''; 'ProcessingMode'='';
             'JobDuration'=''; 'TaskDuration'=''; 'TaskAlgorithm'=''; 'CreationTime'='';
             'BackupSizeGB'=''; 'DataSizeGB'=''; 'DedupRatio'=''; 'CompressRatio'='';
-            'BottleneckDetails'=''; 'PrimaryBottleneck'=''; 'JobType'=''
+            'BottleneckDetails'=''; 'PrimaryBottleneck'=''; 'JobType'=''; 'JobAlgorithm'=''
         } | ConvertTo-Csv -NoTypeInformation | Select-Object -First 1)
         Out-File -FilePath $csvPath -InputObject $headerLine -Encoding UTF8
     }

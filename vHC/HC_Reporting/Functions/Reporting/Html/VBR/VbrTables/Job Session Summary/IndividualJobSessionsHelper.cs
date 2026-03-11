@@ -268,7 +268,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR.VbrTables.Job_Session_Su
             s += "<tr>";
             s += TableData(jname, "jobName");
             s += TableData(vmName, "vmName");
-            s += TableData(c.Alg, "alg");
+            s += TableData(c.JobAlg, "alg");
             s += TableData(c.PrimaryBottleneck, "primBottleneck");
             s += TableData(c.Bottleneck, "bottleneck");
             s += TableData(c.CompressionRatio, "compression");
