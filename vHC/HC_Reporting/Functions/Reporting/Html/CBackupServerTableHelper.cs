@@ -105,15 +105,15 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         private void SetDbHostNameOption2()
         {
             // LoadCsvToMemory();
-            if (CGlobals.DtParser == null)
+            var dtParser = CGlobals.DtParser;
+            if (dtParser == null)
             {
                 log.Warning("CGlobals.DtParser is null in SetDbHostNameOption2. Skipping backup server hostname lookup.");
                 return;
             }
 
-            using (CDataTypesParser parser = new())
             {
-                List<CServerTypeInfos> csv = CGlobals.DtParser.ServerInfos;
+                List<CServerTypeInfos> csv = dtParser.ServerInfos;
                 CServerTypeInfos bs = csv.Where(x => x.Id == CGlobals.backupServerId).FirstOrDefault();
 
                 // var test = csv.Where(x => x.Id == CGlobals._backupServerId).FirstOrDefault();
