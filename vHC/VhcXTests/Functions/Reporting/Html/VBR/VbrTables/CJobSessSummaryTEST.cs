@@ -245,10 +245,10 @@ namespace VhcXTests.Functions.Reporting.Html.VBR.VbrTables
 
             var parser = new CCsvParser(emptyDir);
 
-            // Missing files should return null or empty, not throw
-            Assert.Null(parser.JobCsvParser());
-            Assert.Null(parser.ServerCsvParser());
-            Assert.Null(parser.ProxyCsvParser());
+            // Missing files should return empty, not throw
+            Assert.Empty(parser.JobCsvParser());
+            Assert.Empty(parser.ServerCsvParser());
+            Assert.Empty(parser.ProxyCsvParser());
         }
 
         [Fact]
@@ -260,7 +260,7 @@ namespace VhcXTests.Functions.Reporting.Html.VBR.VbrTables
 
             // Should not throw
             var result = parser.JobCsvParser();
-            Assert.Null(result);
+            Assert.Empty(result);
         }
 
         #endregion
