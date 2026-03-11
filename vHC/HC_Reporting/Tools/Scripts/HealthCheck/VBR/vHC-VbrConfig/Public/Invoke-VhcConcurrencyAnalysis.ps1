@@ -18,6 +18,9 @@ function Invoke-VhcConcurrencyAnalysis {
            but the default value of 0 means no change in practice.
         3. BackupServer CPU/RAM requirement applied via Max(overhead, BS requirement) rather than
            additively — eliminates OS double-count on backup server rows (ADR 0010 extension).
+        4. Cores-to-tasks multiplier is now role-aware: 1/CPUPerTask per active role type, taking
+           the minimum across all active roles (most conservative wins). Fixes GP Proxy (2 cores/task)
+           and CDP Proxy (4 cores/task) over-reporting suggested tasks (ADR 0011).
 
     .Parameter HostRoles
         Hashtable returned by Get-VhcConcurrencyData.
@@ -100,7 +103,16 @@ function Invoke-VhcConcurrencyAnalysis {
 
             $SuggestedTasksByRAM = [Math]::Floor((SafeValue $ramAvailable) - $fixedRAM)
 
-            $NonNegativeCores = EnsureNonNegative($SuggestedTasksByCores * 2)
+            # Use the most conservative (highest cores-per-task) ratio among active roles.
+            # Default covers VP Proxy and Repo/GW (both 0.5 cores/task → 2 tasks/core).
+            $tasksPerCore = 1.0 / $VPProxyCPUReq
+            if ((SafeValue $server.Value.TotalGPProxyTasks) -gt 0) {
+                $tasksPerCore = [Math]::Min($tasksPerCore, 1.0 / $GPProxyCPUReq)   # 2 cores/task → 0.5
+            }
+            if ((SafeValue $server.Value.TotalCDPProxyTasks) -gt 0) {
+                $tasksPerCore = [Math]::Min($tasksPerCore, 1.0 / $CDPProxyCPUReq)  # 4 cores/task → 0.25
+            }
+            $NonNegativeCores = EnsureNonNegative($SuggestedTasksByCores * $tasksPerCore)
             $NonNegativeRAM   = EnsureNonNegative($SuggestedTasksByRAM)
             $MaxSuggestedTasks = [Math]::Min($NonNegativeCores, $NonNegativeRAM)
 
