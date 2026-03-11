@@ -207,3 +207,53 @@ applies to the full role base rather than solely the OS layer.
 
 **No code changes in this amendment.** The "Bad" consequence entry above
 is updated to reflect this quantification.
+
+### 2026-03-12 — Extend max-of-roles to BackupServer role
+
+**Trigger:** Code review of `Invoke-VhcConcurrencyAnalysis` identified that the
+backup server row was handled by a separate additive block after the overhead
+calculation:
+
+```powershell
+# old code
+$overhead = Get-VhciServerOsOverhead ...   # e.g. 4 GB (max of VP Proxy, Repo, GP Proxy)
+
+$RequiredCores += $BSCPUReq                # e.g. +8 → 10 total fixed CPU
+$RequiredRAM   += $BSRAMReq                # e.g. +16 → 20 total fixed RAM
+$SuggestedTasksByCores -= $BSCPUReq
+$SuggestedTasksByRAM   -= $BSRAMReq
+```
+
+**Double-count:** The BackupServer requirement (8 cores / 16 GB for v13) is a
+*total* figure representing the sizing floor for a server running the VBR
+service. It implicitly includes the same OS layer that `Get-VhciServerOsOverhead`
+already accounts for via the per-role overhead. Adding `$BSCPUReq` / `$BSRAMReq`
+on top of `$overhead.CPU` / `$overhead.RAM` charges the shared OS twice on backup
+server rows.
+
+**Fix:** Extend the max-of-roles principle already established in this ADR.
+Introduce `$fixedCPU` / `$fixedRAM` computed as `Max(overhead, BS requirement)`:
+
+```powershell
+$fixedCPU = $overhead.CPU
+$fixedRAM = $overhead.RAM
+if ($serverName -eq $BackupServerName) {
+    $fixedCPU = [Math]::Max($fixedCPU, $BSCPUReq)
+    $fixedRAM = [Math]::Max($fixedRAM, $BSRAMReq)
+}
+```
+
+The separate additive `if ($serverName -eq $BackupServerName)` block is removed
+entirely. `$fixedCPU` / `$fixedRAM` replace `$overhead.CPU` / `$overhead.RAM`
+in all four dependent calculations (`$RequiredCores`, `$RequiredRAM`,
+`$SuggestedTasksByCores`, `$SuggestedTasksByRAM`).
+
+**Numerical impact (lab-m01: 8 cores / 15 GB, v13 BS + VP proxy + Repo + GP proxy):**
+
+| | Before | After |
+|---|---|---|
+| Role OS overhead | max(2,2,2) = **2 CPU**, max(2,4,4) = **4 GB** | same |
+| Fixed CPU | 2 + 8 = **10** | max(2, 8) = **8** |
+| Fixed RAM | 4 + 16 = **20** | max(4, 16) = **16** |
+| Required Cores | task_based + 10 | task_based + 8 (−2) |
+| Required RAM (GB) | task_based + 20 | task_based + 16 (−4) |
