@@ -51,8 +51,8 @@ function Invoke-VhcConcurrencyAnalysis {
         $CDPProxyCPUReq = $t.CdpProxyCPU
 
         # Backup Server thresholds vary by version
-        $BSCPUReq = if ($VBRVersion -eq 13) { $t.BackupServerCPU_v13 } else { $t.BackupServerCPU_v12 }
-        $BSRAMReq = if ($VBRVersion -eq 13) { $t.BackupServerRAM_v13 } else { $t.BackupServerRAM_v12 }
+        $BSCPUReq = if ($VBRVersion -ge 13) { $t.BackupServerCPU_v13 } else { $t.BackupServerCPU_v12 }
+        $BSRAMReq = if ($VBRVersion -ge 13) { $t.BackupServerRAM_v13 } else { $t.BackupServerRAM_v12 }
 
         $RequirementsComparison = [System.Collections.Generic.List[PSCustomObject]]::new()
 
