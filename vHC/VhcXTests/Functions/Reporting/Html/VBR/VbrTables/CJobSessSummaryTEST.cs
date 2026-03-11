@@ -112,9 +112,9 @@ namespace VhcXTests.Functions.Reporting.Html.VBR.VbrTables
             var parser = new CCsvParser(_vbrDir);
             var jobs = parser.GetDynamicJobInfo().ToList();
 
-            // Verify schedule enabled field
-            Assert.Contains(jobs, j => j.IsScheduleEnabled == "True");
-            Assert.Contains(jobs, j => j.IsScheduleEnabled == "False");
+            // IsScheduleEnabled header normalizes to lowercase key: isscheduleenabled
+            Assert.Contains(jobs, j => j.isscheduleenabled == "True");
+            Assert.Contains(jobs, j => j.isscheduleenabled == "False");
         }
 
         [Fact]
@@ -174,11 +174,11 @@ namespace VhcXTests.Functions.Reporting.Html.VBR.VbrTables
             var parser = new CCsvParser(_vbrDir);
             var repos = parser.GetDynamicRepo().ToList();
 
-            // Verify space fields are present
+            // Actual PS headers are CachedTotalSpace/CachedFreeSpace, normalized to lowercase
             foreach (var repo in repos)
             {
-                Assert.NotNull(repo.TotalSpace);
-                Assert.NotNull(repo.FreeSpace);
+                Assert.NotNull(repo.cachedtotalspace);
+                Assert.NotNull(repo.cachedfreespace);
             }
         }
 
