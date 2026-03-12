@@ -23,13 +23,16 @@ function Get-VhciNasJob {
 
     if (@($nasBackup).Count -gt 0) {
 
-        # Iterate directly over $nasBackup - Get-VBRUnstructuredBackupRestorePoint accepts
-        # the job objects returned by Get-VBRUnstructuredBackupJob, so no separate
-        # Get-VBRUnstructuredBackup call is needed.
+        # Get-VBRUnstructuredBackupRestorePoint requires VBRUnstructuredBackup objects,
+        # not the VBRNASBackupJob objects returned by Get-VBRUnstructuredBackupJob.
+        Write-LogFile "Calling Get-VBRUnstructuredBackup for restore-point size metrics..."
+        $unstructuredBackups = @(Get-VBRUnstructuredBackup)
+        Write-LogFile "Found $(@($unstructuredBackups).Count) unstructured backup chain(s)"
+
         $jobCounter = 0
-        foreach ($job in $nasBackup) {
+        foreach ($job in $unstructuredBackups) {
             $jobCounter++
-            Write-LogFile "Processing NAS job $jobCounter/$(@($nasBackup).Count): $($job.Name)"
+            Write-LogFile "Processing NAS job $jobCounter/$(@($unstructuredBackups).Count): $($job.Name)"
 
             $onDiskGB = 0
             $sourceGB = 0
@@ -69,9 +72,12 @@ function Get-VhciNasJob {
                 Write-LogFile "  Warning: Failed to get restore points for job '$($job.Name)': $($_.Exception.Message)" -LogLevel "WARNING"
             }
 
-            $job | Add-Member -MemberType NoteProperty -Name JobType  -Value "NAS Backup" -Force
-            $job | Add-Member -MemberType NoteProperty -Name OnDiskGB -Value $onDiskGB    -Force
-            $job | Add-Member -MemberType NoteProperty -Name SourceGB -Value $sourceGB    -Force
+            $nasJob = @($nasBackup) | Where-Object { $_.Name -eq $job.Name } | Select-Object -First 1
+            if ($null -ne $nasJob) {
+                $nasJob | Add-Member -MemberType NoteProperty -Name JobType  -Value "NAS Backup" -Force
+                $nasJob | Add-Member -MemberType NoteProperty -Name OnDiskGB -Value $onDiskGB    -Force
+                $nasJob | Add-Member -MemberType NoteProperty -Name SourceGB -Value $sourceGB    -Force
+            }
         }
     }
 
