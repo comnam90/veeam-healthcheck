@@ -14,8 +14,6 @@ function Get-VhcJob {
         May be $null - repo names will be blank in that case.
     .Parameter VBRVersion
         Major VBR version integer. Reserved for future per-version branching.
-    .Parameter ReportInterval
-        Number of days back to query NAS backup sessions. Passed to Get-VhciNasJob.
     #>
     [CmdletBinding()]
     param(
@@ -23,10 +21,7 @@ function Get-VhcJob {
         [object]$RepositoryDetails = $null,
 
         [Parameter(Mandatory = $false)]
-        [int]$VBRVersion = 0,
-
-        [Parameter(Mandatory = $false)]
-        [int]$ReportInterval = 14
+        [int]$VBRVersion = 0
     )
 
     $message = "Collecting jobs info..."
@@ -56,7 +51,7 @@ function Get-VhcJob {
     # Sub-function collectors (each exports its own CSVs)
     # Each sub-collector is individually fault-isolated inside Invoke-VhciJobSubCollectors.
     # ------------------------------------------------------------------
-    Invoke-VhciJobSubCollectors -Jobs @($Jobs) -ReportInterval $ReportInterval
+    Invoke-VhciJobSubCollectors -Jobs @($Jobs)
 
     # ------------------------------------------------------------------
     # Main VBR job processing loop - restore point size calculation

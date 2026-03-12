@@ -8,13 +8,10 @@ function Invoke-VhciJobSubCollectors {
         Called exclusively by Get-VhcJob. See ADR 0007.
     .Parameter Jobs
         Array of VBR job objects (from Get-VBRJob). Passed to Get-VhciReplication.
-    .Parameter ReportInterval
-        Number of days for NAS session lookback. Passed to Get-VhciNasJob.
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $false)] [object[]] $Jobs          = @(),
-        [Parameter(Mandatory = $false)] [int]      $ReportInterval = 14
+        [Parameter(Mandatory = $false)] [object[]] $Jobs = @()
     )
 
     Write-LogFile "Running job sub-collectors..."
@@ -35,7 +32,7 @@ function Invoke-VhciJobSubCollectors {
         Write-LogFile "Get-VhciTapeInfrastructure failed: $($_.Exception.Message)" -LogLevel "ERROR"
         Add-VhciModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }
-    try { Get-VhciNasJob -ReportInterval $ReportInterval } catch {
+    try { Get-VhciNasJob } catch {
         Write-LogFile "Get-VhciNasJob failed: $($_.Exception.Message)" -LogLevel "ERROR"
         Add-VhciModuleError -CollectorName 'Jobs' -ErrorMessage $_.Exception.Message
     }

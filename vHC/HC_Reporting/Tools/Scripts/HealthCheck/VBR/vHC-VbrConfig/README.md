@@ -98,7 +98,7 @@ These write CSVs and return nothing meaningful. Invoke via `Invoke-VhcCollector`
 | `Get-VhcArchiveTier` | _(none)_ | `_archTier.csv` | SOBR archive extents. |
 | `Get-VhcTrafficRules` | _(none)_ | `_trafficRules.csv` | |
 | `Get-VhcRegistrySettings` | `-RemoteExecution [bool]` | `_regkeys.csv` | Skipped when `-RemoteExecution $true` (registry inaccessible on remote agents). |
-| `Get-VhcJob` | `-RepositoryDetails` `-VBRVersion` `-ReportInterval` | `_Jobs.csv` `_configBackup.csv` + 9 sub-collector CSVs | Orchestrates nine private sub-collectors (see Private section). `$RepositoryDetails` may be `$null` — repo names will be blank in that case. |
+| `Get-VhcJob` | `-RepositoryDetails` `-VBRVersion` | `_Jobs.csv` `_configBackup.csv` + 9 sub-collector CSVs | Orchestrates nine private sub-collectors (see Private section). `$RepositoryDetails` may be `$null` — repo names will be blank in that case. |
 | `Get-VhcWanAccelerator` | _(none)_ | `_WanAcc.csv` | |
 | `Get-VhcLicense` | _(none)_ | `_LicInfo.csv` | Socket, instance, and capacity licence summaries. |
 | `Get-VhcMalwareDetection` | `-VBRVersion [int]` | `_malware_settings.csv` `_malware_infectedobject.csv` `_malware_events.csv` `_malware_exclusions.csv` | No-op for VBR versions below 12. |
@@ -133,7 +133,7 @@ Each sub-collector exports its CSV(s) and returns an array of role-entry descrip
 | `Get-VhciAgentJob` | `_AgentBackupJob.csv` `_EndpointJob.csv` | Computer backup jobs and legacy endpoint jobs. |
 | `Get-VhciSureBackup` | `_SureBackupJob.csv` `_SureBackupAppGroups.csv` `_SureBackupVirtualLabs.csv` | |
 | `Get-VhciTapeInfrastructure` | `_TapeJobs.csv` `_TapeServers.csv` `_TapeLibraries.csv` `_TapeMediaPools.csv` `_TapeVaults.csv` | |
-| `Get-VhciNasJob` | `_nasBackup.csv` `_nasBCJ.csv` | Session-based size metrics require `-ReportInterval` days lookback. |
+| `Get-VhciNasJob` | `_nasBackup.csv` `_nasBCJ.csv` | Size metrics use `Get-VBRUnstructuredBackupRestorePoint` + `CNasBackup`/`CNasBackupPoint` .NET types. Per-share and per-job failures are caught and warned; other shares/jobs continue. |
 | `Get-VhciPluginAndCdpJob` | `_pluginjobs.csv` `_cdpjobs.csv` `_vcdjobs.csv` | |
 | `Get-VhciReplication` | `_ReplicaJobs.csv` `_Replicas.csv` `_FailoverPlans.csv` | Receives the already-fetched `$Jobs` array to avoid a second `Get-VBRJob` call. |
 | `Get-VhciCloudConnect` | `_CloudGateways.csv` `_CloudTenants.csv` | Errors when VCC service provider licence is not installed — caught and logged. |

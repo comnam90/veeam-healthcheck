@@ -232,7 +232,7 @@ $collectorResults.Add((Invoke-VhcCollector -Name 'SessionReport' -Action {
 # ---------------------------------------------------------------------------
 # Task 7: Job collectors (require $RepositoryDetails from Task 6)
 $collectorResults.Add((Invoke-VhcCollector -Name 'Jobs' -Action {
-    Get-VhcJob -RepositoryDetails $RepositoryDetails -VBRVersion $VBRVersion -ReportInterval $ReportInterval
+    Get-VhcJob -RepositoryDetails $RepositoryDetails -VBRVersion $VBRVersion
 }))
 # ---------------------------------------------------------------------------
 

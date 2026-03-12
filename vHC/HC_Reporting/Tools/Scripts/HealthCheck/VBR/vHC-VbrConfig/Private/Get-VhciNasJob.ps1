@@ -3,17 +3,13 @@
 function Get-VhciNasJob {
     <#
     .Synopsis
-        Collects NAS backup jobs (with session-based size metrics) and NAS backup copy jobs.
+        Collects NAS backup jobs (with restore-point-based size metrics) and NAS backup copy jobs.
         Exports _nasBackup.csv, _nasBCJ.csv.
-        Source: Get-VBRConfig.ps1 lines 1213-1307.
-    .Parameter ReportInterval
-        Number of days back to query NAS backup sessions. Must match orchestrator $ReportInterval.
+        Size metrics use Get-VBRUnstructuredBackupRestorePoint + CNasBackup/.GetNasBackupShortTerm()
+        rather than session Progress fields, which are unreliable when the latest session failed.
     #>
     [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $false)]
-        [int]$ReportInterval = 14
-    )
+    param()
 
     $message = "Collecting NAS jobs..."
     Write-LogFile $message
@@ -26,63 +22,57 @@ function Get-VhciNasJob {
     Write-LogFile "Found $(@($nasBackup).Count) NAS backup jobs"
 
     if (@($nasBackup).Count -gt 0) {
-            Write-LogFile "Fetching NAS backup sessions for the last $ReportInterval days..."
-            $cutoffDate = (Get-Date).AddDays(-$ReportInterval)
 
-            $nasSessionLookup = @{}
+        # Iterate directly over $nasBackup — Get-VBRUnstructuredBackupRestorePoint accepts
+        # the job objects returned by Get-VBRUnstructuredBackupJob, so no separate
+        # Get-VBRUnstructuredBackup call is needed.
+        $jobCounter = 0
+        foreach ($job in $nasBackup) {
+            $jobCounter++
+            Write-LogFile "Processing NAS job $jobCounter/$(@($nasBackup).Count): $($job.Name)"
+
+            $onDiskGB = 0
+            $sourceGB = 0
+
             try {
-                $allNasSessions = @()
-                foreach ($nasJob in $nasBackup) {
-                    $jobSessions = Get-VBRBackupSession -Name $nasJob.Name |
-                        Where-Object { $_.CreationTime -gt $cutoffDate }
-                    if ($jobSessions) {
-                        $allNasSessions += $jobSessions
-                    }
-                }
-                Write-LogFile "Found $($allNasSessions.Count) NAS sessions in the last $ReportInterval days"
+                $points = Get-VBRUnstructuredBackupRestorePoint -Backup $job
 
-                # Build lookup: prefer the latest session that has Progress data (TotalSize > 0).
-                # A failed session may have all Progress fields at 0; skipping it avoids
-                # reporting 0 GB when an earlier successful session has real values.
-                foreach ($group in ($allNasSessions | Group-Object { $_.JobId.ToString() })) {
-                    $withData = @($group.Group |
-                        Where-Object { $_.Progress.TotalSize -gt 0 } |
-                        Sort-Object CreationTime -Descending)
-                    $nasSessionLookup[$group.Name] = if ($withData.Count -gt 0) {
-                        $withData[0]
-                    } else {
-                        $group.Group | Sort-Object CreationTime -Descending | Select-Object -First 1
+                # Keep first-seen per ServerName — API returns newest-first, so first = latest.
+                $shareLatest = @{}
+                foreach ($point in @($points)) {
+                    if (-not $shareLatest.ContainsKey($point.ServerName)) {
+                        $shareLatest[$point.ServerName] = $point
                     }
                 }
-                Write-LogFile "Built NAS session lookup with $($nasSessionLookup.Count) unique jobs"
+                Write-LogFile "  $($shareLatest.Count) unique share(s)"
+
+                foreach ($shareName in $shareLatest.Keys) {
+                    try {
+                        $point      = $shareLatest[$shareName]
+                        $backupInfo = [Veeam.Backup.Core.CNasBackup]::GetByNasPointId($point.Id)
+                        $pointInfo  = [Veeam.Backup.Core.CNasBackupPoint]::Get($point.Id)
+                        $shortTerm  = $backupInfo.GetNasBackupShortTerm()
+
+                        $shareOnDisk = [Math]::Round(($shortTerm.Info.DataSize + $shortTerm.Info.MetaSize) / 1GB, 2)
+                        $shareSource = [Math]::Round($pointInfo.Info.ProtectedSize / 1GB, 2)
+
+                        $onDiskGB += $shareOnDisk
+                        $sourceGB += $shareSource
+                        Write-LogFile "    Share '$shareName': SourceGB=$shareSource, OnDiskGB=$shareOnDisk"
+                    } catch {
+                        Write-LogFile "    Warning: size fetch failed for share '$shareName' in '$($job.Name)': $($_.Exception.Message)" -LogLevel "WARNING"
+                    }
+                }
+
+                Write-LogFile "  Total — OnDiskGB: $onDiskGB, SourceGB: $sourceGB"
             } catch {
-                Write-LogFile "Warning: Failed to get NAS sessions: $($_.Exception.Message)" -LogLevel "WARNING"
+                Write-LogFile "  Warning: Failed to get restore points for job '$($job.Name)': $($_.Exception.Message)" -LogLevel "WARNING"
             }
 
-            $jobCounter = 0
-            foreach ($job in $nasBackup) {
-                $jobCounter++
-                Write-LogFile "Processing NAS job $jobCounter/$(@($nasBackup).Count): $($job.Name)"
-
-                $onDiskGB = 0
-                $sourceGb = 0
-
-                $jobId = $job.Id.ToString()
-                if ($nasSessionLookup.ContainsKey($jobId)) {
-                    $session = $nasSessionLookup[$jobId]
-                    if ($null -ne $session.Progress) {
-                        $onDiskGB = $session.Progress.ProcessedUsedSize / 1GB
-                        $sourceGb = $session.Progress.TotalSize / 1GB
-                        Write-LogFile "  OnDiskGB: $onDiskGB, SourceGB: $sourceGb"
-                    }
-                } else {
-                    Write-LogFile "  No NAS session found in last $ReportInterval days for job: $($job.Name)"
-                }
-
-                $job | Add-Member -MemberType NoteProperty -Name JobType  -Value "NAS Backup" -Force
-                $job | Add-Member -MemberType NoteProperty -Name OnDiskGB -Value $onDiskGB    -Force
-                $job | Add-Member -MemberType NoteProperty -Name SourceGB -Value $sourceGb    -Force
-            }
+            $job | Add-Member -MemberType NoteProperty -Name JobType  -Value "NAS Backup" -Force
+            $job | Add-Member -MemberType NoteProperty -Name OnDiskGB -Value $onDiskGB    -Force
+            $job | Add-Member -MemberType NoteProperty -Name SourceGB -Value $sourceGB    -Force
+        }
     }
 
     $nasBCJ = Get-VBRNASBackupCopyJob
