@@ -23,7 +23,7 @@ function Get-VhciNasJob {
 
     if (@($nasBackup).Count -gt 0) {
 
-        # Iterate directly over $nasBackup — Get-VBRUnstructuredBackupRestorePoint accepts
+        # Iterate directly over $nasBackup - Get-VBRUnstructuredBackupRestorePoint accepts
         # the job objects returned by Get-VBRUnstructuredBackupJob, so no separate
         # Get-VBRUnstructuredBackup call is needed.
         $jobCounter = 0
@@ -37,7 +37,7 @@ function Get-VhciNasJob {
             try {
                 $points = Get-VBRUnstructuredBackupRestorePoint -Backup $job
 
-                # Keep first-seen per ServerName — API returns newest-first, so first = latest.
+                # Keep first-seen per ServerName - API returns newest-first, so first = latest.
                 $shareLatest = @{}
                 foreach ($point in @($points)) {
                     if (-not $shareLatest.ContainsKey($point.ServerName)) {
@@ -64,7 +64,7 @@ function Get-VhciNasJob {
                     }
                 }
 
-                Write-LogFile "  Total — OnDiskGB: $onDiskGB, SourceGB: $sourceGB"
+                Write-LogFile "  Total - OnDiskGB: $onDiskGB, SourceGB: $sourceGB"
             } catch {
                 Write-LogFile "  Warning: Failed to get restore points for job '$($job.Name)': $($_.Exception.Message)" -LogLevel "WARNING"
             }
