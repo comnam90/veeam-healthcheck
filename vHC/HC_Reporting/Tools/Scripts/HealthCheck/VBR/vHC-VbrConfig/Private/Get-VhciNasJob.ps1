@@ -41,11 +41,17 @@ function Get-VhciNasJob {
                 }
                 Write-LogFile "Found $($allNasSessions.Count) NAS sessions in the last $ReportInterval days"
 
-                foreach ($session in $allNasSessions) {
-                    $jobId = $session.JobId.ToString()
-                    if (-not $nasSessionLookup.ContainsKey($jobId) -or
-                        $session.CreationTime -gt $nasSessionLookup[$jobId].CreationTime) {
-                        $nasSessionLookup[$jobId] = $session
+                # Build lookup: prefer the latest session that has Progress data (TotalSize > 0).
+                # A failed session may have all Progress fields at 0; skipping it avoids
+                # reporting 0 GB when an earlier successful session has real values.
+                foreach ($group in ($allNasSessions | Group-Object { $_.JobId.ToString() })) {
+                    $withData = @($group.Group |
+                        Where-Object { $_.Progress.TotalSize -gt 0 } |
+                        Sort-Object CreationTime -Descending)
+                    $nasSessionLookup[$group.Name] = if ($withData.Count -gt 0) {
+                        $withData[0]
+                    } else {
+                        $group.Group | Sort-Object CreationTime -Descending | Select-Object -First 1
                     }
                 }
                 Write-LogFile "Built NAS session lookup with $($nasSessionLookup.Count) unique jobs"
