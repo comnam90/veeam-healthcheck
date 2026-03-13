@@ -6,12 +6,16 @@ function Get-VhcSessionReport {
         Generates VeeamSessionReport.csv from the backup sessions passed via -BackupSessions.
         Replaces the standalone Get-VeeamSessionReport.ps1 and Get-VeeamSessionReportVersion13.ps1.
 
-        Receives live .NET session objects from Get-VhcBackupSessions via the -BackupSessions
-        parameter. Objects must remain in the same process to keep method access.
+        Receives a mixed array of live session objects from Get-VhcBackupSessions:
+        - VM and Backup Copy sessions (CBackupSession / CBackupCopySession)
+        - Agent/computer backup sessions (VBRSession)
+        Objects must remain in the same process to keep .NET method access.
 
-        Calls GetTaskSessions() on every backup session regardless of VBR version. This produces
-        one row per VM (task) rather than one row per job run, giving accurate VMName and
-        ProcessingMode values on all supported VBR versions. See ADR 0004.
+        Calls Get-VBRTaskSession on each session to resolve task-level detail, producing one
+        row per machine (task) rather than one row per job run. See ADR 0004 and ADR 0012.
+
+        For agent task sessions, $task.JobName contains the machine name appended by Veeam.
+        The clean job name is taken from the parent $session.Name instead. See ADR 0012.
     .Parameter BackupSessions
         Live Veeam backup session objects returned by Get-VhcBackupSessions. Pass $null or an
         empty array to produce a descriptive error rather than a silent empty CSV.
@@ -31,69 +35,75 @@ function Get-VhcSessionReport {
 
     [System.Collections.ArrayList]$allOutput = @()
 
-    # Use GetTaskSessions() for all VBR versions - returns one row per VM (task-level detail).
-    # See ADR 0004 for the rationale; the >=13 session-level path was removed due to a
-    # granularity bug (per-job-run rows, empty ProcessingMode, job-run names as VMName).
+    # Use Get-VBRTaskSession per session to resolve task-level detail (one row per machine).
+    # Replaces the array-level GetTaskSessions() call; Get-VBRTaskSession accepts all session
+    # types (VM, Backup Copy, agent) via VBRSessionTransformationAttribute. See ADR 0004, 0012.
     $LogRegex            = [regex]'\bUsing \b.+\s(\[[^\]]*\])'
     $BottleneckRegex     = [regex]'^Busy: (\S+ \d+% > \S+ \d+% > \S+ \d+% > \S+ \d+%)'
     $PrimaryBottleneckRx = [regex]'^Primary bottleneck: (\S+)'
 
-    $taskSessions = @()
-    try {
-        $taskSessions = @($BackupSessions.GetTaskSessions())
-    } catch {
-        Write-LogFile "Failed to retrieve task sessions: $($_.Exception.Message)" -LogLevel "ERROR"
-        throw
-    }
-
-    foreach ($task in $taskSessions) {
+    foreach ($session in $BackupSessions) {
+        $tasks = @()
         try {
-            $logRecords = Get-VhciSessionLogWithTimeout -Session $task -TimeoutSeconds 30
-
-            $ProcessingLogMatches = $logRecords | Where-Object Title -match $LogRegex
-            $ProcessingLogTitles  = $(($ProcessingLogMatches.Title -replace '\bUsing \b.+\s\[', '') -replace ']', '')
-            $ProcessingMode       = $($ProcessingLogTitles | Select-Object -Unique) -join ';'
-
-            $BottleneckLogMatch       = $logRecords | Where-Object Title -match $BottleneckRegex | Select-Object -Last 1
-            $BottleneckDetails        = if ($BottleneckLogMatch) { $BottleneckLogMatch.Title -replace 'Busy: ', '' } else { '' }
-
-            $PrimaryBottleneckMatch   = $logRecords | Where-Object Title -match $PrimaryBottleneckRx | Select-Object -Last 1
-            $PrimaryBottleneckDetails = if ($PrimaryBottleneckMatch) { $PrimaryBottleneckMatch.Title -replace 'Primary bottleneck: ', '' } else { '' }
-
-            try { $jobDuration  = $task.JobSess.Progress.Duration.ToString() }               catch { $jobDuration  = '' }
-            try { $taskDuration = $task.WorkDetails.WorkDuration.ToString() }               catch { $taskDuration = '' }
-
-            $row = [pscustomobject][ordered]@{
-                'JobName'           = $task.JobName
-                'VMName'            = $task.Name
-                'Status'            = $task.Status
-                'IsRetry'           = $task.JobSess.IsRetryMode
-                'ProcessingMode'    = $ProcessingMode
-                'JobDuration'       = $jobDuration
-                'TaskDuration'      = $taskDuration
-                'TaskAlgorithm'     = $task.WorkDetails.TaskAlgorithm
-                'CreationTime'      = $task.JobSess.CreationTime
-                # NAS jobs leave BackupStats at 0; fall back to Progress fields (see ADR 0005)
-                'BackupSizeGB'      = if ($task.JobSess.BackupStats.BackupSize -gt 0) {
-                    [math]::Round(($task.JobSess.BackupStats.BackupSize / 1GB), 4)
-                } else {
-                    [math]::Round(($task.JobSess.Progress.TransferedSize / 1GB), 4)
-                }
-                'DataSizeGB'        = if ($task.JobSess.BackupStats.DataSize -gt 0) {
-                    [math]::Round(($task.JobSess.BackupStats.DataSize / 1GB), 4)
-                } else {
-                    [math]::Round(($task.JobSess.Progress.ReadSize / 1GB), 4)
-                }
-                'DedupRatio'        = $task.JobSess.BackupStats.DedupRatio
-                'CompressRatio'     = $task.JobSess.BackupStats.CompressRatio
-                'BottleneckDetails' = $BottleneckDetails
-                'PrimaryBottleneck' = $PrimaryBottleneckDetails
-                'JobType'           = $task.ObjectPlatform.Platform
-                'JobAlgorithm'      = $task.JobSess.Info.SessionAlgorithm
-            }
-            if ($row) { $null = $allOutput.Add($row) }
+            $tasks = @(Get-VBRTaskSession -Session $session)
         } catch {
-            Write-LogFile "Failed to process task '$($task.Name)' in job '$($task.JobName)': $($_.Exception.Message)" -LogLevel "WARNING"
+            Write-LogFile "Failed to get task sessions for '$($session.Name)': $($_.Exception.Message)" -LogLevel "WARNING"
+            continue
+        }
+
+        foreach ($task in $tasks) {
+            try {
+                $logRecords = Get-VhciSessionLogWithTimeout -Session $task -TimeoutSeconds 30
+
+                $ProcessingLogMatches = $logRecords | Where-Object Title -match $LogRegex
+                $ProcessingLogTitles  = $(($ProcessingLogMatches.Title -replace '\bUsing \b.+\s\[', '') -replace ']', '')
+                $ProcessingMode       = $($ProcessingLogTitles | Select-Object -Unique) -join ';'
+
+                $BottleneckLogMatch       = $logRecords | Where-Object Title -match $BottleneckRegex | Select-Object -Last 1
+                $BottleneckDetails        = if ($BottleneckLogMatch) { $BottleneckLogMatch.Title -replace 'Busy: ', '' } else { '' }
+
+                $PrimaryBottleneckMatch   = $logRecords | Where-Object Title -match $PrimaryBottleneckRx | Select-Object -Last 1
+                $PrimaryBottleneckDetails = if ($PrimaryBottleneckMatch) { $PrimaryBottleneckMatch.Title -replace 'Primary bottleneck: ', '' } else { '' }
+
+                try { $jobDuration  = $task.JobSess.Progress.Duration.ToString() } catch { $jobDuration  = '' }
+                try { $taskDuration = $task.WorkDetails.WorkDuration.ToString() }  catch { $taskDuration = '' }
+
+                # Agent task JobName has the machine name appended by Veeam; use the parent
+                # session Name for the clean job name instead. See ADR 0012.
+                $jobName = if ($task.ObjectPlatform.IsEpAgentPlatform) { $session.Name } else { $task.JobName }
+
+                $row = [pscustomobject][ordered]@{
+                    'JobName'           = $jobName
+                    'VMName'            = $task.Name
+                    'Status'            = $task.Status
+                    'IsRetry'           = $task.JobSess.IsRetryMode
+                    'ProcessingMode'    = $ProcessingMode
+                    'JobDuration'       = $jobDuration
+                    'TaskDuration'      = $taskDuration
+                    'TaskAlgorithm'     = $task.WorkDetails.TaskAlgorithm
+                    'CreationTime'      = $task.JobSess.CreationTime
+                    # NAS jobs leave BackupStats at 0; fall back to Progress fields (see ADR 0005)
+                    'BackupSizeGB'      = if ($task.JobSess.BackupStats.BackupSize -gt 0) {
+                        [math]::Round(($task.JobSess.BackupStats.BackupSize / 1GB), 4)
+                    } else {
+                        [math]::Round(($task.JobSess.Progress.TransferedSize / 1GB), 4)
+                    }
+                    'DataSizeGB'        = if ($task.JobSess.BackupStats.DataSize -gt 0) {
+                        [math]::Round(($task.JobSess.BackupStats.DataSize / 1GB), 4)
+                    } else {
+                        [math]::Round(($task.JobSess.Progress.ReadSize / 1GB), 4)
+                    }
+                    'DedupRatio'        = $task.JobSess.BackupStats.DedupRatio
+                    'CompressRatio'     = $task.JobSess.BackupStats.CompressRatio
+                    'BottleneckDetails' = $BottleneckDetails
+                    'PrimaryBottleneck' = $PrimaryBottleneckDetails
+                    'JobType'           = $task.ObjectPlatform.Platform
+                    'JobAlgorithm'      = $task.JobSess.Info.SessionAlgorithm
+                }
+                if ($row) { $null = $allOutput.Add($row) }
+            } catch {
+                Write-LogFile "Failed to process task '$($task.Name)' in job '$($session.Name)': $($_.Exception.Message)" -LogLevel "WARNING"
+            }
         }
     }
 

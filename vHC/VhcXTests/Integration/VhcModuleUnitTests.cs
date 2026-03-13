@@ -663,6 +663,183 @@ exit 0
         }
 
         /// <summary>
+        /// Verifies Get-VhcBackupSessions collects agent/computer backup sessions via
+        /// Get-VBRComputerBackupJobSession and includes them in the returned array alongside
+        /// VM and Backup Copy sessions from Get-VBRBackupSession. See ADR 0012.
+        /// </summary>
+        [Fact]
+        public void GetVhcBackupSessions_IncludesAgentSessions_CallsComputerBackupJobSession()
+        {
+            var projectRoot = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..", "HC_Reporting"));
+            var moduleRoot   = Path.Combine(projectRoot, "Tools", "Scripts", "HealthCheck", "VBR", "vHC-VbrConfig");
+            var funcPath     = Path.Combine(moduleRoot, "Public", "Get-VhcBackupSessions.ps1");
+            var writeLogPath = Path.Combine(moduleRoot, "Public",  "Write-LogFile.ps1");
+
+            var tmpDir        = Path.Combine(Path.GetTempPath(), $"vhc-agtsess-{Guid.NewGuid():N}");
+            var tmpScriptPath = Path.Combine(tmpDir, "Test-AgentSessions.ps1");
+            Directory.CreateDirectory(tmpDir);
+
+            var scriptContent = $@"
+$ErrorActionPreference = 'Stop'
+. '{writeLogPath}'
+. '{funcPath}'
+
+$script:LogPath  = '{tmpDir}'
+$script:LogLevel = 'ERROR'
+
+# Stub VBR cmdlets - no Veeam install required.
+# Get-VBRBackupSession returns empty; Get-VBRComputerBackupJobSession returns one agent session.
+function Get-VBRBackupSession {{ return @() }}
+function Get-VBRComputerBackupJobSession {{
+    return @([pscustomobject]@{{ Name = 'Agent Job'; CreationTime = (Get-Date) }})
+}}
+
+$result = @(Get-VhcBackupSessions -ReportInterval 14)
+
+if ($result.Count -ne 1) {{
+    Write-Error ""Expected 1 agent session but got $($result.Count)""
+    exit 1
+}}
+if ($result[0].Name -ne 'Agent Job') {{
+    Write-Error ""Expected Name='Agent Job' but got '$($result[0].Name)'""
+    exit 1
+}}
+Write-Host 'OK: agent session included in result'
+exit 0
+";
+            File.WriteAllText(tmpScriptPath, scriptContent);
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName               = "pwsh",
+                    Arguments              = $"-NoProfile -NonInteractive -File \"{tmpScriptPath}\"",
+                    RedirectStandardError  = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute        = false,
+                    CreateNoWindow         = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process == null) { Assert.Fail("Failed to start pwsh"); return; }
+                var stdout = process.StandardOutput.ReadToEnd();
+                var stderr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                Assert.True(process.ExitCode == 0,
+                    $"Get-VhcBackupSessions did not include agent sessions.\n" +
+                    $"STDOUT: {stdout}\nSTDERR: {stderr}");
+            }
+            finally
+            {
+                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, recursive: true);
+            }
+        }
+
+        /// <summary>
+        /// Verifies Get-VhcSessionReport uses the parent session Name as JobName for agent
+        /// task sessions, not the machine-suffixed $task.JobName that Veeam produces.
+        /// Stubs Get-VBRTaskSession and provides a mock session with a known Name. See ADR 0012.
+        /// </summary>
+        [Fact]
+        public void GetVhcSessionReport_AgentSession_UsesParentSessionNameAsJobName()
+        {
+            var projectRoot  = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..", "HC_Reporting"));
+            var moduleRoot      = Path.Combine(projectRoot, "Tools", "Scripts", "HealthCheck", "VBR", "vHC-VbrConfig");
+            var sessionRptPath  = Path.Combine(moduleRoot, "Public",  "Get-VhcSessionReport.ps1");
+            var writeLogPath    = Path.Combine(moduleRoot, "Public",  "Write-LogFile.ps1");
+            var exportCsvPath   = Path.Combine(moduleRoot, "Private", "Export-VhciCsv.ps1");
+            var sessionLogPath  = Path.Combine(moduleRoot, "Private", "Get-VhciSessionLogWithTimeout.ps1");
+
+            var tmpDir        = Path.Combine(Path.GetTempPath(), $"vhc-agtrpt-{Guid.NewGuid():N}");
+            var tmpScriptPath = Path.Combine(tmpDir, "Test-AgentJobName.ps1");
+            Directory.CreateDirectory(tmpDir);
+
+            var scriptContent = $@"
+$ErrorActionPreference = 'Stop'
+. '{writeLogPath}'
+. '{exportCsvPath}'
+. '{sessionLogPath}'
+. '{sessionRptPath}'
+
+$script:ReportPath = '{tmpDir}'
+$script:VBRServer  = 'test'
+$script:LogPath    = '{tmpDir}'
+$script:LogLevel   = 'ERROR'
+
+# Stub Get-VBRTaskSession to return one mock agent task session.
+# JobName on the task has the machine suffix that Veeam appends; the function must
+# use $session.Name instead when ObjectPlatform.IsEpAgentPlatform is true.
+function Get-VBRTaskSession {{
+    param($Session)
+    $fakeStats    = [pscustomobject]@{{ BackupSize = 1073741824; DataSize = 2147483648; DedupRatio = 1.5; CompressRatio = 2.0 }}
+    $fakeProgress = [pscustomobject]@{{ Duration = [TimeSpan]::FromMinutes(10); TransferedSize = 1073741824; ReadSize = 2147483648 }}
+    $fakeInfo     = [pscustomobject]@{{ SessionAlgorithm = 'Increment' }}
+    $fakeJobSess  = [pscustomobject]@{{ IsRetryMode = $false; Progress = $fakeProgress; BackupStats = $fakeStats; CreationTime = (Get-Date).AddMinutes(-30); Info = $fakeInfo }}
+    $fakePlatform = [pscustomobject]@{{ IsEpAgentPlatform = $true; Platform = 'ELinuxPhysical' }}
+    return @([pscustomobject]@{{
+        Name           = 'machine.host.net'
+        JobName        = 'Agent Job - machine.host.net'
+        Status         = 'Success'
+        ObjectPlatform = $fakePlatform
+        JobSess        = $fakeJobSess
+        WorkDetails    = [pscustomobject]@{{ TaskAlgorithm = 0; WorkDuration = $null }}
+        Logger         = $null
+    }})
+}}
+
+$fakeSession = [pscustomobject]@{{ Name = 'Agent Job'; CreationTime = (Get-Date).AddMinutes(-35) }}
+Get-VhcSessionReport -BackupSessions @($fakeSession)
+
+$csvPath = (Join-Path '{tmpDir}' 'VeeamSessionReport.csv')
+$rows = Import-Csv $csvPath
+if ($rows.Count -ne 1) {{
+    Write-Error ""Expected 1 CSV row but got $($rows.Count)""
+    exit 1
+}}
+if ($rows[0].JobName -ne 'Agent Job') {{
+    Write-Error ""Expected JobName='Agent Job' but got '$($rows[0].JobName)'""
+    exit 1
+}}
+Write-Host ""OK: JobName='$($rows[0].JobName)'""
+exit 0
+";
+            File.WriteAllText(tmpScriptPath, scriptContent);
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName               = "pwsh",
+                    Arguments              = $"-NoProfile -NonInteractive -File \"{tmpScriptPath}\"",
+                    RedirectStandardError  = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute        = false,
+                    CreateNoWindow         = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process == null) { Assert.Fail("Failed to start pwsh"); return; }
+                var stdout = process.StandardOutput.ReadToEnd();
+                var stderr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                Assert.True(process.ExitCode == 0,
+                    $"Get-VhcSessionReport did not use parent session Name as JobName for agent sessions.\n" +
+                    $"STDOUT: {stdout}\nSTDERR: {stderr}");
+            }
+            finally
+            {
+                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, recursive: true);
+            }
+        }
+
+        /// <summary>
         /// Verifies the orchestrator throws a clear error when VbrConfig.json is missing
         /// a required threshold key, rather than silently using $null.
         /// </summary>
