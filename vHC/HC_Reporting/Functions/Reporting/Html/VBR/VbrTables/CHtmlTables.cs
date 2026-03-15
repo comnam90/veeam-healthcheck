@@ -48,6 +48,9 @@ namespace VeeamHealthCheck.Html.VBR
         private readonly CHtmlFormatting form;
         private readonly CVbrSummaries sum;
 
+        // Cross-method cache: JobSummaryTable() reads 10 CSVs; reuse across AddJobSummaryTable + AddMissingJobsTable
+        private Dictionary<string, int> _cachedJobSummary;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CHtmlTables"/> class.
         /// </summary>
@@ -910,18 +913,16 @@ namespace VeeamHealthCheck.Html.VBR
                 "</tr>";
             s += this.form.TableHeaderEnd();
             s += this.form.TableBodyStart();
+
+            // Compute once; store for reuse by AddMissingJobsTable
+            if (_cachedJobSummary == null)
+                _cachedJobSummary = new CJobSummaryTable().JobSummaryTable();
+            var list = _cachedJobSummary;
+
             try
             {
-                CJobSummaryTable st = new();
-
-                Dictionary<string, int> list = st.JobSummaryTable();
-
                 int totalJobs = list.Sum(x => x.Value);
 
-                // foreach (var c in list)
-                // {
-                //    totalJobs += c.Value;
-                // }
                 foreach (var d in list)
                 {
                     if (d.Value == 0)
@@ -951,8 +952,6 @@ namespace VeeamHealthCheck.Html.VBR
             // JSON job summary
             try
             {
-                CJobSummaryTable st = new();
-                var list = st.JobSummaryTable();
                 int totalJobs = list.Sum(x => x.Value);
                 List<string> headers = new() { "JobType", "Count" };
                 List<List<string>> rows = list.Where(d => d.Value > 0).Select(d => new List<string> { d.Key, d.Value.ToString() }).ToList();
@@ -980,13 +979,14 @@ namespace VeeamHealthCheck.Html.VBR
             s += this.form.TableHeaderEnd();
             s += this.form.TableBodyStart();
 
+            // Reuse cached result from AddJobSummaryTable; compute if called standalone
+            if (_cachedJobSummary == null)
+                _cachedJobSummary = new CJobSummaryTable().JobSummaryTable();
+            var types = _cachedJobSummary;
+
             // CDataFormer cd = new(true);
             try
             {
-                // List<string> list = _df.ParseNonProtectedTypes();
-                CJobSummaryTable st = new();
-                Dictionary<string, int> types = st.JobSummaryTable();
-
                 foreach (var t in types)
                 {
                     if (t.Value == 0)
@@ -996,15 +996,6 @@ namespace VeeamHealthCheck.Html.VBR
                         s += "</tr>";
                     }
                 }
-
-                // for (int i = 0; i < list.Count(); i++)
-                // {
-                //    s += "<tr>";
-
-                // s += _form.TableData(list[i], "");
-                //    s += "</tr>";
-
-                // }
             }
             catch (Exception e)
             {
@@ -1017,8 +1008,6 @@ namespace VeeamHealthCheck.Html.VBR
             // JSON missing jobs
             try
             {
-                CJobSummaryTable st = new();
-                Dictionary<string, int> types = st.JobSummaryTable();
                 List<string> headers = new() { "MissingJobType" };
                 List<List<string>> rows = types.Where(t => t.Value == 0).Select(t => new List<string> { t.Key }).ToList();
                 SetSection("missingJobs", headers, rows, summary);
@@ -1713,11 +1702,14 @@ namespace VeeamHealthCheck.Html.VBR
             s += this.form.TableHeaderEnd();
             s += this.form.TableBodyStart();
 
+            // Fetch once; reused by both HTML rendering and JSON export
+            List<CSobrTypeInfos> sobrList = this.df.SobrInfoToXml(scrub) ?? new List<CSobrTypeInfos>();
+
             // CDataFormer cd = new(true);
             try
             {
                 this.log.Info("Attempting to load SOBR data...");
-                List<CSobrTypeInfos> list = this.df.SobrInfoToXml(scrub);
+                List<CSobrTypeInfos> list = sobrList;
 
                 if (list == null || list.Count == 0)
                 {
@@ -1812,7 +1804,7 @@ namespace VeeamHealthCheck.Html.VBR
             // JSON SOBR
             try
             {
-                var list = this.df.SobrInfoToXml(scrub) ?? new List<CSobrTypeInfos>();
+                var list = sobrList;
                 List<string> headers = new() { "Name", "ExtentCount", "JobCount", "PolicyType", "EnableCapacityTier", "CapacityTierCopy", "CapacityTierMove", "ArchiveTierEnabled", "UsePerVMFiles", "CapTierType", "ImmutableEnabled", "ImmutablePeriod", "SizeLimitEnabled", "SizeLimit" };
                 List<List<string>> rows = list.Select(d => new List<string>
                 {
@@ -1865,10 +1857,14 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
 "</tr>";
             s += this.form.TableHeaderEnd();
             s += this.form.TableBodyStart();
+
+            // Fetch once; reused by both HTML rendering and JSON export
+            List<CRepository> extentList = this.df.ExtentXmlFromCsv(scrub) ?? new List<CRepository>();
+
             try
             {
                 this.log.Info("Attempting to load SOBR Extent data...");
-                List<CRepository> list = this.df.ExtentXmlFromCsv(scrub);
+                List<CRepository> list = extentList;
 
                 if (list == null || list.Count == 0)
                 {
@@ -1970,7 +1966,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
             // JSON extents
             try
             {
-                var list = this.df.ExtentXmlFromCsv(scrub) ?? new List<CRepository>();
+                var list = extentList;
                 List<string> headers = new() { "Name", "SobrName", "MaxTasks", "Cores", "Ram", "IsAutoGate", "Host", "Path", "FreeSpace", "TotalSpace", "FreeSpacePercent", "IsDecompress", "AlignBlocks", "IsRotatedDrives", "IsImmutabilitySupported", "Type" };
                 List<List<string>> rows = list.Select(d => new List<string>
                 {
@@ -2026,9 +2022,13 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
 
             s += this.form.TableHeaderEnd();
             s += this.form.TableBodyStart();
+
+            // Fetch once; reused by both HTML rendering and JSON export
+            List<CRepository> repoList = this.df.RepoInfoToXml(scrub) ?? new List<CRepository>();
+
             try
             {
-                List<CRepository> list = this.df.RepoInfoToXml(scrub);
+                List<CRepository> list = repoList;
 
                 foreach (var d in list)
                 {
@@ -2133,7 +2133,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
             // JSON repos
             try
             {
-                var list = this.df.RepoInfoToXml(scrub) ?? new List<CRepository>();
+                var list = repoList;
                 List<string> headers = new() { "Name", "JobCount", "MaxTasks", "Cores", "Ram", "IsAutoGate", "Host", "Path", "FreeSpace", "TotalSpace", "FreeSpacePercent", "IsPerVmBackupFiles", "IsDecompress", "AlignBlocks", "IsRotatedDrives", "IsImmutabilitySupported", "Type" };
                 List<List<string>> rows = list.Select(d => new List<string>
                 {
@@ -2369,11 +2369,13 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
             s += "</tr>";
             s += this.form.TableHeaderEnd();
             s += this.form.TableBodyStart();
+
+            // Fetch once; reused by both HTML rendering and JSON export
+            var jobConData = this.df.JobConcurrency(true);
+
             try
             {
-                var stuff = this.df.JobConcurrency(true);
-
-                foreach (var stu in stuff)
+                foreach (var stu in jobConData)
                 {
                     s += "<tr>";
                     s += this.form.TableData(stu.Key.ToString(), string.Empty);
@@ -2397,7 +2399,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
             // JSON job concurrency
             try
             {
-                var stuff = this.df.JobConcurrency(true);
+                var stuff = jobConData;
                 List<string> headers = new() { "TimeWindow", "Values" };
                 List<List<string>> rows = stuff.Select(stu => new List<string> { stu.Key.ToString(), string.Join(",", stu.Value) }).ToList();
                 SetSection("jobConcurrency", headers, rows, summary);
@@ -2426,11 +2428,13 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
             s += "</tr>";
             s += this.form.TableHeaderEnd();
             s += this.form.TableBodyStart();
+
+            // Fetch once; reused by both HTML rendering and JSON export
+            var taskConData = this.df.JobConcurrency(false);
+
             try
             {
-                var stuff = this.df.JobConcurrency(false);
-
-                foreach (var stu in stuff)
+                foreach (var stu in taskConData)
                 {
                     s += "<tr>";
                     s += this.form.TableData(stu.Key.ToString(), string.Empty);
@@ -2454,7 +2458,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
             // JSON task concurrency
             try
             {
-                var stuff = this.df.JobConcurrency(false);
+                var stuff = taskConData;
                 List<string> headers = new() { "TimeWindow", "Values" };
                 List<List<string>> rows = stuff.Select(stu => new List<string> { stu.Key.ToString(), string.Join(",", stu.Value) }).ToList();
                 SetSection("taskConcurrency", headers, rows, summary);
@@ -2616,12 +2620,15 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
 
             string summary = this.sum.JobInfo();
 
+            // Fetch once; reused by both HTML rendering and JSON export
+            var sessSummData = this.df.ConvertJobSessSummaryToXml(scrub);
+
             try
             {
                 CCsvParser csvparser = new();
                 var source = csvparser.JobCsvParser().ToList();
                 source.OrderBy(x => x.Name);
-                var stuff = this.df.ConvertJobSessSummaryToXml(scrub);
+                var stuff = sessSummData;
                 var jobTypes = stuff.Select(x => x.JobType).Distinct().ToList();
 
                 List<CJobSummaryTypes> OffloadJobs = new();
@@ -2820,7 +2827,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
             // JSON job session summary by job
             try
             {
-                var stuff = this.df.ConvertJobSessSummaryToXml(scrub);
+                var stuff = sessSummData;
                 var ordered = stuff.OrderBy(stu => stu.JobName).ToList();
                 List<string> headers = new() { "JobName", "ItemCount", "MinJobTime", "MaxJobTime", "AvgJobTime", "SessionCount", "Fails", "Retries", "SuccessRate", "AvgBackupSize", "MaxBackupSize", "AvgDataSize", "MaxDataSize", "AvgChangeRate", "WaitCount", "MaxWait", "AvgWait", "JobTypes" };
                 List<List<string>> rows = ordered.Select(stu => new List<string>
@@ -3000,10 +3007,14 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
 
             string summary = this.sum.JobInfo();
 
+            // Parse once; reused by both HTML rendering and JSON export
+            CCsvParser jobInfoCsvParser = new();
+            var jobInfoSource = jobInfoCsvParser.JobCsvParser().ToList();
+
             try
             {
-                CCsvParser csvparser = new();
-                var source = csvparser.JobCsvParser().ToList();
+                CCsvParser csvparser = jobInfoCsvParser;
+                var source = jobInfoSource;
                 source.OrderBy(x => x.Name);
                 var jobTypes = source.Select(x => x.JobType).Distinct().ToList();
 
@@ -3324,8 +3335,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
             // JSON job info capture
             try
             {
-                CCsvParser csvparser = new();
-                var source = csvparser.JobCsvParser().ToList();
+                var source = jobInfoSource;
                 List<string> headers = new() { "JobName", "RepoName", "SourceSizeGB", "OnDiskGB", "RetentionScheme", "RetainDays", "Encrypted", "JobType", "CompressionLevel", "BlockSize", "GfsEnabled", "GfsDetails", "ActiveFullEnabled", "SyntheticFullEnabled", "BackupChainType", "IndexingEnabled", "AAIPEnabled", "VSSEnabled", "VSSIgnoreErrors", "GuestFSIndexing" };
                 List<List<string>> rows = new();
 

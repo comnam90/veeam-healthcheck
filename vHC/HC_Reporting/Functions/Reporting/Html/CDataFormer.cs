@@ -56,6 +56,16 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         private bool _cachedProxyScrub;
         private List<CManagedServer> _cachedServerData;
         private bool _cachedServerScrub;
+        private List<CSobrTypeInfos> _cachedSobrData;
+        private bool _cachedSobrScrub;
+        private List<CRepository> _cachedExtentData;
+        private bool _cachedExtentScrub;
+        private List<CRepository> _cachedRepoData;
+        private bool _cachedRepoScrub;
+        private List<CCapacityTierExtent> _cachedCapTierData;
+        private bool _cachedCapTierScrub;
+        private List<CArchiveTierExtent> _cachedArchiveTierData;
+        private bool _cachedArchiveTierScrub;
 
         // Use null-coalescing to ensure we always have a valid list, even if CSV files are missing
         private readonly IEnumerable<dynamic> viProxy;
@@ -395,6 +405,12 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
         public List<CSobrTypeInfos> SobrInfoToXml(bool scrub)
         {
+            if (_cachedSobrData != null && _cachedSobrScrub == scrub)
+            {
+                this.log.Info(this.logStart + "Starting SOBR conversion to xml (cached)");
+                return _cachedSobrData;
+            }
+
             this.PreCalculations();
             this.log.Info(this.logStart + "Starting SOBR conversion to xml..");
             List<string[]> list = new();
@@ -455,6 +471,8 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             }
 
             this.log.Info(this.logStart + "Starting SOBR conversion to xml..done!");
+            _cachedSobrData = outList;
+            _cachedSobrScrub = scrub;
             return outList;
         }
 
@@ -496,6 +514,12 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
         public List<CRepository> ExtentXmlFromCsv(bool scrub)
         {
+            if (_cachedExtentData != null && _cachedExtentScrub == scrub)
+            {
+                this.log.Info(this.logStart + "converting extent info to xml (cached)");
+                return _cachedExtentData;
+            }
+
             this.log.Info(this.logStart + "converting extent info to xml");
             List<string[]> list = new List<string[]>();
             List<CRepoTypeInfos> csv = CGlobals.DtParser.ExtentInfo;
@@ -591,12 +615,20 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
 
             this.log.Info(this.logStart + "converting extent info to xml..done!");
+            _cachedExtentData = repoList;
+            _cachedExtentScrub = scrub;
             return repoList;
         }
 
 
         public List<CRepository> RepoInfoToXml(bool scrub)
         {
+            if (_cachedRepoData != null && _cachedRepoScrub == scrub)
+            {
+                this.log.Info(this.logStart + "converting repository info to xml (cached)");
+                return _cachedRepoData;
+            }
+
             this.PreCalculations();
             this.log.Info(this.logStart + "converting repository info to xml");
             List<CRepository> list = new();
@@ -685,6 +717,8 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
 
             this.log.Info(this.logStart + "converting repository info to xml..done!");
+            _cachedRepoData = list;
+            _cachedRepoScrub = scrub;
             return list;
         }
 
@@ -1353,6 +1387,12 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         /// </summary>
         public List<CCapacityTierExtent> CapacityTierXmlFromCsv(bool scrub)
         {
+            if (_cachedCapTierData != null && _cachedCapTierScrub == scrub)
+            {
+                this.log.Info(this.logStart + "Converting capacity tier extent info to xml (cached)");
+                return _cachedCapTierData;
+            }
+
             this.log.Info(this.logStart + "Converting capacity tier extent info to xml");
             List<CCapacityTierExtent> capacityExtents = new();
 
@@ -1434,6 +1474,8 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             }
 
             this.log.Info(this.logStart + "Converting capacity tier extent info to xml..done!");
+            _cachedCapTierData = capacityExtents;
+            _cachedCapTierScrub = scrub;
             return capacityExtents;
         }
 
@@ -1442,6 +1484,12 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         /// </summary>
         public List<CArchiveTierExtent> ArchiveTierXmlFromCsv(bool scrub)
         {
+            if (_cachedArchiveTierData != null && _cachedArchiveTierScrub == scrub)
+            {
+                this.log.Info(this.logStart + "Converting archive tier extent info to xml (cached)");
+                return _cachedArchiveTierData;
+            }
+
             this.log.Info(this.logStart + "Converting archive tier extent info to xml");
             List<CArchiveTierExtent> archiveExtents = new();
 
@@ -1521,6 +1569,8 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             }
 
             this.log.Info(this.logStart + "Converting archive tier extent info to xml..done!");
+            _cachedArchiveTierData = archiveExtents;
+            _cachedArchiveTierScrub = scrub;
             return archiveExtents;
         }
 
