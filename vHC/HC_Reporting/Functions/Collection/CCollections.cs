@@ -45,7 +45,7 @@ namespace VeeamHealthCheck.Functions.Collection
             this.ExecPSScripts();
 
             // run diagnostic of CSV output and sizes, dump to logs:
-            if (CGlobals.IsVbr)
+            if (CGlobals.IsVbr || CGlobals.REMOTEEXEC)
             {
                 this.GetCsvFileSizesToLog();
             }
@@ -102,7 +102,7 @@ namespace VeeamHealthCheck.Functions.Collection
                 var fileSize = fileInfo.Length;
                 if (fileSize > 0)
                 {
-                    CGlobals.Logger.Info($"\tFile: {fileInfo.Name} Size: {fileSize}");
+                    CGlobals.Logger.Debug($"\tFile: {fileInfo.Name} Size: {fileSize}");
                 }
                 else
                 {

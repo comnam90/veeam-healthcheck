@@ -134,7 +134,7 @@ namespace VeeamHealthCheck.Functions.Collection.LogParser
             {
                 int currentCount = Interlocked.Increment(ref counter);
                 string info = string.Format("[LogParser] Parsing Directory {0} of {1}", currentCount, recentDirs.Length);
-                this.log.Info(info, false);
+                this.log.Debug(info);
 
                 string jobname = Path.GetFileName(d);
                 List<TimeSpan> waits = new();
@@ -149,7 +149,7 @@ namespace VeeamHealthCheck.Functions.Collection.LogParser
                 {
                     int currentFileCount = Interlocked.Increment(ref fileCounter);
                     string fileInfoLog = string.Format("[LogParser] Parsing Log {0} of {1}", currentFileCount, logCount);
-                    this.log.Info(fileInfoLog, false);
+                    this.log.Debug(fileInfoLog);
                     try
                     {
                         DateTime lastWriteTime = File.GetLastWriteTime(f);
