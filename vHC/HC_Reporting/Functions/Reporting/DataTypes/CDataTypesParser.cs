@@ -57,40 +57,40 @@ namespace VeeamHealthCheck.Functions.Reporting.DataTypes
 
         public void Init()
         {
-            this.log.Info("[CDataTypesParser] Init() started");
+            this.log.Debug("[CDataTypesParser] Init() started");
             try
             {
-                this.log.Info("[CDataTypesParser] Creating server summary dictionary...");
+                this.log.Debug("[CDataTypesParser] Creating server summary dictionary...");
                 this.serverSummaryInfo = new Dictionary<string, int>();
-                this.log.Info("[CDataTypesParser] Parsing JobInfo...");
+                this.log.Debug("[CDataTypesParser] Parsing JobInfo...");
                 this.JobInfos = this.JobInfo();
-                this.log.Info("[CDataTypesParser] Parsing JobSessionInfo...");
+                this.log.Debug("[CDataTypesParser] Parsing JobSessionInfo...");
                 this.JobSessions = this.JobSessionInfo().ToList();
-                this.log.Info("[CDataTypesParser] Parsing ServerInfo...");
+                this.log.Debug("[CDataTypesParser] Parsing ServerInfo...");
                 this.serverInfo = this.ServerInfo();
                 this.ServerInfos = this.serverInfo;
-                this.log.Info("[CDataTypesParser] Parsing ProxyInfo...");
+                this.log.Debug("[CDataTypesParser] Parsing ProxyInfo...");
                 this.ProxyInfos = this.ProxyInfo();
-                this.log.Info("[CDataTypesParser] Parsing SobrExtInfo...");
+                this.log.Debug("[CDataTypesParser] Parsing SobrExtInfo...");
                 this.ExtentInfo = this.SobrExtInfo();
-                this.log.Info("[CDataTypesParser] Parsing CapTierInfo...");
+                this.log.Debug("[CDataTypesParser] Parsing CapTierInfo...");
                 this.CapTierInfos = this.CapTierCsvInfos();
-                this.log.Info("[CDataTypesParser] Parsing SobrInfos...");
+                this.log.Debug("[CDataTypesParser] Parsing SobrInfos...");
                 this.SobrInfo = this.SobrInfos();
-                this.log.Info("[CDataTypesParser] Parsing ArchiveTierInfo...");
+                this.log.Debug("[CDataTypesParser] Parsing ArchiveTierInfo...");
                 this.ArchiveTierInfos = this.ArchiveTierCsvInfo();
-                this.log.Info("[CDataTypesParser] Parsing RepoInfo...");
+                this.log.Debug("[CDataTypesParser] Parsing RepoInfo...");
                 this.RepoInfos = this.RepoInfo();
-                this.log.Info("[CDataTypesParser] Parsing WanInfo...");
+                this.log.Debug("[CDataTypesParser] Parsing WanInfo...");
                 this.WanInfos = this.WanInfo();
-                this.log.Info("[CDataTypesParser] Parsing ConfigBackupInfo...");
+                this.log.Debug("[CDataTypesParser] Parsing ConfigBackupInfo...");
                 this.ConfigBackup = this.ConfigBackupInfo();
-                this.log.Info("[CDataTypesParser] Parsing NetTrafficRules...");
+                this.log.Debug("[CDataTypesParser] Parsing NetTrafficRules...");
                 this.NetTrafficRules = this.NetTrafficRulesParser();
 
-                this.log.Info("[CDataTypesParser] Filtering and counting types...");
+                this.log.Debug("[CDataTypesParser] Filtering and counting types...");
                 this.FilterAndCountTypes();
-                this.log.Info("[CDataTypesParser] Init() completed successfully");
+                this.log.Debug("[CDataTypesParser] Init() completed successfully");
             }
             catch (Exception ex)
             {
@@ -131,7 +131,7 @@ namespace VeeamHealthCheck.Functions.Reporting.DataTypes
                 try
                 {
                     s2 = sobrCsv.ToList();
-                    this.log.Info($"[CDataTypesParser] Processing {s2.Count} SOBR records from CSV");
+                    this.log.Debug($"[CDataTypesParser] Processing {s2.Count} SOBR records from CSV");
                 }
                 catch (Exception ex)
                 {
@@ -373,7 +373,7 @@ namespace VeeamHealthCheck.Functions.Reporting.DataTypes
             try
             {
                 recordsList = records.ToList();
-                this.log.Info($"[CDataTypesParser] Processing {recordsList.Count} SOBR extent records from CSV");
+                this.log.Debug($"[CDataTypesParser] Processing {recordsList.Count} SOBR extent records from CSV");
             }
             catch (Exception ex)
             {
@@ -495,7 +495,7 @@ namespace VeeamHealthCheck.Functions.Reporting.DataTypes
 
         private List<CJobTypeInfos> JobInfo()
         {
-            this.log.Info("Starting Job Csv Parse..");
+            this.log.Debug("Starting Job Csv Parse..");
 
             // var bjobCsv = _csvParser.BJobCsvParser();
             var bjobCsv = this.csvParser.GetDynamicBjobs();
@@ -577,7 +577,7 @@ namespace VeeamHealthCheck.Functions.Reporting.DataTypes
                     eInfoList.Add(j);
                 }
 
-            this.log.Info("Starting Job Csv Parse..ok!");
+            this.log.Debug("Starting Job Csv Parse..ok!");
 
             return eInfoList;
         }
@@ -959,7 +959,7 @@ namespace VeeamHealthCheck.Functions.Reporting.DataTypes
                 l.Add(ti);
             }
 
-            this.log.Info(message + "..ok!");
+            this.log.Debug(message + "..ok!");
             this.serverInfo = l;
             
             return l;
@@ -1006,7 +1006,7 @@ namespace VeeamHealthCheck.Functions.Reporting.DataTypes
 
         private List<CProxyTypeInfos> ProxyInfo()
         {
-this.log.Info("Processing Proxy info..");
+this.log.Debug("Processing Proxy info..");
 var proxyCsv = this.csvParser.ProxyCsvParser();
 var cdpCsv = this.csvParser.CdpProxCsvParser();
 var fileCsv = this.csvParser.NasProxCsvParser();
@@ -1015,7 +1015,7 @@ var hvCsv = this.csvParser.HvProxCsvParser();
 List<CProxyTypeInfos> proxyList = new();
 if (proxyCsv != null)
             {
-                this.log.Info("Checking Vi Proxies...");
+                this.log.Debug("Checking Vi Proxies...");
                 foreach (CProxyCsvInfos s in proxyCsv)
                 {
                     CProxyTypeInfos ti = new();
@@ -1041,12 +1041,12 @@ if (proxyCsv != null)
                     proxyList.Add(ti);
                 }
 
-                this.log.Info("Checking Vi Proxies...ok!");
+                this.log.Debug("Checking Vi Proxies...ok!");
             }
 
 if (cdpCsv != null)
             {
-                this.log.Info("Checking CDP Procies...");
+                this.log.Debug("Checking CDP Procies...");
                 foreach (CCdpProxyCsvInfo cdp in cdpCsv)
                 {
                     CProxyTypeInfos p = new();
@@ -1074,12 +1074,12 @@ if (cdpCsv != null)
                     proxyList.Add(p);
                 }
 
-                this.log.Info("Checking CDP Procies...ok!");
+                this.log.Debug("Checking CDP Procies...ok!");
             }
 
 if (fileCsv != null)
             {
-                this.log.Info("Checking File Procies...");
+                this.log.Debug("Checking File Procies...");
                 foreach (CFileProxyCsvInfo fp in fileCsv)
                 {
                     CProxyTypeInfos p = new();
@@ -1102,12 +1102,12 @@ if (fileCsv != null)
                     proxyList.Add(p);
                 }
 
-                this.log.Info("Checking File Procies...ok!");
+                this.log.Debug("Checking File Procies...ok!");
             }
 
 if (hvCsv != null)
             {
-                this.log.Info("Processing Hyper-V Proxies..");
+                this.log.Debug("Processing Hyper-V Proxies..");
                 foreach (CHvProxyCsvInfo hp in hvCsv)
                 {
                     CProxyTypeInfos p = new();
@@ -1129,10 +1129,10 @@ if (hvCsv != null)
                     proxyList.Add(p);
                 }
 
-                this.log.Info("Processing Hyper-V Proxies..ok!");
+                this.log.Debug("Processing Hyper-V Proxies..ok!");
             }
 
-this.log.Info("Processing Proxy info..ok!");
+this.log.Debug("Processing Proxy info..ok!");
 return proxyList;
         }
 

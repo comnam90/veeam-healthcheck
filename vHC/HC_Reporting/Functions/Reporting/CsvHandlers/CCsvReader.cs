@@ -52,7 +52,7 @@ namespace VeeamHealthCheck.Functions.Reporting.CsvHandlers
                 if (match == null)
                     return null;
 
-                this.log.Info($"looking for VBR CSV at: {match}");
+                this.log.Debug($"looking for VBR CSV at: {match}");
                 return this.CReader(match);
             }
             catch (Exception e)

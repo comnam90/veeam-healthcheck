@@ -51,7 +51,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         private List<CJobSummaryTypes> JobSessionSummaryToXml(CJobSessSummaryHelper helper, CLogger log, bool scrub, Scrubber.CScrubHandler scrubber, CDataTypesParser d)
         {
             List<List<string>> sendBack = new();
-            log.Info("converting job session summary to xml");
+            log.Debug("converting job session summary to xml");
 
             List<CJobSummaryTypes> outList = new();
 
@@ -131,7 +131,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                                 fails,
                                 retries,
                                 info.SuccessRate);
-                            log.Info(this.logStart + "Session Calcuations:\t" + sessionInfoString);
+                            log.Debug(this.logStart + "Session Calcuations:\t" + sessionInfoString);
 
                             if (fails != 0 || retries != 0)
                             {
@@ -218,7 +218,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             // sendBack.Add(helper.SessionSummaryStats(totalSessions, totalFailedSessions, totalRetries, totalProtectedInstances, 
             //    avgBackupSizes, avgDataSizes, maxBackupSize, avgRates, maxDataSizes));
 
-            log.Info("converting job session summary to xml..done!");
+            log.Debug("converting job session summary to xml..done!");
             return outList;
         }
 

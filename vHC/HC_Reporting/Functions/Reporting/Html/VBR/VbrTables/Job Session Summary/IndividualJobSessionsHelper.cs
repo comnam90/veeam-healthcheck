@@ -314,7 +314,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR.VbrTables.Job_Session_Su
         {
             double percentComplete = counter / total * 100;
             string msg = string.Format(this.logStart + "{0}%...", Math.Round(percentComplete, 2));
-            this.log.Info(msg, false);
+            this.log.Debug(msg, false);
         }
 
         private static string TableData(string data, string toolTip)

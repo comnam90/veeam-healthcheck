@@ -540,11 +540,11 @@ namespace VeeamHealthCheck.Functions.Reporting.CsvHandlers
 
         public IEnumerable<CSobrExtentCsvInfos> SobrExtParser()
         {
-            this.log.Info($"[CCsvParser] Looking for SOBR Extent CSV file: {this.sobrExtReportName}");
+            this.log.Debug($"[CCsvParser] Looking for SOBR Extent CSV file: {this.sobrExtReportName}");
             var res = this.VbrFileReader(this.sobrExtReportName);
             if (res != null)
             {
-                this.log.Info($"[CCsvParser] SOBR Extent CSV file found and opened successfully");
+                this.log.Debug($"[CCsvParser] SOBR Extent CSV file found and opened successfully");
                 return res.GetRecords<CSobrExtentCsvInfos>();
             }
 
@@ -926,11 +926,11 @@ namespace VeeamHealthCheck.Functions.Reporting.CsvHandlers
 
         public IEnumerable<CSobrCsvInfo> SobrCsvParser()
         {
-            this.log.Info($"[CCsvParser] Looking for SOBR CSV file: {this.sobrReportName}");
+            this.log.Debug($"[CCsvParser] Looking for SOBR CSV file: {this.sobrReportName}");
             var res = this.VbrFileReader(this.sobrReportName);
             if (res != null)
             {
-                this.log.Info($"[CCsvParser] SOBR CSV file found and opened successfully");
+                this.log.Debug($"[CCsvParser] SOBR CSV file found and opened successfully");
                 return res.GetRecords<CSobrCsvInfo>();
             }
 

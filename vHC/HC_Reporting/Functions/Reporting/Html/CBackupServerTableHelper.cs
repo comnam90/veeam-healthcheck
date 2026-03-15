@@ -248,7 +248,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         {
             string serverName = string.IsNullOrEmpty(CGlobals.REMOTEHOST) ? "localhost" : CGlobals.REMOTEHOST;
             string file = Path.Combine(CVariables.vbrDir, $"{serverName}_vbrinfo.csv");
-            log.Info("looking for VBR CSV at: " + file);
+            log.Debug("looking for VBR CSV at: " + file);
             var res = CCsvsInMemory.GetCsvData(file);
             if (res != null && res.Count > 0)
             {

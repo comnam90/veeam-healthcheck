@@ -62,10 +62,10 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         {
             try
             {
-                this.log.Info("exporting xml to html");
+                this.log.Debug("exporting xml to html");
                 this.latestReport = this.SetReportNameAndPath(scrub, "VB365");
                 this.WriteHtmlToFile(htmlString);
-                this.log.Info("exporting xml to html..done!");
+                this.log.Debug("exporting xml to html..done!");
 
                 // test export to PDF:
                 if (!scrub && CGlobals.EXPORTPDF)
@@ -93,10 +93,10 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         {
             try
             {
-                this.log.Info("exporting xml to html");
+                this.log.Debug("exporting xml to html");
                 this.latestReport = this.SetReportNameAndPath(scrub, "VBR");
                 this.WriteHtmlToFile(htmlString);
-                this.log.Info("exporting xml to html..done!");
+                this.log.Debug("exporting xml to html..done!");
 
                 // Export JSON report alongside HTML
                 this.ExportJsonReport(scrub);
@@ -180,11 +180,11 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
         public int ExportVbrSecurityHtml(string htmlString, bool scrub)
         {
-            this.log.Info("exporting xml to html");
+            this.log.Debug("exporting xml to html");
             this.latestReport = this.SetReportNameAndPath(scrub, "VBR_Security");
 
             this.WriteHtmlToFile(htmlString);
-            this.log.Info("exporting xml to html..done!");
+            this.log.Debug("exporting xml to html..done!");
 
             this.OpenHtmlIfEnabled(CGlobals.OpenHtml);
 
@@ -302,10 +302,10 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         {
             if (open)
             {
-                this.log.Info("opening html");
+                this.log.Debug("opening html");
                 this.ExecBrowser();
 
-                this.log.Info("opening html..done!");
+                this.log.Debug("opening html..done!");
                 return 0;
             }
             else

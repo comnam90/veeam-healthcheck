@@ -25,28 +25,28 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR.VbrTables.Jobs_Info
 
                 try
                 {
-                    CGlobals.Logger.Info("Attempting to parse Entra job CSVs...", false);
+                    CGlobals.Logger.Debug("Attempting to parse Entra job CSVs...", false);
 
                     var logJobsResult = c.GetDynamicEntraLogJobs();
                     if (logJobsResult != null)
                     {
                         entraLogJobs = logJobsResult.ToList();
-                        CGlobals.Logger.Info($"Parsed {entraLogJobs.Count} Entra log jobs", false);
+                        CGlobals.Logger.Debug($"Parsed {entraLogJobs.Count} Entra log jobs", false);
                     }
                     else
                     {
-                        CGlobals.Logger.Info("No Entra log job CSV found", false);
+                        CGlobals.Logger.Debug("No Entra log job CSV found", false);
                     }
 
                     var tenantJobsResult = c.GetDynamicEntraTenantJobs();
                     if (tenantJobsResult != null)
                     {
                         entraTenantJobs = tenantJobsResult.ToList();
-                        CGlobals.Logger.Info($"Parsed {entraTenantJobs.Count} Entra tenant jobs", false);
+                        CGlobals.Logger.Debug($"Parsed {entraTenantJobs.Count} Entra tenant jobs", false);
                     }
                     else
                     {
-                        CGlobals.Logger.Info("No Entra tenant job CSV found", false);
+                        CGlobals.Logger.Debug("No Entra tenant job CSV found", false);
                     }
                 }
                 catch (Exception ex)
