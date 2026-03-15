@@ -454,6 +454,9 @@ namespace VeeamHealthCheck.Startup
 
         public void GetVbrVersion()
         {
+            if (CGlobals.VBRMAJORVERSION > 0)
+                return; // already detected
+
             try
             {
                 CRegReader reg = new();
