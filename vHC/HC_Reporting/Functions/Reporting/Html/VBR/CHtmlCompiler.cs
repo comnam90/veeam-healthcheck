@@ -31,14 +31,14 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
 
         public CHtmlCompiler()
         {
-            this.log.Info(this.logStart + "CHtmlCompiler constructor entered");
-            this.log.Info(this.logStart + "CHtmlCompiler constructor completed");
+            this.log.Debug(this.logStart + "CHtmlCompiler constructor entered");
+            this.log.Debug(this.logStart + "CHtmlCompiler constructor completed");
         }
 
         public int RunFullVbrReport()
         {
-            this.log.Info(this.logStart + ">>> ENTERING RunFullVbrReport() method <<<");
-            this.log.Info(this.logStart + "Init full report");
+            this.log.Debug(this.logStart + ">>> ENTERING RunFullVbrReport() method <<<");
+            this.log.Debug(this.logStart + "Init full report");
             this.FormHeader();
             this.FormVbrFullBody();
             int res = this.ExportHtml();
@@ -60,11 +60,11 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
 
         public void RunSecurityReport()
         {
-            this.log.Info(this.logStart + "Init Security Report");
+            this.log.Debug(this.logStart + "Init Security Report");
             this.FormHeader();
             this.FormSecurityBody();
             this.ExportSecurityHtml();
-            this.log.Info(this.logStart + "Init Security Report");
+            this.log.Debug(this.logStart + "Init Security Report");
         }
 
         private int ExportHtml()
@@ -120,8 +120,8 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
 
         private string GetServerName()
         {
-            this.log.Info(this.logStart + ">>> ENTERING GetServerName() method <<<");
-            this.log.Info("Checking for server name...");
+            this.log.Debug(this.logStart + ">>> ENTERING GetServerName() method <<<");
+            this.log.Debug("Checking for server name...");
 
             // Priority 1: Use remote host if executing remotely
             if (CGlobals.REMOTEEXEC && !string.IsNullOrEmpty(CGlobals.REMOTEHOST))
@@ -133,7 +133,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
             // Priority 2: Extract VBR server name from vbrinfo CSV (works for import and local)
             try
             {
-                this.log.Info(this.logStart + "Attempting to read VBR server name from vbrinfo.csv...");
+                this.log.Debug(this.logStart + "Attempting to read VBR server name from vbrinfo.csv...");
                 CCsvParser parser = new();
                 var vbrInfo = parser.BnrCsvParser()?.FirstOrDefault();
 
@@ -175,7 +175,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
             }
 
             // Priority 3: Fallback to local hostname
-            this.log.Info(this.logStart + "Falling back to Dns.GetHostName()...");
+            this.log.Debug(this.logStart + "Falling back to Dns.GetHostName()...");
             string hostname = Dns.GetHostName();
             this.log.Info(this.logStart + "Using local hostname: " + hostname);
             return hostname;
@@ -187,11 +187,11 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
 
         private void FormHeader()
         {
-            this.log.Info(this.logStart + ">>> ENTERING FormHeader() method <<<");
+            this.log.Debug(this.logStart + ">>> ENTERING FormHeader() method <<<");
             this.log.Info("[HTML] Forming Header...");
-            this.log.Info(this.logStart + "About to call _form.Header()...");
+            this.log.Debug(this.logStart + "About to call _form.Header()...");
             string h = this.form.Header();
-            this.log.Info(this.logStart + "_form.Header() completed successfully");
+            this.log.Debug(this.logStart + "_form.Header() completed successfully");
 
             this.htmldocOriginal = h;
             this.htmldocScrubbed += h;
@@ -314,10 +314,10 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
 
         private string SetLicHolder()
         {
-            this.log.Info("Setting license holder name...");
+            this.log.Debug("Setting license holder name...");
             CCsvParser csv = new();
             var lic = csv.GetDynamicLicenseCsv();
-            this.log.Info("Setting license holder name...done!");
+            this.log.Debug("Setting license holder name...done!");
             foreach (var l in lic)
             {
 
@@ -383,14 +383,14 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
 
         private void LoadCsvToMemory()
         {
-            this.log.Info(this.logStart + ">>> ENTERING LoadCsvToMemory() method <<<");
-            this.log.Info(this.logStart + "Building CSV file path...");
+            this.log.Debug(this.logStart + ">>> ENTERING LoadCsvToMemory() method <<<");
+            this.log.Debug(this.logStart + "Building CSV file path...");
             string serverName = string.IsNullOrEmpty(CGlobals.REMOTEHOST) ? "localhost" : CGlobals.REMOTEHOST;
             string file = Path.Combine(CVariables.vbrDir, $"{serverName}_vbrinfo.csv");
-            this.log.Info("looking for VBR CSV at: " + file);
-            this.log.Info(this.logStart + "About to call CCsvsInMemory.GetCsvData()...");
+            this.log.Debug("looking for VBR CSV at: " + file);
+            this.log.Debug(this.logStart + "About to call CCsvsInMemory.GetCsvData()...");
             var res = CCsvsInMemory.GetCsvData(file);
-            this.log.Info(this.logStart + "CCsvsInMemory.GetCsvData() completed. Result is " + (res == null ? "null" : "not null"));
+            this.log.Debug(this.logStart + "CCsvsInMemory.GetCsvData() completed. Result is " + (res == null ? "null" : "not null"));
             if (res != null && res.Count > 0)
             {
                 this.log.Info("VBR CSV data loaded successfully. Number of rows: " + res.Count);
@@ -449,18 +449,18 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
 
         private void FormVbrFullBody()
         {
-            this.log.Info(this.logStart + ">>> ENTERING FormVbrFullBody() method <<<");
-            this.log.Info("[HTML] forming HTML body");
+            this.log.Debug(this.logStart + ">>> ENTERING FormVbrFullBody() method <<<");
+            this.log.Debug("[HTML] forming HTML body");
 
             // maybe load all CSV to memory here?
-            this.log.Info(this.logStart + "About to call LoadCsvToMemory()...");
+            this.log.Debug(this.logStart + "About to call LoadCsvToMemory()...");
             this.LoadCsvToMemory();
-            this.log.Info(this.logStart + "LoadCsvToMemory() completed.");
+            this.log.Debug(this.logStart + "LoadCsvToMemory() completed.");
 
            // LoadCsvToMemory();
-            this.log.Info(this.logStart + "Creating CHtmlBodyHelper instance...");
+            this.log.Debug(this.logStart + "Creating CHtmlBodyHelper instance...");
             CHtmlBodyHelper helper = new();
-            this.log.Info(this.logStart + "CHtmlBodyHelper instance created.");
+            this.log.Debug(this.logStart + "CHtmlBodyHelper instance created.");
             if (CGlobals.Scrub)
             {
                 this.log.Info(this.logStart + "Scrub mode enabled. Starting scrubbed report generation...");
@@ -469,9 +469,9 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
 
                 this.AddToHtml(string.Format("<button id='expandBtn' type=\"button\" class=\"btn\" onclick=\"test()\">{0}</button>", "Expand All Sections"));
 
-                this.log.Info(this.logStart + "About to call helper.FormVbrFullReport() [SCRUBBED]...");
+                this.log.Debug(this.logStart + "About to call helper.FormVbrFullReport() [SCRUBBED]...");
                 this.htmldocScrubbed = helper.FormVbrFullReport(this.htmldocScrubbed, true);
-                this.log.Info(this.logStart + "helper.FormVbrFullReport() [SCRUBBED] completed.");
+                this.log.Debug(this.logStart + "helper.FormVbrFullReport() [SCRUBBED] completed.");
                 this.htmldocScrubbed += this.FormFooter();
             }
             else
@@ -482,9 +482,9 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
 
                 this.AddToHtml(string.Format("<button id='expandBtn' type=\"button\" class=\"btn\" onclick=\"test()\">{0}</button>", "Expand All Sections"));
 
-                this.log.Info(this.logStart + "About to call helper.FormVbrFullReport() [ORIGINAL]...");
+                this.log.Debug(this.logStart + "About to call helper.FormVbrFullReport() [ORIGINAL]...");
                 this.htmldocOriginal = helper.FormVbrFullReport(this.htmldocOriginal, false);
-                this.log.Info(this.logStart + "helper.FormVbrFullReport() [ORIGINAL] completed.");
+                this.log.Debug(this.logStart + "helper.FormVbrFullReport() [ORIGINAL] completed.");
                 this.htmldocOriginal += this.FormFooter();
             }
 

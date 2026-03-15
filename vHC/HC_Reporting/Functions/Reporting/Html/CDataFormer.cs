@@ -176,7 +176,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             }
             catch (Exception)
             {
-                this.log.Info(this.logStart + "Traffic encryption not detected. Marking false");
+                this.log.Debug(this.logStart + "Traffic encryption not detected. Marking false");
                 t.TrafficEncrptionEnabled = false;
             }
 
@@ -223,7 +223,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
         public Dictionary<string, int> ServerSummaryToXml()
         {
-            this.log.Info(this.logStart + "converting server summary to xml");
+            this.log.Debug(this.logStart + "converting server summary to xml");
 
             // Dictionary<string, int> di = _dTypeParser.ServerSummaryInfo;
             // using (CDataTypesParser dt = new())
@@ -238,7 +238,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             try
             {
                 // customize the log line:
-                this.log.Info(this.logStart + "Converting protected workloads data to xml...");
+                this.log.Debug(this.logStart + "Converting protected workloads data to xml...");
 
                 // gather data needed for input
                 CCsvParser csvp = new();
@@ -364,7 +364,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                 this.hvNotProtectedNames = hvNotProtectedNames;
                 this.hvDupes = hvDupes;
 
-                this.log.Info(this.logStart + "Converting protected workloads data to xml..done!");
+                this.log.Debug(this.logStart + "Converting protected workloads data to xml..done!");
                 return 0;
             }
             catch (Exception)
@@ -388,7 +388,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
         public BackupServer BackupServerInfoToXml(bool scrub)
         {
-            this.log.Info(this.logStart + "converting backup server info to xml");
+            this.log.Debug(this.logStart + "converting backup server info to xml");
             List<string> list = new List<string>();
             CBackupServerTableHelper bt = new(scrub);
             BackupServer b = bt.SetBackupServerData();
@@ -399,7 +399,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             b.HasRepoRole = this.isBackupServerRepo;
             b.HasWanAccRole = this.isBackupServerWan;
 
-            this.log.Info(this.logStart + "converting backup server info to xml..done!");
+            this.log.Debug(this.logStart + "converting backup server info to xml..done!");
             return b;
         }
 
@@ -407,12 +407,12 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         {
             if (_cachedSobrData != null && _cachedSobrScrub == scrub)
             {
-                this.log.Info(this.logStart + "Starting SOBR conversion to xml (cached)");
+                this.log.Debug(this.logStart + "Starting SOBR conversion to xml (cached)");
                 return _cachedSobrData;
             }
 
             this.PreCalculations();
-            this.log.Info(this.logStart + "Starting SOBR conversion to xml..");
+            this.log.Debug(this.logStart + "Starting SOBR conversion to xml..");
             List<string[]> list = new();
 
             List<CSobrTypeInfos> csv = CGlobals.DtParser.SobrInfo;
@@ -470,7 +470,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                 outList.Add(sobr);
             }
 
-            this.log.Info(this.logStart + "Starting SOBR conversion to xml..done!");
+            this.log.Debug(this.logStart + "Starting SOBR conversion to xml..done!");
             _cachedSobrData = outList;
             _cachedSobrScrub = scrub;
             return outList;
@@ -516,11 +516,11 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         {
             if (_cachedExtentData != null && _cachedExtentScrub == scrub)
             {
-                this.log.Info(this.logStart + "converting extent info to xml (cached)");
+                this.log.Debug(this.logStart + "converting extent info to xml (cached)");
                 return _cachedExtentData;
             }
 
-            this.log.Info(this.logStart + "converting extent info to xml");
+            this.log.Debug(this.logStart + "converting extent info to xml");
             List<string[]> list = new List<string[]>();
             List<CRepoTypeInfos> csv = CGlobals.DtParser.ExtentInfo;
             
@@ -530,7 +530,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                 return new List<CRepository>();
             }
             
-            this.log.Info(this.logStart + $"Found {csv.Count} extent records to process");
+            this.log.Debug(this.logStart + $"Found {csv.Count} extent records to process");
             csv = csv.OrderBy(x => x.RepoName).ToList();
             csv = csv.OrderBy(y => y.SobrName).ToList();
             List<CRepository> repoList = new();
@@ -614,7 +614,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             }
 
 
-            this.log.Info(this.logStart + "converting extent info to xml..done!");
+            this.log.Debug(this.logStart + "converting extent info to xml..done!");
             _cachedExtentData = repoList;
             _cachedExtentScrub = scrub;
             return repoList;
@@ -625,12 +625,12 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         {
             if (_cachedRepoData != null && _cachedRepoScrub == scrub)
             {
-                this.log.Info(this.logStart + "converting repository info to xml (cached)");
+                this.log.Debug(this.logStart + "converting repository info to xml (cached)");
                 return _cachedRepoData;
             }
 
             this.PreCalculations();
-            this.log.Info(this.logStart + "converting repository info to xml");
+            this.log.Debug(this.logStart + "converting repository info to xml");
             List<CRepository> list = new();
 
             List<CRepoTypeInfos> csv = CGlobals.DtParser.RepoInfos.ToList();
@@ -716,7 +716,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             }
 
 
-            this.log.Info(this.logStart + "converting repository info to xml..done!");
+            this.log.Debug(this.logStart + "converting repository info to xml..done!");
             _cachedRepoData = list;
             _cachedRepoScrub = scrub;
             return list;
@@ -727,11 +727,11 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             // Return cached result if available for the same scrub mode
             if (_cachedProxyData != null && _cachedProxyScrub == scrub)
             {
-                this.log.Info("converting proxy info to xml (cached)");
+                this.log.Debug("converting proxy info to xml (cached)");
                 return _cachedProxyData;
             }
 
-            this.log.Info("converting proxy info to xml");
+            this.log.Debug("converting proxy info to xml");
             List<string[]> list = new();
 
             List<CProxyTypeInfos> csv = CGlobals.DtParser.ProxyInfos;
@@ -770,7 +770,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             }
 
 
-            this.log.Info(this.logStart + "converting proxy info to xml..done!");
+            this.log.Debug(this.logStart + "converting proxy info to xml..done!");
 
             _cachedProxyData = list;
             _cachedProxyScrub = scrub;
@@ -782,11 +782,11 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             // Return cached result if available for the same scrub mode
             if (_cachedServerData != null && _cachedServerScrub == scrub)
             {
-                this.log.Info(this.logStart + "converting server info to xml (cached)");
+                this.log.Debug(this.logStart + "converting server info to xml (cached)");
                 return _cachedServerData;
             }
 
-            this.log.Info(this.logStart + "converting server info to xml");
+            this.log.Debug(this.logStart + "converting server info to xml");
             List<CManagedServer> list = new();
             List<CServerTypeInfos> csv = CGlobals.ServerInfo;
 
@@ -894,7 +894,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             }
 
 
-            this.log.Info(this.logStart + "converting server info to xml..done!");
+            this.log.Debug(this.logStart + "converting server info to xml..done!");
             _cachedServerData = list;
             _cachedServerScrub = scrub;
             return list;
@@ -902,7 +902,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
         public Dictionary<string, int> JobSummaryInfoToXml()
         {
-            this.log.Info(this.logStart + "converting job summary info to xml");
+            this.log.Debug(this.logStart + "converting job summary info to xml");
             List<CJobTypeInfos> csv = CGlobals.DtParser.JobInfos;
 
             // CQueries cq = _cq;
@@ -936,17 +936,17 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             // }
 
             // sum of all jobs:
-            this.log.Info(this.logStart + "converting job summary info to xml..done!");
+            this.log.Debug(this.logStart + "converting job summary info to xml..done!");
             return typeSummary;
         }
 
         public Dictionary<int, string[]> JobConcurrency(bool isJob)
         {
-            this.log.Info(this.logStart + "calculating concurrency");
+            this.log.Debug(this.logStart + "calculating concurrency");
             CConcurrencyHelper helper = new();
 
             List<CJobSessionInfo> trimmedSessionInfo = new();
-            CGlobals.Logger.Info(this.logStart + "Loading Job Sessions for Concurrency...");
+            CGlobals.Logger.Debug(this.logStart + "Loading Job Sessions for Concurrency...");
             if (CGlobals.DEBUG)
             {
                 this.log.Debug("DEBUG MODE: Loading all Job Sessions for Concurrency...");
@@ -961,23 +961,23 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             }
 
             trimmedSessionInfo = CGlobals.DtParser.JobSessions.Where(c => c.CreationTime >= CGlobals.GetToolStart.AddDays(-CGlobals.ReportDays)).ToList();
-            CGlobals.Logger.Info(this.logStart + $"Loaded {trimmedSessionInfo.Count} Job Sessions for Concurrency...");
+            CGlobals.Logger.Debug(this.logStart + $"Loaded {trimmedSessionInfo.Count} Job Sessions for Concurrency...");
 
             List<ConcurentTracker> ctList = new();
 
             if (isJob)
             {
                 ctList = helper.JobCounter(trimmedSessionInfo);
-                this.log.Info(this.logStart + "Jobs to be counted: " + ctList.Count);
+                this.log.Debug(this.logStart + "Jobs to be counted: " + ctList.Count);
             }
 
             else if (!isJob)
             {
                 ctList = helper.TaskCounter(trimmedSessionInfo);
-                this.log.Info(this.logStart + "Tasks to be counted: " + ctList.Count);
+                this.log.Debug(this.logStart + "Tasks to be counted: " + ctList.Count);
             }
 
-            this.log.Info(this.logStart + "calculating concurrency...done!");
+            this.log.Debug(this.logStart + "calculating concurrency...done!");
 
             return helper.FinalConcurrency(ctList);
         }
@@ -1050,11 +1050,11 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                 string logStart = "[JobSessions]\t";
                 IndividualJobSessionsHelper helper = new();
 
-                this.log.Info(logStart + "converting job session info to xml");
+                this.log.Debug(logStart + "converting job session info to xml");
 
                 helper.ParseIndividualSessions(scrub);
 
-                this.log.Info(logStart + "converting job session info to xml..done!");
+                this.log.Debug(logStart + "converting job session info to xml..done!");
                 return 0;
             }
             catch (Exception)
@@ -1211,13 +1211,13 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
         private void CheckServerRoles(string serverId, List<CRequirementsCsvInfo> reqRows = null)
         {
-            log.Info($"Checking server roles.. for server: {serverId}");
+            log.Debug($"Checking server roles.. for server: {serverId}");
             ResetRoles();
 
             // Prefer using the AllServersRequirementsComparison.csv when it contains BackupServer entries.
             try
             {
-                log.Info("Roles: checking requirements CSV for BackupServer roles...");
+                log.Debug("Roles: checking requirements CSV for BackupServer roles...");
 
                 // Does the CSV contain any BackupServer type entries?
                 if (reqRows != null && reqRows.Any(r => !string.IsNullOrEmpty(r.Type) && r.Type.IndexOf("BackupServer", StringComparison.OrdinalIgnoreCase) >= 0))
@@ -1250,20 +1250,20 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                     {
                         isBackupServerProxy = matching.Type.IndexOf("Proxy", StringComparison.OrdinalIgnoreCase) >= 0;
                         isBackupServerRepo = matching.Type.IndexOf("Repository", StringComparison.OrdinalIgnoreCase) >= 0;
-                        log.Info($"Roles: determined from CSV - isProxy={isBackupServerProxy}, isRepo={isBackupServerRepo}");
+                        log.Debug($"Roles: determined from CSV - isProxy={isBackupServerProxy}, isRepo={isBackupServerRepo}");
                     }
                     else
                     {
                         // No matching CSV row for this server — do not mark proxy/repo
                         isBackupServerProxy = false;
                         isBackupServerRepo = false;
-                        log.Info($"Roles: no matching requirements CSV row for serverId='{serverId}' serverName='{serverName}'; not marking proxy or repo.");
+                        log.Debug($"Roles: no matching requirements CSV row for serverId='{serverId}' serverName='{serverName}'; not marking proxy or repo.");
                     }
                 }
                 else
                 {
                     // No BackupServer info in CSV -> do not mark as proxy
-                    log.Info("Roles: requirements CSV does not contain BackupServer entries; not marking as proxy.");
+                    log.Debug("Roles: requirements CSV does not contain BackupServer entries; not marking as proxy.");
                     isBackupServerProxy = false;
                 }
             }
@@ -1280,7 +1280,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
             if (!isBackupServerRepo)
             {
-                log.Info($"Roles: extents loop start (count={extents.Count})");
+                log.Debug($"Roles: extents loop start (count={extents.Count})");
                 foreach (var e in extents)
                 {
                     if (e.HostId == serverId)
@@ -1289,9 +1289,9 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                         break;
                     }
                 }
-                log.Info("Roles: extents loop done");
+                log.Debug("Roles: extents loop done");
 
-                log.Info($"Roles: repos loop start (count={repos.Count})");
+                log.Debug($"Roles: repos loop start (count={repos.Count})");
                 foreach (var r in repos)
                 {
                     if (r.HostId == serverId)
@@ -1300,15 +1300,15 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                         break;
                     }
                 }
-                log.Info("Roles: repos loop done");
+                log.Debug("Roles: repos loop done");
             }
 
-            log.Info($"Roles: wans loop start (count={wans.Count})");
+            log.Debug($"Roles: wans loop start (count={wans.Count})");
             foreach (var w in wans)
                 if (w.HostId == serverId) isBackupServerWan = true;
-            log.Info("Roles: wans loop done");
+            log.Debug("Roles: wans loop done");
 
-            log.Info("Checking server roles..done!");
+            log.Debug("Checking server roles..done!");
         }
 
 
@@ -1389,11 +1389,11 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         {
             if (_cachedCapTierData != null && _cachedCapTierScrub == scrub)
             {
-                this.log.Info(this.logStart + "Converting capacity tier extent info to xml (cached)");
+                this.log.Debug(this.logStart + "Converting capacity tier extent info to xml (cached)");
                 return _cachedCapTierData;
             }
 
-            this.log.Info(this.logStart + "Converting capacity tier extent info to xml");
+            this.log.Debug(this.logStart + "Converting capacity tier extent info to xml");
             List<CCapacityTierExtent> capacityExtents = new();
 
             try
@@ -1401,7 +1401,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                 var capTierRows = CGlobals.DtParser.CapTierInfos ?? new List<CCapTierCsv>();
                 if (capTierRows.Count == 0)
                 {
-                    this.log.Info(this.logStart + "No capacity tier CSV data available for extraction");
+                    this.log.Debug(this.logStart + "No capacity tier CSV data available for extraction");
                     return capacityExtents;
                 }
 
@@ -1473,7 +1473,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                 this.log.Error(this.logStart + "Failed to extract capacity tier extents: " + e.Message);
             }
 
-            this.log.Info(this.logStart + "Converting capacity tier extent info to xml..done!");
+            this.log.Debug(this.logStart + "Converting capacity tier extent info to xml..done!");
             _cachedCapTierData = capacityExtents;
             _cachedCapTierScrub = scrub;
             return capacityExtents;
@@ -1486,11 +1486,11 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         {
             if (_cachedArchiveTierData != null && _cachedArchiveTierScrub == scrub)
             {
-                this.log.Info(this.logStart + "Converting archive tier extent info to xml (cached)");
+                this.log.Debug(this.logStart + "Converting archive tier extent info to xml (cached)");
                 return _cachedArchiveTierData;
             }
 
-            this.log.Info(this.logStart + "Converting archive tier extent info to xml");
+            this.log.Debug(this.logStart + "Converting archive tier extent info to xml");
             List<CArchiveTierExtent> archiveExtents = new();
 
             try
@@ -1500,7 +1500,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
                 if (archiveTierCsvData.Count == 0)
                 {
-                    this.log.Info(this.logStart + "No archive tier CSV data available for extraction");
+                    this.log.Debug(this.logStart + "No archive tier CSV data available for extraction");
                     return archiveExtents;
                 }
 
@@ -1568,7 +1568,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                 this.log.Error(this.logStart + "Failed to extract archive tier extents: " + e.Message);
             }
 
-            this.log.Info(this.logStart + "Converting archive tier extent info to xml..done!");
+            this.log.Debug(this.logStart + "Converting archive tier extent info to xml..done!");
             _cachedArchiveTierData = archiveExtents;
             _cachedArchiveTierScrub = scrub;
             return archiveExtents;

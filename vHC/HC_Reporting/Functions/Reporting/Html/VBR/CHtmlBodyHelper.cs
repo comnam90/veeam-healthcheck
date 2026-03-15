@@ -17,65 +17,65 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
 
         public CHtmlBodyHelper()
         {
-            this.log.Info(this.logStart + ">>> ENTERING CHtmlBodyHelper constructor <<<");
-            this.log.Info(this.logStart + "Creating CHtmlTables instance...");
+            this.log.Debug(this.logStart + ">>> ENTERING CHtmlBodyHelper constructor <<<");
+            this.log.Debug(this.logStart + "Creating CHtmlTables instance...");
             this.tables = new CHtmlTables();
-            this.log.Info(this.logStart + "About to call PopulateCsvToMemory()...");
+            this.log.Debug(this.logStart + "About to call PopulateCsvToMemory()...");
             this.PopulateCsvToMemory();
-            this.log.Info(this.logStart + "CHtmlBodyHelper constructor completed.");
+            this.log.Debug(this.logStart + "CHtmlBodyHelper constructor completed.");
         }
 
         public string FormVbrFullReport(string htmlString, bool scrub)
         {
-            this.log.Info(this.logStart + ">>> ENTERING FormVbrFullReport() method <<<");
-            this.log.Info(this.logStart + "Scrub mode: " + scrub);
+            this.log.Debug(this.logStart + ">>> ENTERING FormVbrFullReport() method <<<");
+            this.log.Debug(this.logStart + "Scrub mode: " + scrub);
 
             this.SCRUB = scrub;
             this.HTMLSTRING = htmlString;
             
-            this.log.Info(this.logStart + "Generating LicenseTable...");
+            this.log.Debug(this.logStart + "Generating LicenseTable...");
             this.LicenseTable();
-            this.log.Info(this.logStart + "LicenseTable completed.");
-            
+            this.log.Debug(this.logStart + "LicenseTable completed.");
+
             // this.log.Info(this.logStart + "Generating DataCollectionSummaryTable...");
             // this.DataCollectionSummaryTable();
             // this.log.Info(this.logStart + "DataCollectionSummaryTable completed.");
-            
-            this.log.Info(this.logStart + "Generating BackupServerTable...");
+
+            this.log.Debug(this.logStart + "Generating BackupServerTable...");
             this.BackupServerTable();
-            this.log.Info(this.logStart + "BackupServerTable completed.");
-            
-            this.log.Info(this.logStart + "Generating SecuritySummaryTable...");
+            this.log.Debug(this.logStart + "BackupServerTable completed.");
+
+            this.log.Debug(this.logStart + "Generating SecuritySummaryTable...");
             this.SecuritySummaryTable();
-            this.log.Info(this.logStart + "SecuritySummaryTable completed.");
-            
-            this.log.Info(this.logStart + "Generating ServerSummaryTable...");
+            this.log.Debug(this.logStart + "SecuritySummaryTable completed.");
+
+            this.log.Debug(this.logStart + "Generating ServerSummaryTable...");
             this.ServerSummaryTable();
-            this.log.Info(this.logStart + "ServerSummaryTable completed.");
-            
-            this.log.Info(this.logStart + "Generating Configuration Tables section...");
+            this.log.Debug(this.logStart + "ServerSummaryTable completed.");
+
+            this.log.Debug(this.logStart + "Generating Configuration Tables section...");
             this.ConfigurationTablesSection();
-            this.log.Info(this.logStart + "Configuration Tables section completed.");
-            
-            this.log.Info(this.logStart + "Generating RegistryKeyTable...");
+            this.log.Debug(this.logStart + "Configuration Tables section completed.");
+
+            this.log.Debug(this.logStart + "Generating RegistryKeyTable...");
             this.RegistryKeyTable();
-            this.log.Info(this.logStart + "RegistryKeyTable completed.");
-            
-            this.log.Info(this.logStart + "Generating Proxy Info section...");
+            this.log.Debug(this.logStart + "RegistryKeyTable completed.");
+
+            this.log.Debug(this.logStart + "Generating Proxy Info section...");
             this.ProxyInfoSection();
-            this.log.Info(this.logStart + "Proxy Info section completed.");
+            this.log.Debug(this.logStart + "Proxy Info section completed.");
 
-            this.log.Info(this.logStart + "Generating Repository Info section...");
+            this.log.Debug(this.logStart + "Generating Repository Info section...");
             this.RepositoryInfoSection();
-            this.log.Info(this.logStart + "Repository Info section completed.");
+            this.log.Debug(this.logStart + "Repository Info section completed.");
 
-            this.log.Info(this.logStart + "Generating Job Tables section...");
+            this.log.Debug(this.logStart + "Generating Job Tables section...");
             this.JobTablesSection();
-            this.log.Info(this.logStart + "Job Tables section completed.");
+            this.log.Debug(this.logStart + "Job Tables section completed.");
 
             if (CGlobals.EXPORTINDIVIDUALJOBHTMLS)
             {
-                this.log.Info(this.logStart + "EXPORTINDIVIDUALJOBHTMLS is enabled (skipping IndividualJobHtmlBuilder for now).");
+                this.log.Debug(this.logStart + "EXPORTINDIVIDUALJOBHTMLS is enabled (skipping IndividualJobHtmlBuilder for now).");
 
                 // IndividualJobHtmlBuilder();
             }
@@ -85,12 +85,12 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
         }
 
         private void PopulateCsvToMemory(){
-            this.log.Info(this.logStart + "Creating CDataTypesParser instance...");
+            this.log.Debug(this.logStart + "Creating CDataTypesParser instance...");
             CGlobals.DtParser = new();
-            this.log.Info(this.logStart + "CDataTypesParser instance created successfully.");
-            this.log.Info(this.logStart + "Accessing ServerInfos property...");
+            this.log.Debug(this.logStart + "CDataTypesParser instance created successfully.");
+            this.log.Debug(this.logStart + "Accessing ServerInfos property...");
             CGlobals.ServerInfo = CGlobals.DtParser.ServerInfos;
-            this.log.Info(this.logStart + "PopulateCsvToMemory completed.");
+            this.log.Debug(this.logStart + "PopulateCsvToMemory completed.");
         }
 
         public string FormSecurityReport(string htmlString)

@@ -56,22 +56,22 @@ namespace VeeamHealthCheck.Html.VBR
         /// </summary>
         public CHtmlTables()
         {
-            this.log.Info("[CHtmlTables] Constructor started");
+            this.log.Debug("[CHtmlTables] Constructor started");
             try
             {
                 this.csv = new(CVariables.vb365dir);
-                this.log.Info("[CHtmlTables] CCsvParser initialized");
+                this.log.Debug("[CHtmlTables] CCsvParser initialized");
                 this.helper = new();
-                this.log.Info("[CHtmlTables] CHtmlTablesHelper initialized");
+                this.log.Debug("[CHtmlTables] CHtmlTablesHelper initialized");
                 this.df = new();
-                this.log.Info("[CHtmlTables] CDataFormer initialized");
+                this.log.Debug("[CHtmlTables] CDataFormer initialized");
                 this.scrub = CGlobals.Scrubber;
-                this.log.Info("[CHtmlTables] Scrubber initialized");
+                this.log.Debug("[CHtmlTables] Scrubber initialized");
                 this.form = new();
-                this.log.Info("[CHtmlTables] CHtmlFormatting initialized");
+                this.log.Debug("[CHtmlTables] CHtmlFormatting initialized");
                 this.sum = new();
-                this.log.Info("[CHtmlTables] CVbrSummaries initialized");
-                this.log.Info("[CHtmlTables] Constructor completed successfully");
+                this.log.Debug("[CHtmlTables] CVbrSummaries initialized");
+                this.log.Debug("[CHtmlTables] Constructor completed successfully");
             }
             catch (Exception ex)
             {
@@ -1088,7 +1088,7 @@ namespace VeeamHealthCheck.Html.VBR
 
                 try
                 {
-                    this.log.Info("Adding NAS table to HTML report", false);
+                    this.log.Debug("Adding NAS table to HTML report", false);
                     CProtectedWorkloads cProtectedWorkloads = new();
                     NasSourceInfo n = new();
 
@@ -1708,13 +1708,13 @@ namespace VeeamHealthCheck.Html.VBR
             // CDataFormer cd = new(true);
             try
             {
-                this.log.Info("Attempting to load SOBR data...");
+                this.log.Debug("Attempting to load SOBR data...");
                 List<CSobrTypeInfos> list = sobrList;
 
                 if (list == null || list.Count == 0)
                 {
                     this.log.Warning("No SOBR data found. The SOBRs CSV file may be missing or empty.");
-                    this.log.Info("This could indicate: 1) No SOBRs configured, 2) Collection script failed, or 3) CSV file not found");
+                    this.log.Debug("This could indicate: 1) No SOBRs configured, 2) Collection script failed, or 3) CSV file not found");
                 }
 
                 foreach (var d in list)
@@ -1863,13 +1863,13 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
 
             try
             {
-                this.log.Info("Attempting to load SOBR Extent data...");
+                this.log.Debug("Attempting to load SOBR Extent data...");
                 List<CRepository> list = extentList;
 
                 if (list == null || list.Count == 0)
                 {
                     this.log.Warning("No SOBR Extent data found. The SOBRExtents CSV file may be missing or empty.");
-                    this.log.Info("This could indicate: 1) No SOBRs configured, 2) Collection script failed, or 3) CSV file not found");
+                    this.log.Debug("This could indicate: 1) No SOBRs configured, 2) Collection script failed, or 3) CSV file not found");
                 }
 
                 foreach (var d in list)
@@ -2195,7 +2195,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
             List<CCapacityTierExtent> list = new();
             try
             {
-                this.log.Info("Attempting to load Capacity Tier Extent data...");
+                this.log.Debug("Attempting to load Capacity Tier Extent data...");
                 list = this.df.CapacityTierXmlFromCsv(scrub) ?? list;
 
                 if (list.Count == 0)
@@ -2291,7 +2291,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
             List<CArchiveTierExtent> list = new();
             try
             {
-                this.log.Info("Attempting to load Archive Tier Extent data...");
+                this.log.Debug("Attempting to load Archive Tier Extent data...");
                 list = this.df.ArchiveTierXmlFromCsv(scrub) ?? list;
 
                 if (list.Count == 0)
@@ -2473,7 +2473,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
 
         public string AddJobSessSummTable(bool scrub)
         {
-            this.log.Info("Adding Job Session Summary Table");
+            this.log.Debug("Adding Job Session Summary Table");
             string s = this.form.SectionStartWithButton("jobsesssum", VbrLocalizationHelper.JssTitle, VbrLocalizationHelper.JssBtn, CGlobals.ReportDays);
             string summary = this.sum.JobSessSummary();
 
@@ -2552,7 +2552,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
             }
 
             s += this.form.SectionEnd(summary);
-            this.log.Info("Job Session Summary Table added");
+            this.log.Debug("Job Session Summary Table added");
 
             // JSON job session summary
             try
