@@ -840,6 +840,111 @@ exit 0
         }
 
         /// <summary>
+        /// Verifies Get-VhcSessionReport populates BottleneckDetails and PrimaryBottleneck
+        /// from $task.JobSess.Progress.BottleneckInfo for agent sessions that produce no
+        /// log records post-completion. See ADR 0013.
+        /// </summary>
+        [Fact]
+        public void GetVhcSessionReport_AgentSession_PopulatesBottleneckFromStructuredProperty()
+        {
+            var projectRoot  = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..", "HC_Reporting"));
+            var moduleRoot      = Path.Combine(projectRoot, "Tools", "Scripts", "HealthCheck", "VBR", "vHC-VbrConfig");
+            var sessionRptPath  = Path.Combine(moduleRoot, "Public",  "Get-VhcSessionReport.ps1");
+            var writeLogPath    = Path.Combine(moduleRoot, "Public",  "Write-LogFile.ps1");
+            var exportCsvPath   = Path.Combine(moduleRoot, "Private", "Export-VhciCsv.ps1");
+            var sessionLogPath  = Path.Combine(moduleRoot, "Private", "Get-VhciSessionLogWithTimeout.ps1");
+
+            var tmpDir        = Path.Combine(Path.GetTempPath(), $"vhc-bitest-{Guid.NewGuid():N}");
+            var tmpScriptPath = Path.Combine(tmpDir, "Test-AgentBottleneck.ps1");
+            Directory.CreateDirectory(tmpDir);
+
+            var scriptContent = $@"
+$ErrorActionPreference = 'Stop'
+. '{writeLogPath}'
+. '{exportCsvPath}'
+. '{sessionLogPath}'
+. '{sessionRptPath}'
+
+$script:ReportPath = '{tmpDir}'
+$script:VBRServer  = 'test'
+$script:LogPath    = '{tmpDir}'
+$script:LogLevel   = 'ERROR'
+
+# Stub Get-VBRTaskSession returning an agent task session with BottleneckInfo populated
+# but Logger returning empty log records, simulating agent session post-completion state.
+function Get-VBRTaskSession {{
+    param($Session)
+    $fakeBi       = [pscustomobject]@{{ Bottleneck = 'Proxy'; Source = 74; Proxy = 77; Network = 24; Target = 75 }}
+    $fakeStats    = [pscustomobject]@{{ BackupSize = 5000000000; DataSize = 15000000000; DedupRatio = 1.2; CompressRatio = 1.8 }}
+    $fakeProgress = [pscustomobject]@{{ Duration = [TimeSpan]::FromMinutes(15); TransferedSize = 5000000000; ReadSize = 15000000000; BottleneckInfo = $fakeBi }}
+    $fakeInfo     = [pscustomobject]@{{ SessionAlgorithm = 'Increment' }}
+    $fakeJobSess  = [pscustomobject]@{{ IsRetryMode = $false; Progress = $fakeProgress; BackupStats = $fakeStats; CreationTime = (Get-Date).AddMinutes(-30); Info = $fakeInfo }}
+    $fakePlatform = [pscustomobject]@{{ IsEpAgentPlatform = $true; Platform = 'ELinuxPhysical' }}
+    return @([pscustomobject]@{{
+        Name           = 'linux-server.host.net'
+        JobName        = 'Physical Servers - Linux - linux-server.host.net'
+        Status         = 'Success'
+        ObjectPlatform = $fakePlatform
+        JobSess        = $fakeJobSess
+        WorkDetails    = [pscustomobject]@{{ TaskAlgorithm = 0; WorkDuration = $null }}
+        Logger         = $null
+    }})
+}}
+
+$fakeSession = [pscustomobject]@{{ Name = 'Physical Servers - Linux'; CreationTime = (Get-Date).AddMinutes(-35) }}
+Get-VhcSessionReport -BackupSessions @($fakeSession)
+
+$csvPath = (Join-Path '{tmpDir}' 'VeeamSessionReport.csv')
+$rows = Import-Csv $csvPath
+if ($rows.Count -ne 1) {{
+    Write-Error ""Expected 1 CSV row but got $($rows.Count)""
+    exit 1
+}}
+$expectedDetails = 'Source 74% > Proxy 77% > Network 24% > Target 75%'
+if ($rows[0].BottleneckDetails -ne $expectedDetails) {{
+    Write-Error ""Expected BottleneckDetails='$expectedDetails' but got '$($rows[0].BottleneckDetails)'""
+    exit 1
+}}
+if ($rows[0].PrimaryBottleneck -ne 'Proxy') {{
+    Write-Error ""Expected PrimaryBottleneck='Proxy' but got '$($rows[0].PrimaryBottleneck)'""
+    exit 1
+}}
+Write-Host ""OK: BottleneckDetails='$($rows[0].BottleneckDetails)' PrimaryBottleneck='$($rows[0].PrimaryBottleneck)'""
+exit 0
+";
+            File.WriteAllText(tmpScriptPath, scriptContent);
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName               = "pwsh",
+                    Arguments              = $"-NoProfile -NonInteractive -File \"{tmpScriptPath}\"",
+                    RedirectStandardError  = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute        = false,
+                    CreateNoWindow         = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process == null) { Assert.Fail("Failed to start pwsh"); return; }
+                var stdout = process.StandardOutput.ReadToEnd();
+                var stderr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                Assert.True(process.ExitCode == 0,
+                    $"Get-VhcSessionReport did not populate bottleneck from BottleneckInfo for agent sessions.\n" +
+                    $"STDOUT: {stdout}\nSTDERR: {stderr}");
+            }
+            finally
+            {
+                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, recursive: true);
+            }
+        }
+
+        /// <summary>
         /// Verifies the orchestrator throws a clear error when VbrConfig.json is missing
         /// a required threshold key, rather than silently using $null.
         /// </summary>
