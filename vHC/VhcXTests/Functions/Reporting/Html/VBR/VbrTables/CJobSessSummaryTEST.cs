@@ -112,9 +112,9 @@ namespace VhcXTests.Functions.Reporting.Html.VBR.VbrTables
             var parser = new CCsvParser(_vbrDir);
             var jobs = parser.GetDynamicJobInfo().ToList();
 
-            // IsScheduleEnabled header normalizes to lowercase key: isscheduleenabled
-            Assert.Contains(jobs, j => j.isscheduleenabled == "True");
-            Assert.Contains(jobs, j => j.isscheduleenabled == "False");
+            // IsJobEnabled header normalizes to lowercase key: isjobenabled
+            Assert.Contains(jobs, j => j.isjobenabled == "True");
+            Assert.Contains(jobs, j => j.isjobenabled == "False");
         }
 
         [Fact]
