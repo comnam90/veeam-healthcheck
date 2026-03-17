@@ -144,7 +144,10 @@ function Get-VhcJob {
             @{n = 'VSSEnabled';                     e = { $Job.VssOptions.VssSnapshotOptions.ApplicationProcessingEnabled } },
             @{n = 'VSSIgnoreErrors';                e = { $Job.VssOptions.VssSnapshotOptions.IgnoreErrors } },
             @{n = 'GuestFSIndexingEnabled';         e = { $Job.VssOptions.GuestFSIndexingOptions.IsEnabled } },
-            @{n = 'IsScheduleEnabled';             e = { $Job.IsScheduleEnabled } }
+            # IsScheduleEnabled reflects whether the job itself is active, not whether it has a schedule
+            @{n = 'IsJobEnabled';                  e = { $Job.IsScheduleEnabled } },
+            # RunManually = True means the job is enabled but has no schedule configured (runs on demand only)
+            @{n = 'IsScheduleDisabled';            e = { $Job.Options.JobOptions.RunManually } }
 
         $AllJobs.Add($JobDetails) | Out-Null
     }
