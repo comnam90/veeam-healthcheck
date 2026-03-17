@@ -79,6 +79,29 @@ Log:    Source 87% > Proxy 33% > Network 0% > Target 27%
 
 No discrepancy was found between the two sources on any session type.
 
+### VBR v12 — EBottleneck enum is always NotDefined
+
+Follow-up testing on VBR v12 revealed that `CBottleneckInfo.Bottleneck` is typed as
+`Veeam.Backup.Model.EBottleneck` (an enum), and on v12 its value is always `0 = NotDefined`
+regardless of session type or outcome. The percentage fields (`Source`, `Proxy`, `Network`,
+`Target`) are populated with valid values.
+
+On v13, the same property resolves to a named string (e.g. `"Source"`, `"Proxy"`) when
+serialised via PowerShell's `"$(...)"` interpolation.
+
+Example v12 diagnostic output:
+
+```
+SessionName          Bottleneck  Source  Proxy  Network  Target
+VC_DC0x (Increment)  NotDefined      99     34        0       0
+VC_EX03 (Increment)  NotDefined      99     32        0       0
+```
+
+**Consequence for the initial implementation:** The guard `if ($bi -and $bi.Bottleneck)` used
+after the initial commit evaluates `$bi.Bottleneck` as integer `0`, which is **falsy** in
+PowerShell. Both bottleneck columns were empty on all v12 sessions despite valid percentages
+being present.
+
 ---
 
 ## Options Considered
@@ -133,8 +156,28 @@ observed benefit.
 
 ## Decision
 
-**Option B** — replace log-based bottleneck extraction with `$task.JobSess.Progress.BottleneckInfo`
-for both `BottleneckDetails` and `PrimaryBottleneck` columns.
+**Option B with v12 adaptation** — use `$task.JobSess.Progress.BottleneckInfo` for both
+columns, with the following guards:
+
+```powershell
+$bi = $task.JobSess.Progress.BottleneckInfo
+# Guard on sum > 0: on v12 Bottleneck is always NotDefined (0) even when percentages are valid
+$biHasData = $bi -and (($bi.Source + $bi.Proxy + $bi.Network + $bi.Target) -gt 0)
+$BottleneckDetails = if ($biHasData) {
+    "Source $($bi.Source)% > Proxy $($bi.Proxy)% > Network $($bi.Network)% > Target $($bi.Target)%"
+} else { '' }
+$PrimaryBottleneckDetails = if ($biHasData) {
+    $bottleneckStr = "$($bi.Bottleneck)"
+    if ($bottleneckStr -and $bottleneckStr -ne 'NotDefined' -and $bottleneckStr -ne '0') {
+        # v13+: EBottleneck enum resolves to a named component string
+        $bottleneckStr
+    } else {
+        # v12: EBottleneck is NotDefined; derive primary from highest percentage
+        @{ Source = [int]$bi.Source; Proxy = [int]$bi.Proxy; Network = [int]$bi.Network; Target = [int]$bi.Target }.GetEnumerator() |
+            Sort-Object Value -Descending | Select-Object -First 1 | ForEach-Object { $_.Key }
+    }
+} else { '' }
+```
 
 `ProcessingMode` (VMware transport mode) continues to use log parsing per ADR 0003 — that
 decision is unaffected as `CBottleneckInfo` contains no transport mode information.
@@ -144,8 +187,8 @@ decision is unaffected as `CBottleneckInfo` contains no transport mode informati
 ## Consequences
 
 ### Positive
-- `BottleneckDetails` and `PrimaryBottleneck` are now populated for agent/computer backup
-  sessions, resolving the gap noted in ADR 0012.
+- `BottleneckDetails` and `PrimaryBottleneck` are now populated for all session types on both
+  VBR v12 and v13, including agent/computer sessions (which had no log entries per ADR 0012).
 - Bottleneck extraction is simpler — no regex, no log record iteration for these two columns.
 - Output format is unchanged for VM, NAS, and Backup Copy sessions (values confirmed identical).
 
@@ -154,6 +197,9 @@ decision is unaffected as `CBottleneckInfo` contains no transport mode informati
 - The output string format (`Source X% > Proxy X% > Network X% > Target X%`) is reconstructed
   from the structured properties rather than lifted verbatim from the log. The format is
   identical but is now owned by this codebase rather than inherited from Veeam log text.
+- On v12, `PrimaryBottleneck` is derived from the highest percentage component rather than read
+  directly from the enum. This is equivalent in practice: the highest-percentage component is
+  what Veeam itself would select as the primary bottleneck.
 
 ### Negative
 - None identified.
@@ -164,5 +210,10 @@ Live testing on VBR v13 (`lab-m01-lvbr01.lab.garagecloud.net`):
 - `CBottleneckInfo` confirmed populated on VM, Backup Copy, NAS, and agent session types.
 - 20-session comparison: structured values match log-parsed values 20/20 on primary bottleneck
   and detail string.
+
+Live diagnostic on VBR v12:
+- `CBottleneckInfo` present on all session types; `Bottleneck` is always `EBottleneck.NotDefined (0)`.
+- `Source`, `Proxy`, `Network`, `Target` percentages are populated (e.g. `Source=99`, `Proxy=34`).
+- Derived `PrimaryBottleneck` via max-percentage logic produces correct results (e.g. `Source`).
 - Agent session (`Physical Servers - Linux`): `Bottleneck=Proxy`, `Source=74`, `Proxy=77`,
   `Target=75`, `Network=24` — previously all empty via log parsing.
