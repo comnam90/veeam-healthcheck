@@ -945,6 +945,112 @@ exit 0
         }
 
         /// <summary>
+        /// Verifies Get-VhcSessionReport derives PrimaryBottleneck from the highest percentage
+        /// component when EBottleneck is NotDefined (integer 0), as is always the case on VBR v12.
+        /// Source/Proxy/Network/Target percentages are still populated on v12. See ADR 0013.
+        /// </summary>
+        [Fact]
+        public void GetVhcSessionReport_V12NotDefinedBottleneck_DerivesPrimaryFromHighestPercentage()
+        {
+            var projectRoot  = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..", "HC_Reporting"));
+            var moduleRoot      = Path.Combine(projectRoot, "Tools", "Scripts", "HealthCheck", "VBR", "vHC-VbrConfig");
+            var sessionRptPath  = Path.Combine(moduleRoot, "Public",  "Get-VhcSessionReport.ps1");
+            var writeLogPath    = Path.Combine(moduleRoot, "Public",  "Write-LogFile.ps1");
+            var exportCsvPath   = Path.Combine(moduleRoot, "Private", "Export-VhciCsv.ps1");
+            var sessionLogPath  = Path.Combine(moduleRoot, "Private", "Get-VhciSessionLogWithTimeout.ps1");
+
+            var tmpDir        = Path.Combine(Path.GetTempPath(), $"vhc-v12bi-{Guid.NewGuid():N}");
+            var tmpScriptPath = Path.Combine(tmpDir, "Test-V12Bottleneck.ps1");
+            Directory.CreateDirectory(tmpDir);
+
+            // Simulate VBR v12: Bottleneck = 0 (EBottleneck.NotDefined), percentages populated.
+            // Source=99 is highest so PrimaryBottleneck should be derived as 'Source'.
+            var scriptContent = $@"
+$ErrorActionPreference = 'Stop'
+. '{writeLogPath}'
+. '{exportCsvPath}'
+. '{sessionLogPath}'
+. '{sessionRptPath}'
+
+$script:ReportPath = '{tmpDir}'
+$script:VBRServer  = 'test'
+$script:LogPath    = '{tmpDir}'
+$script:LogLevel   = 'ERROR'
+
+function Get-VBRTaskSession {{
+    param($Session)
+    # Bottleneck = 0 simulates EBottleneck.NotDefined as returned on VBR v12
+    $fakeBi       = [pscustomobject]@{{ Bottleneck = 0; Source = 99; Proxy = 34; Network = 0; Target = 0 }}
+    $fakeStats    = [pscustomobject]@{{ BackupSize = 2684354560; DataSize = 7516192768; DedupRatio = 1.5; CompressRatio = 2.0 }}
+    $fakeProgress = [pscustomobject]@{{ Duration = [TimeSpan]::FromMinutes(5); TransferedSize = 2684354560; ReadSize = 7516192768; BottleneckInfo = $fakeBi }}
+    $fakeInfo     = [pscustomobject]@{{ SessionAlgorithm = 'Increment' }}
+    $fakeJobSess  = [pscustomobject]@{{ IsRetryMode = $false; Progress = $fakeProgress; BackupStats = $fakeStats; CreationTime = (Get-Date).AddMinutes(-10); Info = $fakeInfo }}
+    $fakePlatform = [pscustomobject]@{{ IsEpAgentPlatform = $false; Platform = 'EVmware' }}
+    return @([pscustomobject]@{{
+        Name           = 'DC01'
+        JobName        = 'VC_DC0x'
+        Status         = 'Success'
+        ObjectPlatform = $fakePlatform
+        JobSess        = $fakeJobSess
+        WorkDetails    = [pscustomobject]@{{ TaskAlgorithm = 0; WorkDuration = $null }}
+        Logger         = $null
+    }})
+}}
+
+$fakeSession = [pscustomobject]@{{ Name = 'VC_DC0x'; CreationTime = (Get-Date).AddMinutes(-15) }}
+Get-VhcSessionReport -BackupSessions @($fakeSession)
+
+$csvPath = (Join-Path '{tmpDir}' 'VeeamSessionReport.csv')
+$rows = Import-Csv $csvPath
+if ($rows.Count -ne 1) {{
+    Write-Error ""Expected 1 CSV row but got $($rows.Count)""
+    exit 1
+}}
+$expectedDetails = 'Source 99% > Proxy 34% > Network 0% > Target 0%'
+if ($rows[0].BottleneckDetails -ne $expectedDetails) {{
+    Write-Error ""Expected BottleneckDetails='$expectedDetails' but got '$($rows[0].BottleneckDetails)'""
+    exit 1
+}}
+if ($rows[0].PrimaryBottleneck -ne 'Source') {{
+    Write-Error ""Expected PrimaryBottleneck='Source' but got '$($rows[0].PrimaryBottleneck)'""
+    exit 1
+}}
+Write-Host ""OK: BottleneckDetails='$($rows[0].BottleneckDetails)' PrimaryBottleneck='$($rows[0].PrimaryBottleneck)'""
+exit 0
+";
+            File.WriteAllText(tmpScriptPath, scriptContent);
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName               = "pwsh",
+                    Arguments              = $"-NoProfile -NonInteractive -File \"{tmpScriptPath}\"",
+                    RedirectStandardError  = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute        = false,
+                    CreateNoWindow         = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process == null) { Assert.Fail("Failed to start pwsh"); return; }
+                var stdout = process.StandardOutput.ReadToEnd();
+                var stderr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                Assert.True(process.ExitCode == 0,
+                    $"Get-VhcSessionReport did not derive PrimaryBottleneck from percentages when EBottleneck=NotDefined.\n" +
+                    $"STDOUT: {stdout}\nSTDERR: {stderr}");
+            }
+            finally
+            {
+                if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, recursive: true);
+            }
+        }
+
+        /// <summary>
         /// Verifies the orchestrator throws a clear error when VbrConfig.json is missing
         /// a required threshold key, rather than silently using $null.
         /// </summary>
