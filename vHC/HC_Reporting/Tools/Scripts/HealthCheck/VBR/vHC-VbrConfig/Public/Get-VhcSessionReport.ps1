@@ -58,10 +58,23 @@ function Get-VhcSessionReport {
                 $ProcessingMode       = $($ProcessingLogTitles | Select-Object -Unique) -join ';'
 
                 $bi = $task.JobSess.Progress.BottleneckInfo
-                $BottleneckDetails        = if ($bi -and $bi.Bottleneck) {
+                # Guard on sum > 0: on v12 the Bottleneck enum is always NotDefined (0) even when
+                # percentages are populated, so $bi.Bottleneck is not a reliable presence sentinel.
+                $biHasData = $bi -and (($bi.Source + $bi.Proxy + $bi.Network + $bi.Target) -gt 0)
+                $BottleneckDetails        = if ($biHasData) {
                     "Source $($bi.Source)% > Proxy $($bi.Proxy)% > Network $($bi.Network)% > Target $($bi.Target)%"
                 } else { '' }
-                $PrimaryBottleneckDetails = if ($bi -and $bi.Bottleneck) { "$($bi.Bottleneck)" } else { '' }
+                $PrimaryBottleneckDetails = if ($biHasData) {
+                    $bottleneckStr = "$($bi.Bottleneck)"
+                    if ($bottleneckStr -and $bottleneckStr -ne 'NotDefined' -and $bottleneckStr -ne '0') {
+                        # v13+: EBottleneck enum resolves to a named component string
+                        $bottleneckStr
+                    } else {
+                        # v12: EBottleneck is NotDefined; derive primary from highest percentage
+                        @{ Source = [int]$bi.Source; Proxy = [int]$bi.Proxy; Network = [int]$bi.Network; Target = [int]$bi.Target }.GetEnumerator() |
+                            Sort-Object Value -Descending | Select-Object -First 1 | ForEach-Object { $_.Key }
+                    }
+                } else { '' }
 
                 try { $jobDuration  = $task.JobSess.Progress.Duration.ToString() } catch { $jobDuration  = '' }
                 try { $taskDuration = $task.WorkDetails.WorkDuration.ToString() }  catch { $taskDuration = '' }
