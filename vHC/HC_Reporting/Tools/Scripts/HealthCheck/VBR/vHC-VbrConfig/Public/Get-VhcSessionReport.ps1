@@ -39,8 +39,6 @@ function Get-VhcSessionReport {
     # Replaces the array-level GetTaskSessions() call; Get-VBRTaskSession accepts all session
     # types (VM, Backup Copy, agent) via VBRSessionTransformationAttribute. See ADR 0004, 0012.
     $LogRegex            = [regex]'\bUsing \b.+\s(\[[^\]]*\])'
-    $BottleneckRegex     = [regex]'^Busy: (\S+ \d+% > \S+ \d+% > \S+ \d+% > \S+ \d+%)'
-    $PrimaryBottleneckRx = [regex]'^Primary bottleneck: (\S+)'
 
     foreach ($session in $BackupSessions) {
         $tasks = @()
@@ -59,11 +57,11 @@ function Get-VhcSessionReport {
                 $ProcessingLogTitles  = $(($ProcessingLogMatches.Title -replace '\bUsing \b.+\s\[', '') -replace ']', '')
                 $ProcessingMode       = $($ProcessingLogTitles | Select-Object -Unique) -join ';'
 
-                $BottleneckLogMatch       = $logRecords | Where-Object Title -match $BottleneckRegex | Select-Object -Last 1
-                $BottleneckDetails        = if ($BottleneckLogMatch) { $BottleneckLogMatch.Title -replace 'Busy: ', '' } else { '' }
-
-                $PrimaryBottleneckMatch   = $logRecords | Where-Object Title -match $PrimaryBottleneckRx | Select-Object -Last 1
-                $PrimaryBottleneckDetails = if ($PrimaryBottleneckMatch) { $PrimaryBottleneckMatch.Title -replace 'Primary bottleneck: ', '' } else { '' }
+                $bi = $task.JobSess.Progress.BottleneckInfo
+                $BottleneckDetails        = if ($bi -and $bi.Bottleneck) {
+                    "Source $($bi.Source)% > Proxy $($bi.Proxy)% > Network $($bi.Network)% > Target $($bi.Target)%"
+                } else { '' }
+                $PrimaryBottleneckDetails = if ($bi -and $bi.Bottleneck) { "$($bi.Bottleneck)" } else { '' }
 
                 try { $jobDuration  = $task.JobSess.Progress.Duration.ToString() } catch { $jobDuration  = '' }
                 try { $taskDuration = $task.WorkDetails.WorkDuration.ToString() }  catch { $taskDuration = '' }
