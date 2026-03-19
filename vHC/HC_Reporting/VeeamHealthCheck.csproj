@@ -32,6 +32,9 @@
 	<ItemGroup>
 		<InternalsVisibleTo Include="VhcXTests" />
 	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\HC_Core\HC_Core.csproj" />
+	</ItemGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<ShouldCreateLogs>True</ShouldCreateLogs>
 		<AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
