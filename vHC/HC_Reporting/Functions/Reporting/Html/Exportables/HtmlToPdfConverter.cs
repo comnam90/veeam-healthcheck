@@ -4,7 +4,6 @@ using System;
 using System.Drawing.Imaging;
 using System.Drawing.Printing;
 using System.IO;
-using System.Windows.Controls;
 
 namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
 {

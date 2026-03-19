@@ -247,8 +247,8 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Shared
         #region helper functions
         public static string GetEmbeddedCssContent(string embeddedFileName)
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = $"{assembly.GetName().Name}.{embeddedFileName}";
+            var assembly = typeof(CHtmlFormatting).Assembly;
+            var resourceName = $"VeeamHealthCheck.{embeddedFileName}";
 
             using (var stream = assembly.GetManifestResourceStream(resourceName))
             using (var reader = new StreamReader(stream))

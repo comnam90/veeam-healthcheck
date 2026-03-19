@@ -201,8 +201,8 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
 
         public static string GetEmbeddedCssContent(string embeddedFileName)
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = $"{assembly.GetName().Name}.{embeddedFileName}";
+            var assembly = typeof(CHtmlCompiler).Assembly;
+            var resourceName = $"VeeamHealthCheck.{embeddedFileName}";
 
             using (var stream = assembly.GetManifestResourceStream(resourceName))
             using (var reader = new StreamReader(stream))
