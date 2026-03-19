@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Windows;
 using Microsoft.Management.Infrastructure;
 using VeeamHealthCheck.Functions.Collection.DB;
 using VeeamHealthCheck.Functions.Collection.LogParser;
@@ -226,11 +225,6 @@ namespace VeeamHealthCheck.Functions.Collection
             string errorToShow = string.IsNullOrWhiteSpace(CGlobals.UserFacingError) ? defaultError : CGlobals.UserFacingError + "\n\nSee log for details:\n\t " + CGlobals.Logger.logFile;
 
             CGlobals.Logger.Error(errorToShow, false);
-
-            if (CGlobals.GUIEXEC)
-            {
-                MessageBox.Show(errorToShow, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
 
             Environment.Exit(1);
         }

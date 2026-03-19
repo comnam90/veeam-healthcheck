@@ -54,48 +54,14 @@ namespace VeeamHealthCheck.Startup
                 if (CGlobals.IsVbr && !CGlobals.REMOTEEXEC)
                 {
                     // Local VBR execution without admin - offer to continue with limitations
-                    if (CGlobals.GUIEXEC)
-                    {
-                        // GUI execution - show dialog
-                        string message = "Administrator privileges are recommended when running locally against Veeam Backup & Replication.\n\n" +
-                                       "Running without administrator privileges will:\n" +
-                                       "• Skip some registry checks\n" +
-                                       "• Skip some security assessments\n" +
-                                       "• May result in incomplete data collection\n\n" +
-                                       "For best results, please:\n" +
-                                       "1. Close this window\n" +
-                                       "2. Right-click VeeamHealthCheck.exe\n" +
-                                       "3. Select 'Run as Administrator'\n\n" +
-                                       "Do you want to continue without administrator privileges?";
-                        
-                        var result = MessageBox.Show(message, "Administrator Privileges Recommended", 
-                                                    MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                        
-                        if (result == MessageBoxResult.No)
-                        {
-                            CGlobals.Logger.Info("User declined to run without admin privileges", false);
-                            Environment.Exit(0);
-                        }
-                        
-                        // User chose to continue without admin
-                        CGlobals.RunningWithoutAdmin = true;
-                        CGlobals.Logger.Warning("Running without administrator privileges - some features will be limited", false);
-                    }
-                    else
-                    {
-                        // CLI execution - just warn and continue
-                        CGlobals.RunningWithoutAdmin = true;
-                        CGlobals.Logger.Warning("Running without administrator privileges - some registry checks and security assessments will be skipped", false);
-                    }
+                    // Running without admin - warn and continue with limitations
+                    CGlobals.RunningWithoutAdmin = true;
+                    CGlobals.Logger.Warning("Running without administrator privileges - some features will be limited", false);
                 }
                 else if (CGlobals.IsVb365 && !CGlobals.REMOTEEXEC)
                 {
                     // Local VB365 requires admin
                     string message = "Please run program as Administrator";
-                    if (CGlobals.GUIEXEC)
-                    {
-                        MessageBox.Show(message);
-                    }
                     CGlobals.Logger.Error(message, false);
                     Environment.Exit(0);
                 }
@@ -121,11 +87,6 @@ namespace VeeamHealthCheck.Startup
                     string msg = String.Format("Veeam Health Check version {0} does not support Veeam Backup & Replication Versions prior to v12. To check systems prior to v12, Please download 2.0.0.546: https://github.com/VeeamHub/veeam-healthcheck/releases/tag/2.0.0.546", CGlobals.VHCVERSION);
 
                     this.LOG.Error(msg, false);
-
-                    if (CGlobals.GUIEXEC)
-                    {
-                        MessageBox.Show(msg, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
 
                     Environment.Exit(0);
                 }
@@ -375,17 +336,8 @@ namespace VeeamHealthCheck.Startup
 
             if (string.IsNullOrEmpty(csvDirectory))
             {
-                this.LOG.Error(this.logStart + $"No valid CSV directory found in: {basePath}", false);
+                this.LOG.Error(this.logStart + $"No valid CSV files found in: {basePath}", false);
                 this.LOG.Info(this.logStart + "Expected structure: path/VBR/servername/timestamp/ or path containing CSV files directly", false);
-
-                if (CGlobals.GUIEXEC)
-                {
-                    System.Windows.MessageBox.Show(
-                        $"No valid CSV files found in:\n{basePath}\n\nPlease verify the import path contains VBR or VB365 CSV export files.",
-                        "Import Error",
-                        System.Windows.MessageBoxButton.OK,
-                        System.Windows.MessageBoxImage.Error);
-                }
 
                 return false;
             }
@@ -396,15 +348,6 @@ namespace VeeamHealthCheck.Startup
             if (!validationResult.IsValid && validationResult.MissingCriticalFiles.Count > 3)
             {
                 this.LOG.Error(this.logStart + $"Import validation failed: {validationResult.ErrorMessage}", false);
-
-                if (CGlobals.GUIEXEC)
-                {
-                    System.Windows.MessageBox.Show(
-                        $"Import validation failed:\n{validationResult.ErrorMessage}\n\nMissing files: {string.Join(", ", validationResult.MissingCriticalFiles)}",
-                        "Import Validation Error",
-                        System.Windows.MessageBoxButton.OK,
-                        System.Windows.MessageBoxImage.Warning);
-                }
 
                 // Allow import to continue with partial data
                 this.LOG.Warning(this.logStart + "Continuing with partial data - some report sections may be incomplete.", false);
