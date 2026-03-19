@@ -4,8 +4,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
 using VeeamHealthCheck.Functions.Collection;
 using VeeamHealthCheck.Functions.Collection.DB;
 using VeeamHealthCheck.Functions.CredsWindow;
@@ -25,23 +23,6 @@ namespace VeeamHealthCheck.Startup
         }
 
         public void Dispose() { }
-
-        public void KbLinkAction(System.Windows.Navigation.RequestNavigateEventArgs args)
-        {
-            CGlobals.Logger.Info("[GUI]\tOpening KB Link");
-            Application.Current.Dispatcher.Invoke(delegate
-            {
-                WebBrowser w1 = new();
-
-                var p = new Process();
-                p.StartInfo = new ProcessStartInfo(args.Uri.ToString())
-                {
-                    UseShellExecute = true
-                };
-                p.Start();
-            });
-            CGlobals.Logger.Info("[GUI]\tOpening KB Link...done!");
-        }
 
         public void PreRunCheck()
         {
@@ -153,22 +134,6 @@ namespace VeeamHealthCheck.Startup
             {
 
                 return title;
-            }
-        }
-
-        public bool AcceptTerms()
-        {
-            string message = VbrLocalizationHelper.GuiAcceptText;
-
-            var res = MessageBox.Show(message, "Terms", MessageBoxButton.YesNo,MessageBoxImage.Question);
-            if (res.ToString() == "Yes")
-            {
-
-                return true;
-            }
-            else
-            {
-                return false;
             }
         }
 

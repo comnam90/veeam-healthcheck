@@ -305,7 +305,7 @@ namespace VeeamHealthCheck
         private void AcceptButton_click(object sender, RoutedEventArgs e)
         {
             this.functions.LogUIAction("Accept");
-            run.IsEnabled = this.functions.AcceptTerms();
+            run.IsEnabled = CGuiBridge.AcceptTerms();
         }
 
         #endregion
@@ -406,7 +406,7 @@ namespace VeeamHealthCheck
         private void kbLink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
         {
             this.functions.LogUIAction("KB Link");
-            this.functions.KbLinkAction(e);
+            CGuiBridge.KbLinkAction(e);
         }
 
         private void pathBox_TextChanged(object sender, TextChangedEventArgs e)
