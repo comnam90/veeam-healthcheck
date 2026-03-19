@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using VeeamHealthCheck.Resources.Localization;
+using VeeamHealthCheck.Shared;
 
 namespace VeeamHealthCheck.Startup
 {
@@ -28,6 +29,20 @@ namespace VeeamHealthCheck.Startup
                 p.Start();
             });
             CGlobals.Logger.Info("[GUI]\tOpening KB Link...done!");
+        }
+
+        /// <summary>
+        /// Shows a Yes/No dialog asking the user whether to continue without admin privileges.
+        /// Registered as CGlobals.GuiAdminContinuePrompt by VhcGui at startup.
+        /// </summary>
+        public static bool ConfirmContinueWithoutAdmin(string message)
+        {
+            var result = MessageBox.Show(
+                message,
+                "Administrator Privileges Recommended",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+            return result == MessageBoxResult.Yes;
         }
 
         public static bool AcceptTerms()

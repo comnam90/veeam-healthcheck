@@ -75,6 +75,12 @@ namespace VeeamHealthCheck.Shared
         public static bool RunningWithoutAdmin = false;
         public static bool RescanHosts = false;
 
+        /// <summary>
+        /// Registered by the GUI shell to show a Yes/No prompt when local VBR is running without
+        /// admin privileges. Returns true to continue, false to exit. Null in CLI mode (prompt skipped).
+        /// </summary>
+        public static Func<string, bool> GuiAdminContinuePrompt;
+
         // Security Values
         public static bool IsMfaEnabled = false;
 

@@ -34,8 +34,27 @@ namespace VeeamHealthCheck.Startup
                 // Remote execution does not require admin privileges
                 if (CGlobals.IsVbr && !CGlobals.REMOTEEXEC)
                 {
-                    // Local VBR execution without admin - offer to continue with limitations
-                    // Running without admin - warn and continue with limitations
+                    // In GUI mode, ask the user whether to continue without admin privileges.
+                    // In CLI mode, the callback is null — warn and continue automatically.
+                    if (CGlobals.GuiAdminContinuePrompt != null)
+                    {
+                        string message = "Administrator privileges are recommended when running locally against Veeam Backup & Replication.\n\n" +
+                                         "Running without administrator privileges will:\n" +
+                                         "  Skip some registry checks\n" +
+                                         "  Skip some security assessments\n" +
+                                         "  May result in incomplete data collection\n\n" +
+                                         "For best results, please:\n" +
+                                         "  1. Close this window\n" +
+                                         "  2. Right-click VeeamHealthCheck.exe\n" +
+                                         "  3. Select 'Run as Administrator'\n\n" +
+                                         "Do you want to continue without administrator privileges?";
+                        if (!CGlobals.GuiAdminContinuePrompt(message))
+                        {
+                            CGlobals.Logger.Info("User declined to run without admin privileges", false);
+                            Environment.Exit(0);
+                        }
+                    }
+
                     CGlobals.RunningWithoutAdmin = true;
                     CGlobals.Logger.Warning("Running without administrator privileges - some features will be limited", false);
                 }

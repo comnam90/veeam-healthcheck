@@ -19,6 +19,8 @@ namespace VeeamHealthCheck
 
         public VhcGui()
         {
+            CGlobals.GuiAdminContinuePrompt = CGuiBridge.ConfirmContinueWithoutAdmin;
+
             InitializeComponent();
 
             this.SetUi();
