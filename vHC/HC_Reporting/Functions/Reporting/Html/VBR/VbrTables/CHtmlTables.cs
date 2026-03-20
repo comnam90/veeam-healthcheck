@@ -3040,14 +3040,14 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
                                 var diskGb = x.Where(x => x.name == job.Name)
                                     .Select(x => x.ondiskgb)
                                     .FirstOrDefault();
-                                double.TryParse(diskGb, out onDiskGB);
+                                double.TryParse(diskGb, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out onDiskGB);
                                 onDiskGB = Math.Round(onDiskGB, 2);
                                 onDiskTotalGB += onDiskGB;
 
                                 var sourceGb = x.Where(x => x.name == job.Name)
                                     .Select(x => x.sourcegb)
                                     .FirstOrDefault();
-                                double.TryParse(sourceGb, out sourceSizeGB);
+                                double.TryParse(sourceGb, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out sourceSizeGB);
                                 sourceSizeGB = Math.Round(sourceSizeGB, 2);
                             }
                             else
