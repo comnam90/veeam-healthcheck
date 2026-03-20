@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using VeeamHealthCheck.Functions.Analysis.DataModels;
+using VeeamHealthCheck.Functions.Collection.Security;
 using VeeamHealthCheck.Functions.Reporting.DataTypes;
 using VeeamHealthCheck.Scrubber;
 using VeeamHealthCheck.Shared.Logging;
@@ -86,6 +87,12 @@ namespace VeeamHealthCheck.Shared
         /// (e.g. no CSV files found). Null in CLI mode — the error is already logged.
         /// </summary>
         public static Action<string> GuiImportErrorNotify;
+
+        /// <summary>
+        /// Active credential provider. Defaults to CLI (console) prompting.
+        /// The WPF shell overrides this at startup with a GUI dialog provider.
+        /// </summary>
+        public static ICredentialProvider CredentialProvider = new CliCredentialProvider();
 
         /// <summary>
         /// Registered by the GUI shell to show a non-blocking warning dialog when import

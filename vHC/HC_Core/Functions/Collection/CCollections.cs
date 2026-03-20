@@ -12,7 +12,6 @@ using VeeamHealthCheck.Functions.Collection.DB;
 using VeeamHealthCheck.Functions.Collection.LogParser;
 using VeeamHealthCheck.Functions.Collection.PSCollections;
 using VeeamHealthCheck.Functions.Collection.Security;
-using VeeamHealthCheck.Functions.CredsWindow;
 using VeeamHealthCheck.Functions.Reporting.Html.VBR.VbrTables.Security;
 using VeeamHealthCheck.Shared;
 using VeeamHealthCheck.Shared.Logging;
@@ -246,8 +245,7 @@ namespace VeeamHealthCheck.Functions.Collection
             // For remote execution, credentials are required (will prompt if not stored)
             this.log.Info("Remote execution detected, credentials required...", false);
 
-            CredsHandler ch = new();
-            var creds = ch.GetCreds();
+            var creds = CGlobals.CredentialProvider.GetCreds();
 
             // If credentials not provided, cannot continue
             if (creds == null)

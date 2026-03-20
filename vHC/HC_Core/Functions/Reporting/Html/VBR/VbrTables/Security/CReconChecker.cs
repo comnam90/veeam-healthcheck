@@ -17,7 +17,7 @@ public class CReconChecker
             using (TaskService taskService = new TaskService())
             {
                 // Get the task by name
-                Task task = taskService.GetTask(taskName);
+                Microsoft.Win32.TaskScheduler.Task task = taskService.GetTask(taskName);
 
                 if (task != null)
                 {

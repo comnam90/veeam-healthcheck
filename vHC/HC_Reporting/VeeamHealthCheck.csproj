@@ -11,10 +11,10 @@
 		<Company>Veeam</Company>
 		<Authors>AdamC</Authors>
 		<ApplicationIcon>Health_Check_Icon.ico</ApplicationIcon>
-		<AssemblyVersion>3.0.0.586</AssemblyVersion>
+		<AssemblyVersion>3.0.0.598</AssemblyVersion>
 		<SignAssembly>False</SignAssembly>
 		<DelaySign>false</DelaySign>
-		<FileVersion>3.0.0.586</FileVersion>
+		<FileVersion>3.0.0.598</FileVersion>
 		<DebugType>full</DebugType>
 		<SelfContained>true</SelfContained>
 		<!--These 2 lines are what produce the single file utility. Possibly doesn't work...-->
@@ -58,28 +58,6 @@
 		<AssemblyFileVersionSettings>None.None.None.Increment</AssemblyFileVersionSettings>
 	</PropertyGroup>
 	<ItemGroup>
-		<Compile Remove="Functions\Reporting\Html\VBR\VbrTables\NewFolder\**" />
-		<Compile Remove="Softwares\**" />
-		<Compile Remove="Startup\GUI\**" />
-		<Compile Remove="VBO\**" />
-		<EmbeddedResource Remove="Functions\Reporting\Html\VBR\VbrTables\NewFolder\**" />
-		<EmbeddedResource Remove="Softwares\**" />
-		<EmbeddedResource Remove="Startup\GUI\**" />
-		<EmbeddedResource Remove="VBO\**" />
-		<None Remove="Functions\Reporting\Html\VBR\VbrTables\NewFolder\**" />
-		<None Remove="Softwares\**" />
-		<None Remove="Startup\GUI\**" />
-		<None Remove="VBO\**" />
-		<Page Remove="Functions\Reporting\Html\VBR\VbrTables\NewFolder\**" />
-		<Page Remove="Softwares\**" />
-		<Page Remove="Startup\GUI\**" />
-		<Page Remove="VBO\**" />
-	</ItemGroup>
-	<ItemGroup>
-		<Compile Remove="Functions\Reporting\DataTypes\NAS\CNasFileDataVmc.cs" />
-		<Compile Remove="Functions\Reporting\Html\VBR\VbrTables\Job Session Summary\JobSessionSummaryRow.cs" />
-	</ItemGroup>
-	<ItemGroup>
 		<None Remove="banner_string.txt" />
 		<None Remove="css.css" />
 		<None Remove="Functions\Collection\PSCollections\Collect-VB365Data.ps1" />
@@ -99,9 +77,6 @@
 		<None Remove="Tools\Scripts\HealthCheck\VBR\vHC-VbrConfig\**\*" />
 	</ItemGroup>
 	<ItemGroup>
-		<EmbeddedResource Include="Functions\Collection\PSCollections\Scripts\Collect-VB365Data.ps1">
-			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
-		</EmbeddedResource>
 		<Content Include="Functions\Collection\PSCollections\Scripts\TestMfa.ps1">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
@@ -117,26 +92,8 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="CsvHelper" Version="33.0.1" />
-		<PackageReference Include="DinkToPdf.Standard" Version="1.1.0" />
-		<PackageReference Include="DocumentFormat.OpenXml" Version="3.1.0" />
-		<PackageReference Include="HtmlToOpenXml.dll" Version="3.2.2" />
-		<PackageReference Include="Microsoft.Management.Infrastructure" Version="3.0.0" />
-		<PackageReference Include="Microsoft.PowerShell.SDK" Version="7.4.6" />
 		<PackageReference Include="Node.js" Version="5.3.0" />
 		<PackageReference Include="Npm" Version="3.5.2" />
-		<PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
-		<PackageReference Include="System.Management.Automation" Version="7.4.6" />
-		<PackageReference Include="TaskScheduler" Version="2.12.1" />
-		<!-- Code Quality Analyzers -->
-		<PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="SecurityCodeScan.VS2019" Version="5.6.7">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-		</PackageReference>
 	</ItemGroup>
 	<ItemGroup>
 		<Content Include="Tools\Scripts\HealthCheck\VBR\Get-VBRConfig.ps1">
@@ -150,10 +107,6 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
-		<EmbeddedResource Include="banner_string.txt" />
-		<EmbeddedResource Include="css.css" />
-		<EmbeddedResource Include="ReportScript.js" />
-		<EmbeddedResource Include="Resources\Localization\VB365\vb365_vhcres.resources" />
 		<Content Include="Tools\Scripts\HealthCheck\VB365\Collect-VB365Data.ps1">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
@@ -170,10 +123,6 @@
 		</None>
 	</ItemGroup>
 	<ItemGroup>
-		<Folder Include="Functions\Reporting\CsvHandlers\Proxies\" />
-		<Folder Include="Functions\Reporting\CsvHandlers\Repositories\" />
-		<Folder Include="Functions\Reporting\DataTypes\NewFolder\" />
-		<Folder Include="Functions\Reporting\TableDatas\" />
 		<Folder Include="Resources\Localization\VBR\" />
 	</ItemGroup>
 	<Target Name="IncrementVersion" BeforeTargets="BeforeBuild">
@@ -200,9 +149,5 @@
 	</Target>
 	<ItemGroup>
 		<None Include="Tools/build/BuildCopy.sh" />
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="Functions\Reporting\DataTypes\NAS\CNasFileDataVmc.cs" />
-		<None Include="Functions\Reporting\Html\VBR\VbrTables\Job Session Summary\JobSessionSummaryRow.cs" />
 	</ItemGroup>
 </Project>

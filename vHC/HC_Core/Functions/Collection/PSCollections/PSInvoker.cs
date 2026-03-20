@@ -10,7 +10,6 @@ using System.Reflection;
 // using System.Management.Automation;
 using System.Runtime.InteropServices;
 using VeeamHealthCheck.Functions.Collection.Security;
-using VeeamHealthCheck.Functions.CredsWindow;
 using VeeamHealthCheck.Shared;
 using VeeamHealthCheck.Shared.Logging;
 using VeeamHealthCheck.Startup;
@@ -243,8 +242,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
 
             try
             {
-                CredsHandler ch = new();
-                var creds = ch.GetCreds();
+                var creds = CGlobals.CredentialProvider.GetCreds();
 
                 // Properly escape the password
                 string escapedPassword = CredentialHelper.EscapePasswordForPowerShell(creds.Value.Password);
@@ -486,8 +484,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
             string safeArgString = argString; // For logging without sensitive data
             if (needsCredentials)
             {
-                CredsHandler ch = new();
-                var creds = ch.GetCreds();
+                var creds = CGlobals.CredentialProvider.GetCreds();
                 if (creds != null)
                 {
                     byte[] passwordBytes = System.Text.Encoding.UTF8.GetBytes(creds.Value.Password);
@@ -648,8 +645,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
                 }
                 if (needsCredentials)
                 {
-                    CredsHandler ch = new();
-                    var creds = ch.GetCreds();
+                    var creds = CGlobals.CredentialProvider.GetCreds();
                     if (creds != null)
                     {
                         // Encode password in Base64 for secure transmission
@@ -673,8 +669,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
                 }
                 if (needsCredentials)
                 {
-                    CredsHandler ch = new();
-                    var creds = ch.GetCreds();
+                    var creds = CGlobals.CredentialProvider.GetCreds();
                     if (creds != null)
                     {
                         // Encode password in Base64 for secure transmission
