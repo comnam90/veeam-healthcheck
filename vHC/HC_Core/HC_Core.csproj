@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>HC_Core</AssemblyName>
     <RootNamespace>VeeamHealthCheck</RootNamespace>
-    <NoWarn>CA1305,CA1307,CA1820,CA2242,CA1031,CA1806,CA1822,CS8618</NoWarn>
+    <NoWarn>CA1305,CA1307,CA1820,CA2242,CA1031,CA1806,CA1822,CS8618,NETSDK1206</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="VhcXTests" />

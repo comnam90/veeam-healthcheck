@@ -1,9 +1,11 @@
 ﻿// Copyright (c) 2021, Adam Congdon <adam.congdon2@gmail.com>
 // MIT License
+using System.Runtime.Versioning;
 using System.Security.Principal;
 
 namespace VeeamHealthCheck
 {
+    [SupportedOSPlatform("windows")]
     public class CAdminCheck
     {
         public bool IsAdmin()

@@ -57,7 +57,7 @@ namespace VeeamHealthCheck.Functions.Reporting.CsvHandlers
         [Index(15)]
         public string ChassisType { get; set; }
 
-        public string ProxyName()
+        public string? ProxyName()
         {
             return null;
         }

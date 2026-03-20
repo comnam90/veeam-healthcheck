@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 using Xunit;
 using VeeamHealthCheck.Startup;
@@ -12,6 +13,7 @@ namespace VeeamHealthCheck.Tests.Security
 {
     [Collection("Credential Store Tests")]
     [Trait("Category", "Security")]
+    [SupportedOSPlatform("windows")]
     public class CredentialStoreSecurityTests : IDisposable
     {
         private readonly string _testStorePath;

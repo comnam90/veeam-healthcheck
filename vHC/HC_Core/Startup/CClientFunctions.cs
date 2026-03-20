@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using VeeamHealthCheck.Functions.Collection;
 using VeeamHealthCheck.Functions.Collection.DB;
 using VeeamHealthCheck.Resources.Localization;
@@ -12,6 +13,7 @@ using VeeamHealthCheck.Shared.Logging;
 
 namespace VeeamHealthCheck.Startup
 {
+    [SupportedOSPlatform("windows")]
     internal class CClientFunctions : IDisposable
     {
         private readonly CLogger LOG = CGlobals.Logger;
@@ -188,7 +190,7 @@ namespace VeeamHealthCheck.Startup
                 //    "\nVeeamHealthCheck.exe /hotfix /path:C:\\examplepath", false);
                 this.LOG.Warning(this.logStart + "This option will collect support logs to some local directory and then check for hotfixes", false);
                 this.LOG.Warning(this.logStart + "Please enter local path with adequate space for log files:", false);
-                path = Console.ReadLine();
+                path = Console.ReadLine() ?? string.Empty;
             }
 
             CHotfixDetector hfd = new(path);
@@ -315,7 +317,7 @@ namespace VeeamHealthCheck.Startup
             this.LOG.Info(this.logStart + $"Import base path: {basePath}", false);
 
             // Find the actual CSV directory within the base path
-            string csvDirectory = CImportPathResolver.FindCsvDirectory(basePath);
+            string? csvDirectory = CImportPathResolver.FindCsvDirectory(basePath);
 
             if (string.IsNullOrEmpty(csvDirectory))
             {
@@ -392,7 +394,7 @@ namespace VeeamHealthCheck.Startup
             try
             {
                 CRegReader reg = new();
-                string version = reg.GetVbrVersionFilePath();
+                string? version = reg.GetVbrVersionFilePath();
 
                 // Validate that version detection succeeded
                 if (string.IsNullOrEmpty(version) || CGlobals.VBRMAJORVERSION == 0)

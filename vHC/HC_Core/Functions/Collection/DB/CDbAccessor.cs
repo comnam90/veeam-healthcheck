@@ -2,11 +2,13 @@
 // MIT License
 using System;
 using System.Data.SqlClient;
+using System.Runtime.Versioning;
 using System.Security.Principal;
 using VeeamHealthCheck.Shared;
 
 namespace VeeamHealthCheck.Functions.Collection.DB
 {
+    [SupportedOSPlatform("windows")]
     class CDbAccessor
     {
         private string connectionString;
@@ -54,7 +56,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
             else
             {
                 var cred = WindowsIdentity.GetCurrent();
-                builder.UserID = cred.User.ToString();
+                builder.UserID = cred.User?.ToString() ?? string.Empty;
                 builder.Password = cred.Token.ToString();
                 return builder;
             }

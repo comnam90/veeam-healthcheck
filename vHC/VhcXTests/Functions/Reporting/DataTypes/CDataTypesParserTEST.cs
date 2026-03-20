@@ -98,7 +98,7 @@ namespace VhcXTests.Functions.Reporting.DataTypes
         [InlineData(null)]
         [InlineData("")]
         [InlineData("   ")]
-        public void TryParseDateTime_EmptyOrNull_ReturnsMinValue(string dateTimeString)
+        public void TryParseDateTime_EmptyOrNull_ReturnsMinValue(string? dateTimeString)
         {
             // Act
             DateTime.TryParse(dateTimeString, out DateTime result);

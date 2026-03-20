@@ -11,14 +11,14 @@ namespace VeeamHealthCheck.Shared
         {
         }
 
-        public static string GetFileVersion()
+        public static string? GetFileVersion()
         {
-            string exePath = Process.GetCurrentProcess().MainModule?.FileName;
+            string? exePath = Process.GetCurrentProcess().MainModule?.FileName;
             if (string.IsNullOrEmpty(exePath))
                 throw new InvalidOperationException("Cannot determine executable path: Process.MainModule is unavailable.");
 
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(exePath);
-            CGlobals.VHCVERSION = fvi.FileVersion;
+            CGlobals.VHCVERSION = fvi.FileVersion ?? string.Empty;
             return fvi.FileVersion;
         }
     }

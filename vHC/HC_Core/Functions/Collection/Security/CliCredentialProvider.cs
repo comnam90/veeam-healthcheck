@@ -53,7 +53,7 @@ namespace VeeamHealthCheck.Functions.Collection.Security
                 Console.WriteLine();
                 Console.WriteLine($"=== Authentication Required for {host} ===");
                 Console.Write("Username: ");
-                string username = Console.ReadLine();
+                string? username = Console.ReadLine();
 
                 if (string.IsNullOrWhiteSpace(username))
                 {

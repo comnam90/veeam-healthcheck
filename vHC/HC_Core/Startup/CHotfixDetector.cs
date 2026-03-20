@@ -168,7 +168,7 @@ namespace VeeamHealthCheck.Startup
             string path = /*dir +*/ PSInvoker.SERVERLISTFILE;
             using(StreamReader sr = new(path)) // need to get the source directory
             {
-                string line;
+                string? line;
                 while((line = sr.ReadLine()) != null)
                 {
                     newList.Add(line);
@@ -235,7 +235,7 @@ namespace VeeamHealthCheck.Startup
         {
             using (StreamReader sr = new(file))
             {
-                string line;
+                string? line;
 
                 while ((line = sr.ReadLine()) != null)
                 {

@@ -4,6 +4,7 @@ using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Security.Principal;
 using VeeamHealthCheck.Shared;
 using VeeamHealthCheck.Shared.Logging;
@@ -11,6 +12,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace VeeamHealthCheck.Functions.Collection.DB
 {
+    [SupportedOSPlatform("windows")]
     class CQueries
     {
         private readonly CLogger log = CGlobals.Logger;

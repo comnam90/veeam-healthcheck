@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using VeeamHealthCheck.Startup;
 
 namespace VeeamHealthCheck.Functions.Collection
 {
+    [SupportedOSPlatform("windows")]
     internal class CImpersonation
     {
         private readonly CLogger logger = CGlobals.Logger;
@@ -54,17 +56,17 @@ namespace VeeamHealthCheck.Functions.Collection
 
             this.VBRSERVER = domainName;
             Console.WriteLine(String.Format("Enter the login of a user on {0} that you wish to impersonate: ", domainName),false);
-            string userName = Console.ReadLine();
+            string? userName = Console.ReadLine();
 
             Console.WriteLine(String.Format("Enter the password for {0}: ", userName), false);
 
             const int LOGON32_PROVIDER_DEFAULT = 0;
 
-            // This parameter causes LogonUser to create a primary token.   
+            // This parameter causes LogonUser to create a primary token.
             // const int LOGON32_LOGON_INTERACTIVE = 2;
             const int LOGON32_LOGON_INTERACTIVE = 9;
 
-            string password = null;
+            string? password = null;
             while (true)
             {
                 var key = System.Console.ReadKey(true);
@@ -85,7 +87,7 @@ namespace VeeamHealthCheck.Functions.Collection
             // bool returnValue = LogonUser(userName, domainName, Console.ReadLine(),
             //    LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT,
             //    out safeAccessTokenHandle);
-            bool returnValue = LogonUser(userName, domainName, password,
+            bool returnValue = LogonUser(userName!, domainName, password!,
             LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT,
             out safeAccessTokenHandle);
 

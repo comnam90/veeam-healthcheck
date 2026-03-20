@@ -272,7 +272,7 @@ namespace VeeamHealthCheck.Tests.Collection
         public void GetReportSummary_HandlesNullInput()
         {
             // Act
-            string summary = CCsvValidator.GetReportSummary(null);
+            string summary = CCsvValidator.GetReportSummary(null!);
 
             // Assert
             Assert.Contains("No CSV validation data available", summary);

@@ -9,7 +9,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
 {
     public class HtmlToPdfConverter
     {
-        private IConverter converter;
+        private IConverter? converter;
 
         public HtmlToPdfConverter()
         {

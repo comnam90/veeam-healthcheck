@@ -36,7 +36,7 @@ namespace VeeamHealthCheck.Shared
         /// If null or empty, the default path (C:\temp\vHC) is used.
         /// Supports both flat structure and nested servername/timestamp structure.
         /// </summary>
-        public static string IMPORT_PATH = null;
+        public static string? IMPORT_PATH = null;
         public static int VBRMAJORVERSION;
         public static string VBRFULLVERSION;
         public static int PowerShellVersion;
@@ -44,7 +44,7 @@ namespace VeeamHealthCheck.Shared
         public static bool REMOTEEXEC = false;
         public static string REMOTEHOST = string.Empty;
         public static bool GUIEXEC = false;
-        private static string _runTimestamp = null;
+        private static string? _runTimestamp = null;
         public static string VHCVERSION = string.Empty;
         public static bool DEBUG = false;
 
@@ -80,13 +80,13 @@ namespace VeeamHealthCheck.Shared
         /// Registered by the GUI shell to show a Yes/No prompt when local VBR is running without
         /// admin privileges. Returns true to continue, false to exit. Null in CLI mode (prompt skipped).
         /// </summary>
-        public static Func<string, bool> GuiAdminContinuePrompt;
+        public static Func<string, bool>? GuiAdminContinuePrompt;
 
         /// <summary>
         /// Registered by the GUI shell to show a blocking error dialog for a fatal import failure
         /// (e.g. no CSV files found). Null in CLI mode — the error is already logged.
         /// </summary>
-        public static Action<string> GuiImportErrorNotify;
+        public static Action<string>? GuiImportErrorNotify;
 
         /// <summary>
         /// Active credential provider. Defaults to CLI (console) prompting.
@@ -98,13 +98,13 @@ namespace VeeamHealthCheck.Shared
         /// Registered by the GUI shell to show a non-blocking warning dialog when import
         /// validation finds missing files but allows the run to continue. Null in CLI mode.
         /// </summary>
-        public static Action<string> GuiImportWarningNotify;
+        public static Action<string>? GuiImportWarningNotify;
 
         // Security Values
         public static bool IsMfaEnabled = false;
 
         // Last user-visible error collected during execution (shown in GUI if set)
-        public static string UserFacingError = null;
+        public static string? UserFacingError = null;
 
         // B&R Server global values
         // public static string isConsoleLocal = "Undetermined";

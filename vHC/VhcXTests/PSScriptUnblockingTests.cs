@@ -73,7 +73,7 @@ namespace VhcXTests
                 .Where(v => !string.IsNullOrEmpty(v)
                             && !v.EndsWith(".ps1", StringComparison.OrdinalIgnoreCase)
                             && (v.Contains("\\") || v.Contains("/")))
-                .Select(v => Path.GetRelativePath(baseDirectory, v).Replace("\\", "/"))
+                .Select(v => Path.GetRelativePath(baseDirectory, v!).Replace("\\", "/"))
                 .ToList();
 
             // Assert - Find any .ps1 files that are not being unblocked

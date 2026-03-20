@@ -2,11 +2,13 @@
 // MIT License
 using System;
 using System.IO;
+using System.Runtime.Versioning;
 using VeeamHealthCheck.Startup;
 using Xunit;
 
 namespace VhcXTests
 {
+    [SupportedOSPlatform("windows")]
     public class PathValidationTests : IDisposable
     {
         private readonly CClientFunctions _functions;
@@ -40,10 +42,10 @@ namespace VhcXTests
         public void VerifyPath_NullPath_ReturnsFalse()
         {
             // Arrange
-            string path = null;
+            string? path = null;
 
             // Act
-            bool result = _functions.VerifyPath(path);
+            bool result = _functions.VerifyPath(path!);
 
             // Assert
             Assert.False(result);

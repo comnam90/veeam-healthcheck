@@ -32,7 +32,7 @@ namespace VeeamHealthCheck.Tests
         [InlineData(null)]
         public void EscapePasswordForPowerShell_ShouldHandleEmptyOrNull(string? input)
         {
-            var result = CredentialHelper.EscapePasswordForPowerShell(input);
+            var result = CredentialHelper.EscapePasswordForPowerShell(input!);
             Assert.Equal(string.Empty, result);
         }
 
@@ -64,7 +64,7 @@ namespace VeeamHealthCheck.Tests
             Assert.True(CredentialHelper.ContainsProblematicCharacters("Paren(test)"));
             Assert.False(CredentialHelper.ContainsProblematicCharacters("SimplePassword123"));
             Assert.False(CredentialHelper.ContainsProblematicCharacters(""));
-            Assert.False(CredentialHelper.ContainsProblematicCharacters(null));
+            Assert.False(CredentialHelper.ContainsProblematicCharacters(null!));
         }
 
         [Fact]
@@ -80,7 +80,7 @@ namespace VeeamHealthCheck.Tests
         [Fact]
         public void ConvertToSecureString_ShouldThrowOnNull()
         {
-            Assert.Throws<ArgumentNullException>(() => CredentialHelper.ConvertToSecureString(null));
+            Assert.Throws<ArgumentNullException>(() => CredentialHelper.ConvertToSecureString(null!));
         }
     }
 }

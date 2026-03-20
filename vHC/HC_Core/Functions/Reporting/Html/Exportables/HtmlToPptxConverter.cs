@@ -289,7 +289,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
 
             Slide slide = CreateBaseSlide();
             slidePart.Slide = slide;
-            ShapeTree shapeTree = slide.CommonSlideData.ShapeTree;
+            ShapeTree shapeTree = slide.CommonSlideData!.ShapeTree!;
 
             // Add gradient background
             AddGradientBackground(shapeTree, DarkBackground, DarkCard);
@@ -344,7 +344,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
 
             Slide slide = CreateBaseSlide();
             slidePart.Slide = slide;
-            ShapeTree shapeTree = slide.CommonSlideData.ShapeTree;
+            ShapeTree shapeTree = slide.CommonSlideData!.ShapeTree!;
 
             // Add gradient background
             AddGradientBackground(shapeTree, DarkBackground, DarkCard);
@@ -391,7 +391,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
 
             Slide slide = CreateBaseSlide();
             slidePart.Slide = slide;
-            ShapeTree shapeTree = slide.CommonSlideData.ShapeTree;
+            ShapeTree shapeTree = slide.CommonSlideData!.ShapeTree!;
 
             // Gradient background
             AddGradientBackground(shapeTree, DarkCard, DarkBackground);
@@ -418,7 +418,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
 
             Slide slide = CreateBaseSlide();
             slidePart.Slide = slide;
-            ShapeTree shapeTree = slide.CommonSlideData.ShapeTree;
+            ShapeTree shapeTree = slide.CommonSlideData!.ShapeTree!;
 
             AddGradientBackground(shapeTree, DarkBackground, DarkCard);
             AddAccentLine(shapeTree, 0, 0, SlideWidth, 60000, VeeamGreen);
@@ -511,7 +511,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
 
                 Slide slide = CreateBaseSlide();
                 slidePart.Slide = slide;
-                ShapeTree shapeTree = slide.CommonSlideData.ShapeTree;
+                ShapeTree shapeTree = slide.CommonSlideData!.ShapeTree!;
 
                 AddGradientBackground(shapeTree, DarkBackground, DarkCard);
                 AddAccentLine(shapeTree, 0, 0, SlideWidth, 60000, VeeamGreen);
@@ -589,7 +589,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
 
                 Slide slide = CreateBaseSlide();
                 slidePart.Slide = slide;
-                ShapeTree shapeTree = slide.CommonSlideData.ShapeTree;
+                ShapeTree shapeTree = slide.CommonSlideData!.ShapeTree!;
 
                 AddGradientBackground(shapeTree, DarkBackground, DarkCard);
                 AddAccentLine(shapeTree, 0, 0, SlideWidth, 60000, VeeamGreen);
@@ -777,7 +777,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
 
                 Slide slide = CreateBaseSlide();
                 slidePart.Slide = slide;
-                ShapeTree shapeTree = slide.CommonSlideData.ShapeTree;
+                ShapeTree shapeTree = slide.CommonSlideData!.ShapeTree!;
 
                 AddGradientBackground(shapeTree, DarkBackground, DarkCard);
                 AddAccentLine(shapeTree, 0, 0, SlideWidth, 60000, VeeamGreen);
@@ -814,7 +814,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
 
             Slide slide = CreateBaseSlide();
             slidePart.Slide = slide;
-            ShapeTree shapeTree = slide.CommonSlideData.ShapeTree;
+            ShapeTree shapeTree = slide.CommonSlideData!.ShapeTree!;
 
             AddGradientBackground(shapeTree, DarkCard, DarkBackground);
 
@@ -1100,7 +1100,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
         }
 
         private void AddShape(ShapeTree shapeTree, A.ShapeTypeValues shapeType, long x, long y, long width, long height,
-            string fillColor, string outlineColor, int outlineWidth, int alphaPercent = 100)
+            string fillColor, string? outlineColor, int outlineWidth, int alphaPercent = 100)
         {
             Shape shape = new Shape();
 
@@ -1422,12 +1422,12 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
                 slidePart.AddPart(_slideLayoutPart, "rId1");
             }
 
-            SlideIdList slideIdList = presentationPart.Presentation.SlideIdList;
+            SlideIdList slideIdList = presentationPart.Presentation!.SlideIdList!;
 
             uint maxSlideId = 256;
             if (slideIdList.Elements<SlideId>().Count() > 0)
             {
-                maxSlideId = slideIdList.Elements<SlideId>().Select(x => x.Id.Value).Max();
+                maxSlideId = slideIdList.Elements<SlideId>().Select(x => x.Id!.Value).Max();
             }
 
             SlideId slideId = new SlideId();

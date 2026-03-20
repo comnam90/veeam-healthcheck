@@ -6,11 +6,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http.Headers;
+using System.Runtime.Versioning;
 using VeeamHealthCheck.Shared;
 using VeeamHealthCheck.Shared.Logging;
 
 namespace VeeamHealthCheck.Functions.Collection.DB
 {
+    [SupportedOSPlatform("windows")]
     public class CRegReader
     {
         private static string databaseName;
@@ -75,7 +77,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
             }
         }
 
-        public string GetVbrVersionFilePath()
+        public string? GetVbrVersionFilePath()
         {
             // Try default C: drive installation path first
             string consoleInstallPath = @"C:\Program Files\Veeam\Backup and Replication\Console\Veeam.Backup.Core.dll";
@@ -101,14 +103,14 @@ namespace VeeamHealthCheck.Functions.Collection.DB
             log.Debug(this.logStart + "Checking Registry for VBR Core path via Mount Service key...");
             try
             {
-                using (RegistryKey key =
+                using (RegistryKey? key =
                     Registry.LocalMachine.OpenSubKey("Software\\Veeam\\Veeam Mount Service"))
                 {
-                    var keyValue = key.GetValue("InstallationPath");
+                    var keyValue = key?.GetValue("InstallationPath");
                     string path = string.Empty;
                     if (keyValue != null)
                     {
-                        path = keyValue.ToString();
+                        path = keyValue.ToString() ?? string.Empty;
                     }
                     else
                     {
@@ -119,7 +121,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
                     // string path = key.GetValue("CorePath").ToString();
                     // FileInfo dllInfo = new FileInfo(path + "\\Packages\\VeeamDeploymentDll.dll");
                     var version = FileVersionInfo.GetVersionInfo(path + "\\Veeam.Backup.Core.dll");
-                    CGlobals.VBRFULLVERSION = version.FileVersion;
+                    CGlobals.VBRFULLVERSION = version.FileVersion ?? string.Empty;
                     this.ParseVbrMajorVersion(CGlobals.VBRFULLVERSION);
                     return CGlobals.VBRFULLVERSION;
                 }
@@ -527,10 +529,10 @@ namespace VeeamHealthCheck.Functions.Collection.DB
             var logDir = "C:\\ProgramData\\Veeam\\Backup";
             try
             {
-                using (RegistryKey key =
+                using (RegistryKey? key =
                     Registry.LocalMachine.OpenSubKey("Software\\Veeam\\Veeam Backup and Replication"))
                 {
-                    string dir = null;
+                    string? dir = null;
 
                     if (key != null)
                     {
@@ -540,7 +542,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
                         {
                             if (x == "LogDirectory")
                             {
-                                dir = key.GetValue("LogDirectory").ToString();
+                                dir = key.GetValue("LogDirectory")?.ToString();
                                 break;
                             }
                             else
@@ -549,11 +551,11 @@ namespace VeeamHealthCheck.Functions.Collection.DB
                             }
                         }
 
-                        return dir;
+                        return dir ?? logDir;
                     }
                     else
                     {
-                        logDir = dir;
+                        logDir = dir ?? logDir;
                         return logDir;
                     }
                 }

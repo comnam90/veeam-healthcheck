@@ -46,7 +46,7 @@ namespace VeeamHealthCheck.Functions.Collection
         /// </summary>
         /// <param name="basePath">The base path to search from.</param>
         /// <returns>Full path to directory containing CSV files, or null if not found.</returns>
-        public static string FindCsvDirectory(string basePath)
+        public static string? FindCsvDirectory(string basePath)
         {
             if (string.IsNullOrEmpty(basePath))
             {
@@ -77,7 +77,7 @@ namespace VeeamHealthCheck.Functions.Collection
             var vbrSubdir = Path.Combine(basePath, "VBR");
             var vb365Subdir = Path.Combine(basePath, "VB365");
 
-            string foundPath = null;
+            string? foundPath = null;
 
             if (Directory.Exists(vbrSubdir))
             {
@@ -147,7 +147,7 @@ namespace VeeamHealthCheck.Functions.Collection
         /// Find CSV directory within a product folder (VBR or VB365).
         /// Handles servername/timestamp subdirectory structure.
         /// </summary>
-        private static string FindCsvDirectoryInProductFolder(string productPath)
+        private static string? FindCsvDirectoryInProductFolder(string productPath)
         {
             // First check if CSVs are directly in the product folder
             var directCsvs = GetCsvFilesInDirectory(productPath);
@@ -200,7 +200,7 @@ namespace VeeamHealthCheck.Functions.Collection
         /// <summary>
         /// Recursively search for a directory containing critical CSV files.
         /// </summary>
-        private static string FindCsvDirectoryRecursive(string basePath, int maxDepth = 5)
+        private static string? FindCsvDirectoryRecursive(string basePath, int maxDepth = 5)
         {
             if (maxDepth <= 0)
                 return null;

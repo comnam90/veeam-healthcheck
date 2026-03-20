@@ -4,11 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using VeeamHealthCheck.Functions.Collection.DB;
 using VeeamHealthCheck.Shared;
 
 namespace VeeamHealthCheck.Functions.Collection.LogParser
 {
+    [SupportedOSPlatform("windows")]
     class CVmcReader
     {
         private string LOGLOCATION;
@@ -59,7 +61,7 @@ namespace VeeamHealthCheck.Functions.Collection.LogParser
                 }
 
                 fileInfoList.OrderBy(x => x.Name);
-                string fileName = fileInfoList.FirstOrDefault().Name;
+                string? fileName = fileInfoList.FirstOrDefault()?.Name;
                 this.LOGLOCATION = Path.Combine(this.vb365Logs + fileName);
             }
         }
@@ -68,7 +70,7 @@ namespace VeeamHealthCheck.Functions.Collection.LogParser
         {
             using (StreamReader sr = new StreamReader(this.LOGLOCATION))
             {
-                string line = string.Empty;
+                string? line = string.Empty;
                 while ((line = sr.ReadLine()) != null)
                 {
                     if (line.Contains(CLogOptions.installIdLine))

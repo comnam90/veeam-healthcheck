@@ -51,7 +51,7 @@ namespace VeeamHealthCheck.Shared
                         return true;
                     }
                     csv.ReadHeader();
-                    var headers = csv.HeaderRecord.ToArray();
+                    var headers = (csv.HeaderRecord ?? Array.Empty<string>()).ToArray();
 
                     while (csv.Read())
                     {
@@ -75,7 +75,7 @@ namespace VeeamHealthCheck.Shared
             }
         }
 
-        public static List<Dictionary<string, string>> GetCsvData(string filePath)
+        public static List<Dictionary<string, string>>? GetCsvData(string filePath)
         {
             lock (@lock)
             {

@@ -15,7 +15,7 @@ namespace VhcXTests.Functions.Reporting.Html
     [Trait("Category", "Unit")]
     public class CBackupServerTableHelperTEST : IDisposable
     {
-        private CDataTypesParser originalParser;
+        private CDataTypesParser? originalParser;
         private bool hadOriginalParser;
 
         public CBackupServerTableHelperTEST()
@@ -30,11 +30,11 @@ namespace VhcXTests.Functions.Reporting.Html
             // Restore original parser
             if (hadOriginalParser)
             {
-                CGlobals.DtParser = originalParser;
+                CGlobals.DtParser = originalParser!;
             }
             else
             {
-                CGlobals.DtParser = null;
+                CGlobals.DtParser = null!;
             }
         }
 

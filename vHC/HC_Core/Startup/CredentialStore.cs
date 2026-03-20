@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -15,6 +16,7 @@ public class CredentialRecord
     public string PasswordEnc { get; set; } // Base64 string
 }
 
+[SupportedOSPlatform("windows")]
 public static class CredentialStore
 {
     private static readonly string StorePath = Path.Combine(
@@ -32,7 +34,7 @@ public static class CredentialStore
     {
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(StorePath));
+            Directory.CreateDirectory(Path.GetDirectoryName(StorePath) ?? StorePath);
             // log the path for debugging purposes
             CGlobals.Logger.Debug($"Credential store path: {StorePath}");
 

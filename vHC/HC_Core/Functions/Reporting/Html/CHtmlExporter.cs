@@ -172,7 +172,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             catch (Exception ex)
             {
                 this.log.Error("Failed to export PowerPoint: " + ex.Message);
-                this.log.Error(ex.StackTrace);
+                this.log.Error(ex.StackTrace ?? string.Empty);
             }
         }
 
@@ -222,9 +222,9 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             }
         }
 
-        private string SetReportNameAndPath(bool scrub, string vbrOrVb365)
+        private string? SetReportNameAndPath(bool scrub, string vbrOrVb365)
         {
-            string installID = null;
+            string? installID = null;
             string htmlCore = string.Empty;
 
             try

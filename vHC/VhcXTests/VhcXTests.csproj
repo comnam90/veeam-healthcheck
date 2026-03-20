@@ -11,7 +11,9 @@
     <FileVersion>1.0.0.338</FileVersion>
 
     <!-- Suppress code analysis warnings - revisit later -->
-    <NoWarn>CA1305,CA1307,CA1820,CA2242,CA1031,CA1806,CA1822</NoWarn>
+    <NoWarn>CA1305,CA1307,CA1820,CA2242,CA1031,CA1806,CA1822,CS8618,NETSDK1206</NoWarn>
+    <!-- Suppress MSBuild SDK-level warning about old RID format in DinkToPdf.Standard -->
+    <MSBuildWarningsAsMessages>NETSDK1206</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
   <ItemGroup>

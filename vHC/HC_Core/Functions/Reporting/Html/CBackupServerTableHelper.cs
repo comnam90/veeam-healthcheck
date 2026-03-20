@@ -78,9 +78,9 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                 CCsvParser config = new();
                 CConfigBackupCsv cv = new();
                 var configBackupCsv = config.ConfigBackupCsvParser();
-                cv = configBackupCsv.FirstOrDefault();
+                cv = configBackupCsv.FirstOrDefault() ?? cv;
 
-                this.backupServer.ConfigBackupEnabled = CObjectHelpers.ParseBool(cv.Enabled);
+                this.backupServer.ConfigBackupEnabled = CObjectHelpers.ParseBool(cv?.Enabled!);
                 if (this.backupServer.ConfigBackupEnabled == true)
                 {
                     this.backupServer.ConfigBackupTarget = cv.Target;
@@ -114,7 +114,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
             {
                 List<CServerTypeInfos> csv = dtParser.ServerInfos;
-                CServerTypeInfos bs = csv.Where(x => x.Id == CGlobals.backupServerId).FirstOrDefault();
+                CServerTypeInfos? bs = csv.Where(x => x.Id == CGlobals.backupServerId).FirstOrDefault();
 
                 // var test = csv.Where(x => x.Id == CGlobals._backupServerId).FirstOrDefault();
 

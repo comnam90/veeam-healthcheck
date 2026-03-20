@@ -4,12 +4,14 @@ using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Security.Principal;
 using VeeamHealthCheck.Shared;
 using VeeamHealthCheck.Shared.Logging;
 
 namespace VeeamHealthCheck.Functions.Collection.Security
 {
+    [SupportedOSPlatform("windows")]
     internal class CSecurityInit
     {
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
@@ -55,7 +57,7 @@ namespace VeeamHealthCheck.Functions.Collection.Security
 
             this.VBRSERVER = domainName;
             Console.Write("Enter the login of a user on {0} that you wish to impersonate: ", domainName);
-            string userName = Console.ReadLine();
+            string? userName = Console.ReadLine();
 
             Console.Write("Enter the password for {0}: ", userName);
 
@@ -65,7 +67,7 @@ namespace VeeamHealthCheck.Functions.Collection.Security
             // const int LOGON32_LOGON_INTERACTIVE = 2;
             const int LOGON32_LOGON_INTERACTIVE = 9;
 
-            string password = null;
+            string? password = null;
             while (true)
             {
                 var key = System.Console.ReadKey(true);
@@ -86,7 +88,7 @@ namespace VeeamHealthCheck.Functions.Collection.Security
             // bool returnValue = LogonUser(userName, domainName, Console.ReadLine(),
             //    LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT,
             //    out safeAccessTokenHandle);
-            bool returnValue = LogonUser(userName, domainName, password,
+            bool returnValue = LogonUser(userName!, domainName, password!,
             LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT,
             out safeAccessTokenHandle);
 
@@ -146,22 +148,22 @@ namespace VeeamHealthCheck.Functions.Collection.Security
         {
             this.LOG.Info(this.logStart + "Getting list of apps. Output to be shown in " + this.appLogName);
             string registry_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
-            using (RegistryKey key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, this.VBRSERVER).OpenSubKey(registry_key))
+            using (RegistryKey? key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, this.VBRSERVER).OpenSubKey(registry_key))
             {
                 this.AppLOG.Info("Installed apps: ", false);
-                foreach (string subkey_name in key.GetSubKeyNames())
+                foreach (string subkey_name in key?.GetSubKeyNames() ?? Array.Empty<string>())
                 {
-                    using (RegistryKey subkey = key.OpenSubKey(subkey_name))
+                    using (RegistryKey? subkey = key?.OpenSubKey(subkey_name))
                     {
                         try
                         {
-                            var res = subkey.GetValue("DisplayName");
+                            var res = subkey?.GetValue("DisplayName");
                             if(res != null)
                             {
                                 res.ToString();
 
                                 // var n  = subkey.TryGetPropertyValue<string>("DisplayName");
-                                string name = res.ToString();// subkey.GetValue("DisplayName").ToString();
+                                string? name = res.ToString();// subkey.GetValue("DisplayName").ToString();
                                 if (CSecurityGlobalValues.IsConsoleInstalled == "Undetermined" || CSecurityGlobalValues.IsConsoleInstalled == "False")
                                 {
                                     if (name == "Veeam Backup & Replication Console")
@@ -190,11 +192,11 @@ namespace VeeamHealthCheck.Functions.Collection.Security
         {
             string registryKey = @"SYSTEM\CurrentControlSet\Control\Terminal Server";
             string keyName = "fDenyTSConnections";
-            using (RegistryKey key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, this.VBRSERVER).OpenSubKey(registryKey))// .LocalMachine.OpenSubKey(registryKey))
+            using (RegistryKey? key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, this.VBRSERVER).OpenSubKey(registryKey))// .LocalMachine.OpenSubKey(registryKey))
             {
                 this.LOG.Info("RDP Status:");
 
-                var v = key.GetValue(keyName).ToString();
+                var v = key?.GetValue(keyName)?.ToString();
 
                 switch (v)
                 {

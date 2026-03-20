@@ -1122,7 +1122,7 @@ namespace VeeamHealthCheck.Html.VBR
                                     try
                                     {
                                         var dict = (IDictionary<string, object>)job;
-                                        object srcObj = null;
+                                        object? srcObj = null;
                                         foreach (var key in dict.Keys)
                                         {
                                             if (key.Equals("SourceGB", StringComparison.OrdinalIgnoreCase))
@@ -1725,7 +1725,7 @@ namespace VeeamHealthCheck.Html.VBR
                     this.log.Info("This could indicate: 1) No SOBRs configured, 2) Collection script failed, or 3) CSV file not found");
                 }
 
-                foreach (var d in list)
+                foreach (var d in list!)
                 {
                     s += "<tr>";
                     s += this.form.TableData(d.Name, string.Empty);
@@ -1876,7 +1876,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
                     this.log.Info("This could indicate: 1) No SOBRs configured, 2) Collection script failed, or 3) CSV file not found");
                 }
 
-                foreach (var d in list)
+                foreach (var d in list!)
                 {
                     var prov = d.Provisioning;
                     int shade = 0;

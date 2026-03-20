@@ -308,7 +308,7 @@ namespace VhcXTests.TestData
         /// <summary>
         /// Create a test data directory with all standard CSV files
         /// </summary>
-        public static string CreateTestDataDirectory(string basePath = null)
+        public static string CreateTestDataDirectory(string? basePath = null)
         {
             // Normalize base path to prevent path traversal
             basePath = Path.GetFullPath(basePath ?? Path.Combine(Path.GetTempPath(), "VhcTests_" + Guid.NewGuid().ToString()));
@@ -340,7 +340,7 @@ namespace VhcXTests.TestData
         /// <summary>
         /// Create a minimal test data directory with only critical files
         /// </summary>
-        public static string CreateMinimalTestDataDirectory(string basePath = null)
+        public static string CreateMinimalTestDataDirectory(string? basePath = null)
         {
             // Normalize base path to prevent path traversal
             basePath = Path.GetFullPath(basePath ?? Path.Combine(Path.GetTempPath(), "VhcTests_" + Guid.NewGuid().ToString()));

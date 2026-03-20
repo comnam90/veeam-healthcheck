@@ -54,9 +54,9 @@ namespace VeeamHealthCheck.Functions.Collection.DB
         {
             foreach (DataRow row in table.Rows)
             {
-                string cpu = row["cpu_count"].ToString();
-                string hyperthread = row["hyperthread_ratio"].ToString();
-                string memory = row["physical_memory_kb"].ToString();
+                string? cpu = row["cpu_count"].ToString();
+                string? hyperthread = row["hyperthread_ratio"].ToString();
+                string? memory = row["physical_memory_kb"].ToString();
                 int.TryParse(cpu, out int c);
                 int.TryParse(hyperthread, out int h);
                 int.TryParse(memory, out int mem);

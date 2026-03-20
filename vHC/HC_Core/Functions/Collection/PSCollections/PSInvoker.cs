@@ -41,8 +41,8 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
         private readonly CLogger log = CGlobals.Logger;
         private readonly string logStart = "[PsInvoker]\t";
         private PowerShellVersion? preferredVersion = null;
-        private string pwshPath = null;
-        private string powershellPath = null;
+        private string? pwshPath = null;
+        private string? powershellPath = null;
 
         // Remove duplicate constructor, keep only one with detection logic
         public PSInvoker()
@@ -72,9 +72,9 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
             }
         }
 
-        private string FindExecutableInPath(string exeName)
+        private string? FindExecutableInPath(string exeName)
         {
-            var paths = Environment.GetEnvironmentVariable("PATH").Split(Path.PathSeparator);
+            var paths = (Environment.GetEnvironmentVariable("PATH") ?? string.Empty).Split(Path.PathSeparator);
             foreach (var path in paths)
             {
                 try
@@ -245,7 +245,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
                 var creds = CGlobals.CredentialProvider.GetCreds();
 
                 // Properly escape the password
-                string escapedPassword = CredentialHelper.EscapePasswordForPowerShell(creds.Value.Password);
+                string escapedPassword = CredentialHelper.EscapePasswordForPowerShell(creds!.Value.Password);
 
 
                 ProcessStartInfo startInfo = new ProcessStartInfo
@@ -497,7 +497,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
             this.log.Debug(this.logStart + "PS ArgString = " + safeArgString, false);
 
             // Use same PowerShell version logic as other methods
-            string exePath = null;
+            string? exePath = null;
             if (!string.IsNullOrEmpty(this.pwshPath) && !(CGlobals.VBRMAJORVERSION < 13))
             {
                 exePath = this.pwshPath;
@@ -685,7 +685,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
 
             // Use the same PowerShell version failover logic as ExecutePsScriptWithFailover
             // Prefer PowerShell 7, then 5, else throw
-            string exePath = null;
+            string? exePath = null;
 
             // if vbr version is v13 and pwsh exists, use pwsh, else use powershell
             if (!string.IsNullOrEmpty(this.pwshPath) && !(CGlobals.VBRMAJORVERSION < 13))

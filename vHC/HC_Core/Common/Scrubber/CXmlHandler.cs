@@ -109,8 +109,8 @@ namespace VeeamHealthCheck.Scrubber
             }
             else
             {
-                this.matchDictionary.TryGetValue(item, out string newName);
-                return newName;
+                this.matchDictionary.TryGetValue(item, out string? newName);
+                return newName ?? string.Empty;
             }
         }
 

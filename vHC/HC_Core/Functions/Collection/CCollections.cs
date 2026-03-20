@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using Microsoft.Management.Infrastructure;
 using VeeamHealthCheck.Functions.Collection.DB;
 using VeeamHealthCheck.Functions.Collection.LogParser;
@@ -18,6 +19,7 @@ using VeeamHealthCheck.Shared.Logging;
 
 namespace VeeamHealthCheck.Functions.Collection
 {
+    [SupportedOSPlatform("windows")]
     internal class CCollections
     {
         public bool SCRIPTSUCCESS;

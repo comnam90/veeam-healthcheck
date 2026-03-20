@@ -985,7 +985,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                     }
 
 
-                    defaults.defaultKeys.TryGetValue(r.Key, out string setValue);
+                    defaults.defaultKeys.TryGetValue(r.Key, out string? setValue);
                     if (setValue != workingValue)
                     {
                         returnDict.Add(r.Key, workingValue);
@@ -994,7 +994,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
                 if (!defaults.defaultKeys.ContainsKey(r.Key))
                 {
-                    defaults.defaultKeys.TryGetValue(r.Key, out string setValue);
+                    defaults.defaultKeys.TryGetValue(r.Key, out string? setValue);
                     returnDict.Add(r.Key, workingValue);
                 }
             }
@@ -1191,7 +1191,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                     // Try to match CSV row by multiple strategies: serverId, server name lookup, partial matches
                     var serverName = CGlobals.ServerInfo?.FirstOrDefault(s => s.Id == serverId)?.Name;
 
-                    CRequirementsCsvInfo matching = null;
+                    CRequirementsCsvInfo? matching = null;
 
                     // 1) exact match against serverId (CSV may contain IP or short name which sometimes equals id)
                     matching = reqRows.FirstOrDefault(r => string.Equals(r.Server?.Trim(), serverId?.Trim(), StringComparison.OrdinalIgnoreCase)
@@ -1408,7 +1408,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                     {
                         Name = capacityTierName,
                         SobrName = sobrName,
-                        ParentSobrId = cap.ParentId,
+                        ParentSobrId = cap.ParentId!,
                         Type = cap.Type,
                         CopyModeEnabled = sobr?.CapacityTierCopyPolicyEnabled ?? false,
                         MoveModeEnabled = sobr?.CapacityTierMovePolicyEnabled ?? false,
@@ -1417,7 +1417,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                         ImmutableEnabled = immutableEnabled,
                         ImmutablePeriod = cap.ImmutePeriod,
                         SizeLimitEnabled = sizeLimitEnabled,
-                        SizeLimit = sizeLimitEnabled ? cap.SizeLimit : null,
+                        SizeLimit = sizeLimitEnabled ? cap.SizeLimit! : null!,
                         Status = string.IsNullOrWhiteSpace(cap.Status) ? "Enabled" : cap.Status,
                         TierType = "Capacity",
                         ImmutabilityMode = cap.ImmutabilityMode,
