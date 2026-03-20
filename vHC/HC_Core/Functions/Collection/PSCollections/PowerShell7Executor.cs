@@ -92,7 +92,7 @@ Write-Output ""Checking Veeam on $VeeamServer""
             return process.ExitCode;
         }
 
-        public (bool Success, List<string> Output, string Error) ExecuteScript(string scriptName, Dictionary<string, object> parameters = null)
+        public (bool Success, List<string> Output, string Error) ExecuteScript(string scriptName, Dictionary<string, object>? parameters = null)
         {
             var output = new List<string>();
             string errorMsg = string.Empty;

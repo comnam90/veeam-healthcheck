@@ -27,7 +27,7 @@ namespace VeeamHealthCheck.Scrubber
         {
             XElement xml = new XElement("fauxname", obfuscated,
                 new XElement("originalname", original));
-            this.doc.Root.Add(xml);
+            this.doc.Root!.Add(xml);
             this.doc.Save(this.matchListPath);
 
             this.WriteToText();

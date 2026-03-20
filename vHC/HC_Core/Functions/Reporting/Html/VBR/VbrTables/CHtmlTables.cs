@@ -3604,7 +3604,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
 
         private static bool JobTypeSupportsAaip(string jobType) => AaipSupportedJobTypes.Contains(jobType);
 
-        private string SetGenericJobTablHeader(bool useSourceSize, string jobType = null)
+        private string SetGenericJobTablHeader(bool useSourceSize, string? jobType = null)
         {
             bool showAaipColumns = jobType != null && JobTypeSupportsAaip(jobType);
 

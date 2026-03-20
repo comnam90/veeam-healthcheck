@@ -1175,7 +1175,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             // _isBackupServerProxyDisabled = false;
         }
 
-        private void CheckServerRoles(string serverId, List<CRequirementsCsvInfo> reqRows = null)
+        private void CheckServerRoles(string serverId, List<CRequirementsCsvInfo>? reqRows = null)
         {
             log.Info($"Checking server roles.. for server: {serverId}");
             ResetRoles();

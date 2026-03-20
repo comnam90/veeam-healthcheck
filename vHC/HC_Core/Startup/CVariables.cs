@@ -23,7 +23,7 @@ namespace VeeamHealthCheck
         /// Stores the resolved import CSV directory path after CImportPathResolver runs.
         /// This is set during import validation and used by vbrDir/vb365dir properties.
         /// </summary>
-        public static string ResolvedImportPath { get; set; } = null;
+        public static string? ResolvedImportPath { get; set; }
 
         public string unSafeDir2()
         {
