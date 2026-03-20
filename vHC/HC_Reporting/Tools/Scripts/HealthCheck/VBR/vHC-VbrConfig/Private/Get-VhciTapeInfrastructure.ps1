@@ -25,8 +25,15 @@ function Get-VhciTapeInfrastructure {
 
     $tapeJob | Select-Object Name, Type, Id, Description,
         FullBackupMediaPool, IncrementalBackupMediaPool,
-        ProcessIncrementalBackup,
-        @{N='Objects'; E={($_.Object | Where-Object {$_}) -join ', '}},
+        @{N='ProcessIncrementalBackup'; E={
+            if ($null -ne $_.ProcessIncrementalBackup) { $_.ProcessIncrementalBackup }
+            else { -not [string]::IsNullOrEmpty($_.IncrementalBackupPolicy) }
+        }},
+        @{N='Objects'; E={
+            ($_.Object | Where-Object {$_} | ForEach-Object {
+                if ($_ -is [string]) { $_ } elseif ($_.Name) { $_.Name } else { "$_" }
+            }) -join ', '
+        }},
         UseHardwareCompression, EjectCurrentMedium, ExportCurrentMediaSet,
         Enabled, NextRun, LastResult, LastState |
         Export-VhciCsv -FileName '_TapeJobs.csv'
