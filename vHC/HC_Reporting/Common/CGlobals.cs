@@ -81,6 +81,18 @@ namespace VeeamHealthCheck.Shared
         /// </summary>
         public static Func<string, bool> GuiAdminContinuePrompt;
 
+        /// <summary>
+        /// Registered by the GUI shell to show a blocking error dialog for a fatal import failure
+        /// (e.g. no CSV files found). Null in CLI mode — the error is already logged.
+        /// </summary>
+        public static Action<string> GuiImportErrorNotify;
+
+        /// <summary>
+        /// Registered by the GUI shell to show a non-blocking warning dialog when import
+        /// validation finds missing files but allows the run to continue. Null in CLI mode.
+        /// </summary>
+        public static Action<string> GuiImportWarningNotify;
+
         // Security Values
         public static bool IsMfaEnabled = false;
 

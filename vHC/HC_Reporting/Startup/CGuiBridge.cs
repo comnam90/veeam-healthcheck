@@ -45,6 +45,16 @@ namespace VeeamHealthCheck.Startup
             return result == MessageBoxResult.Yes;
         }
 
+        public static void NotifyImportError(string message)
+        {
+            MessageBox.Show(message, "Import Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        public static void NotifyImportWarning(string message)
+        {
+            MessageBox.Show(message, "Import Validation Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+
         public static bool AcceptTerms()
         {
             string message = VbrLocalizationHelper.GuiAcceptText;

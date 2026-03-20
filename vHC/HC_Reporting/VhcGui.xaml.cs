@@ -20,6 +20,8 @@ namespace VeeamHealthCheck
         public VhcGui()
         {
             CGlobals.GuiAdminContinuePrompt = CGuiBridge.ConfirmContinueWithoutAdmin;
+            CGlobals.GuiImportErrorNotify = CGuiBridge.NotifyImportError;
+            CGlobals.GuiImportWarningNotify = CGuiBridge.NotifyImportWarning;
 
             InitializeComponent();
 
@@ -230,9 +232,21 @@ namespace VeeamHealthCheck
         {
             System.Threading.Tasks.Task.Factory.StartNew(() =>
             {
-                this.functions.StartPrimaryFunctions();
-                this.UpdateCollectionStatusText();
-                this.ShowCollectionWarningsIfAny();
+                int result = this.functions.StartPrimaryFunctions();
+                if (result != 0)
+                {
+                    this.Dispatcher.Invoke((Action)(() =>
+                    {
+                        progressText.Text = "Failed \u2014 see log for details";
+                        progressText.Foreground = new System.Windows.Media.SolidColorBrush(
+                            System.Windows.Media.Color.FromRgb(0xd9, 0x53, 0x4f));
+                    }));
+                }
+                else
+                {
+                    this.UpdateCollectionStatusText();
+                    this.ShowCollectionWarningsIfAny();
+                }
                 Environment.Exit(0);
             }).ContinueWith(t =>
             {

@@ -323,6 +323,9 @@ namespace VeeamHealthCheck.Startup
                 this.LOG.Error(this.logStart + $"No valid CSV files found in: {basePath}", false);
                 this.LOG.Info(this.logStart + "Expected structure: path/VBR/servername/timestamp/ or path containing CSV files directly", false);
 
+                CGlobals.GuiImportErrorNotify?.Invoke(
+                    $"No valid CSV files found in:\n{basePath}\n\nPlease verify the import path contains VBR or VB365 CSV export files.");
+
                 return false;
             }
 
@@ -332,6 +335,9 @@ namespace VeeamHealthCheck.Startup
             if (!validationResult.IsValid && validationResult.MissingCriticalFiles.Count > 3)
             {
                 this.LOG.Error(this.logStart + $"Import validation failed: {validationResult.ErrorMessage}", false);
+
+                CGlobals.GuiImportWarningNotify?.Invoke(
+                    $"Import validation failed:\n{validationResult.ErrorMessage}\n\nMissing files: {string.Join(", ", validationResult.MissingCriticalFiles)}\n\nThe run will continue with partial data.");
 
                 // Allow import to continue with partial data
                 this.LOG.Warning(this.logStart + "Continuing with partial data - some report sections may be incomplete.", false);
