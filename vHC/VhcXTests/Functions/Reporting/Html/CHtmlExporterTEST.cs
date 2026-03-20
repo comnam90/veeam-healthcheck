@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.Versioning;
 using VeeamHealthCheck;
 using VeeamHealthCheck.Functions.Reporting.Html;
 using VeeamHealthCheck.Shared;
@@ -13,6 +14,7 @@ namespace VhcXTests.Functions.Reporting.Html
     /// These tests focus on what can be tested without extensive mocking.
     /// </summary>
     [Trait("Category", "Unit")]
+    [SupportedOSPlatform("windows")]
     public class CHtmlExporterTEST : IDisposable
     {
         private readonly string _testOutputDir;
