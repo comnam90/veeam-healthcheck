@@ -33,7 +33,7 @@ jobs:
       run: dotnet restore vHC/VhcXTests/VhcXTests.csproj
 
     - name: Build
-      run: dotnet build vHC/VhcXTests/VhcXTests.csproj --no-restore
+      run: dotnet build vHC/VhcXTests/VhcXTests.csproj --no-restore /m:1
 
     - name: Run cross-platform tests
       run: dotnet test vHC/VhcXTests/VhcXTests.csproj --no-build --verbosity normal
