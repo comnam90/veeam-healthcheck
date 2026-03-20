@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Text.Json;
 using VeeamHealthCheck.Functions.Collection.LogParser;
 using VeeamHealthCheck.Functions.Reporting.Html.Exportables;
@@ -17,6 +18,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
     /// <summary>
     /// Provides methods for exporting Veeam Health Check reports in HTML, PDF, and JSON formats.
     /// </summary>
+    [SupportedOSPlatform("windows")]
         public class CHtmlExporter
         {
         private readonly string htmlName = "Veeam Health Check Report";
@@ -28,7 +30,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         private readonly string origPath = CGlobals.desiredPath + CVariables.unsafeSuffix;
 
         private readonly string backupServerName;
-        private string latestReport;
+        private string? latestReport;
 
         public CHtmlExporter(string serverName)
         {
@@ -145,7 +147,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             htmlShowAll = htmlShowAll.Replace("⚠️", "(!)");
             htmlShowAll = htmlShowAll.Replace("&#9432;", "ℹ️");
 
-            pdf.ConvertHtmlToPdf(htmlShowAll, this.latestReport.Replace(".html", ".pdf"));
+            pdf.ConvertHtmlToPdf(htmlShowAll, this.latestReport!.Replace(".html", ".pdf"));
             pdf.Dispose();
 
             // var htmlToDocx = new CHtmlToDocx();
@@ -163,7 +165,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                 string htmlShowAll = htmlString.Replace("style=\"display: none\">", "style=\"display: block\">");
                 htmlShowAll = htmlShowAll.Replace("collapsible classBtn", "collapsible classBtn active");
 
-                string pptxPath = this.latestReport.Replace(".html", ".pptx");
+                string pptxPath = this.latestReport!.Replace(".html", ".pptx");
                 pptx.ConvertHtmlToPptx(htmlShowAll, pptxPath);
                 pptx.Dispose();
 
@@ -191,7 +193,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
         private void WriteHtmlToFile(string htmlString)
         {
-            using (StreamWriter sw = new StreamWriter(this.latestReport))
+            using (StreamWriter sw = new StreamWriter(this.latestReport!))
             {
                 sw.Write(htmlString);
             }
@@ -207,7 +209,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                     return;
                 }
 
-                string jsonPath = this.latestReport.Replace(".html", ".json");
+                string jsonPath = this.latestReport!.Replace(".html", ".json");
                 this.log.Info("Exporting JSON report to: " + jsonPath);
 
                 var options = new JsonSerializerOptions { WriteIndented = true };
@@ -316,7 +318,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
         private void ExecBrowser()
         {
             var p = new Process();
-            p.StartInfo = new ProcessStartInfo(this.latestReport)
+            p.StartInfo = new ProcessStartInfo(this.latestReport!)
             {
                 UseShellExecute = true
             };

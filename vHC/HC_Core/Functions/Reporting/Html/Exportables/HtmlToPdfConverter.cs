@@ -37,7 +37,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
                 }
             };
 
-            byte[] pdf = this.converter.Convert(doc);
+            byte[] pdf = this.converter!.Convert(doc);
             File.WriteAllBytes(outputPath, pdf);
         }
 

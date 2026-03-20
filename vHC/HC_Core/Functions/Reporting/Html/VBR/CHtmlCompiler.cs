@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.Versioning;
 using VeeamHealthCheck.Functions.Reporting.CsvHandlers;
 using VeeamHealthCheck.Functions.Reporting.Html.Shared;
 using VeeamHealthCheck.Html.VBR;
@@ -15,6 +16,7 @@ using VeeamHealthCheck.Shared.Logging;
 
 namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
 {
+    [SupportedOSPlatform("windows")]
     internal class CHtmlCompiler
     {
         private string htmldocOriginal = string.Empty;
@@ -140,7 +142,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
                 if (vbrInfo != null)
                 {
                     // Determine server name based on database type
-                    string serverName = null;
+                    string? serverName = null;
 
                     if (!string.IsNullOrEmpty(vbrInfo.DbType))
                     {
@@ -205,7 +207,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
             var resourceName = $"VeeamHealthCheck.{embeddedFileName}";
 
             using (var stream = assembly.GetManifestResourceStream(resourceName))
-            using (var reader = new StreamReader(stream))
+            using (var reader = new StreamReader(stream!))
             {
                 return reader.ReadToEnd();
             }
@@ -401,7 +403,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
 
                 // Try to find the Version key, with or without quotes
                 var dict = res[0];
-                string versionStr = null;
+                string? versionStr = null;
                 if (dict.TryGetValue("Version", out versionStr) && !string.IsNullOrWhiteSpace(versionStr))
                 {
                     // found as Version

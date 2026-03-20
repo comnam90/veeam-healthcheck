@@ -207,10 +207,10 @@ namespace VeeamHealthCheck.Functions.Collection.LogParser
 
             using (StreamReader sr = new(file))
             {
-                string line;
+                string? line;
                 string waitLine = "Waiting for backup infrastructure resources availability";
-                string startTime = null;
-                string endTime = null;
+                string? startTime = null;
+                string? endTime = null;
 
                 bool countNextLine = false;
                 while ((line = sr.ReadLine()) != null)

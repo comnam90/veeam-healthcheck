@@ -123,7 +123,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
 
         private void CreatePresentationParts(PresentationDocument presentationDocument)
         {
-            PresentationPart presentationPart = presentationDocument.PresentationPart;
+            PresentationPart presentationPart = presentationDocument.PresentationPart!;
 
             presentationPart.Presentation.SlideIdList = new SlideIdList();
             presentationPart.Presentation.SlideSize = new SlideSize() { Cx = 12192000, Cy = 6858000, Type = SlideSizeValues.Screen16x9 };
@@ -217,7 +217,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.Exportables
             SlideMasterPart slideMasterPart = presentationPart.AddNewPart<SlideMasterPart>("rId1");
 
             // Link theme to slide master
-            ThemePart themePart = presentationPart.GetPartById("rId5") as ThemePart;
+            ThemePart? themePart = presentationPart.GetPartById("rId5") as ThemePart;
             if (themePart != null)
             {
                 slideMasterPart.AddPart(themePart, "rId1");

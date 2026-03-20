@@ -2,12 +2,14 @@
 // MIT License
 using System;
 using System.Data;
+using System.Runtime.Versioning;
 using VeeamHealthCheck.Functions.Analysis.DataModels;
 using VeeamHealthCheck.Shared;
 using VeeamHealthCheck.Shared.Logging;
 
 namespace VeeamHealthCheck.Functions.Collection.DB
 {
+    [SupportedOSPlatform("windows")]
     internal class CSqlExecutor
     {
         private readonly CLogger LOG = CGlobals.Logger;
@@ -28,7 +30,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
             try
             {
                 this.LOG.Info("starting sql queries");
-                DataTable dbServerInfo = new DataTable();
+                DataTable? dbServerInfo = new DataTable();
                 CQueries cq = new();
                 dbServerInfo = cq.SqlServerInfo;
 
@@ -39,7 +41,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
                 CGlobals.DBEdition = cq.SqlEdition;
                 CGlobals.DBVERSION = cq.SqlVerion;
                 CGlobals.DBTYPE = CGlobals.SqlTypeName;
-                TryParseSqlResources(dbServerInfo);
+                if (dbServerInfo != null) TryParseSqlResources(dbServerInfo);
                 this.LOG.Info("starting sql queries..done!");
             }
             catch (Exception e)

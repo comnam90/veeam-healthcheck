@@ -761,7 +761,6 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VB365
                     string vmLoc = string.Empty;
                     string vmSku = string.Empty;
                     string vmSize = string.Empty;
-                    int counter = 0;
                     foreach (var g in gl)
                     {
                         switch (g.Key)
@@ -1226,7 +1225,6 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VB365
                     string freespace = string.Empty;
                     string boundrepo = string.Empty;
 
-                    int counter = 0;
                     foreach (var g in gl)
                     {
                         switch (g.Key)
@@ -1281,22 +1279,6 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VB365
                     }
 
 
-                    int freeSpaceShade = 0;
-                    string[] sizeLimitArray = sizelimit.Split();
-                    double.TryParse(sizeLimitArray[0], out double sizeLimitNumber);
-
-                    string[] freeSpaceArray = freespace.Split();
-                    double.TryParse(freeSpaceArray[0], out double freeSpaceNumber);
-                    if (freeSpaceNumber / sizeLimitNumber * 100 < 10)
-                    {
-                        freeSpaceShade = 3;
-                    }
-
-
-                    if (freeSpaceNumber / sizeLimitNumber * 100 < 5)
-                    {
-                        freeSpaceShade = 1;
-                    }
 
 
                     s += this.form.TableData(name, string.Empty);

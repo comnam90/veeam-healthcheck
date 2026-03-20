@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2021, Adam Congdon <adam.congdon2@gmail.com>
 // MIT License
 using System.IO;
+using System.Runtime.Versioning;
 using VeeamHealthCheck.Functions.Reporting.Html.VB365;
 using VeeamHealthCheck.Functions.Reporting.Html.VBR;
 using VeeamHealthCheck.Shared;
@@ -8,6 +9,7 @@ using VeeamHealthCheck.Shared.Logging;
 
 namespace VeeamHealthCheck.Startup
 {
+    [SupportedOSPlatform("windows")]
     internal class CReportModeSelector
     {
         private readonly CLogger LOG = CGlobals.Logger;

@@ -65,7 +65,7 @@ namespace VeeamHealthCheck.Functions.Reporting.DataTypes
                 this.log.Info("[CDataTypesParser] Parsing JobInfo...");
                 this.JobInfos = this.JobInfo();
                 this.log.Info("[CDataTypesParser] Parsing JobSessionInfo...");
-                this.JobSessions = this.JobSessionInfo().ToList();
+                this.JobSessions = this.JobSessionInfo()?.ToList() ?? new List<CJobSessionInfo>();
                 this.log.Info("[CDataTypesParser] Parsing ServerInfo...");
                 this.serverInfo = this.ServerInfo();
                 this.ServerInfos = this.serverInfo;
@@ -84,7 +84,7 @@ namespace VeeamHealthCheck.Functions.Reporting.DataTypes
                 this.log.Info("[CDataTypesParser] Parsing WanInfo...");
                 this.WanInfos = this.WanInfo();
                 this.log.Info("[CDataTypesParser] Parsing ConfigBackupInfo...");
-                this.ConfigBackup = this.ConfigBackupInfo();
+                this.ConfigBackup = this.ConfigBackupInfo() ?? new CConfigBackupCsv();
                 this.log.Info("[CDataTypesParser] Parsing NetTrafficRules...");
                 this.NetTrafficRules = this.NetTrafficRulesParser();
 
@@ -465,7 +465,7 @@ namespace VeeamHealthCheck.Functions.Reporting.DataTypes
             return ntList;
         }
 
-        private CConfigBackupCsv ConfigBackupInfo()
+        private CConfigBackupCsv? ConfigBackupInfo()
         {
             var configB = this.csvParser.ConfigBackupCsvParser();
             if (configB != null)
@@ -627,7 +627,7 @@ namespace VeeamHealthCheck.Functions.Reporting.DataTypes
             return eInfoList;
         }
 
-        private List<CJobSessionInfo> JobSessionInfo()
+        private List<CJobSessionInfo>? JobSessionInfo()
         {
             try
             {

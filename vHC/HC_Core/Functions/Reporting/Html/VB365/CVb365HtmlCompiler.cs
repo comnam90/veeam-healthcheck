@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Runtime.Versioning;
 using VeeamHealthCheck.Functions.Reporting.CsvHandlers;
 using VeeamHealthCheck.Functions.Reporting.Html.Shared;
 using VeeamHealthCheck.Functions.Reporting.Html.VBR;
@@ -12,6 +13,7 @@ using VeeamHealthCheck.Shared.Logging;
 
 namespace VeeamHealthCheck.Functions.Reporting.Html.VB365
 {
+    [SupportedOSPlatform("windows")]
     internal class CVb365HtmlCompiler
     {
         readonly CHtmlFormatting form = new();
@@ -174,7 +176,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VB365
                 if (proxies != null && proxies.Count > 0)
                 {
                     // Get first proxy's hostname - typically the VB365 server itself or primary proxy
-                    string serverName = proxies[0].Name?.ToString();
+                    string? serverName = proxies[0].Name?.ToString();
 
                     if (!string.IsNullOrEmpty(serverName))
                     {

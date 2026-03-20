@@ -6,6 +6,7 @@
     <AssemblyName>HC_Core</AssemblyName>
     <RootNamespace>VeeamHealthCheck</RootNamespace>
     <NoWarn>CA1305,CA1307,CA1820,CA2242,CA1031,CA1806,CA1822,CS8618,NETSDK1206</NoWarn>
+    <MSBuildWarningsAsMessages>NETSDK1206</MSBuildWarningsAsMessages>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="VhcXTests" />

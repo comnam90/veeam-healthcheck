@@ -58,13 +58,13 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR.VbrTables.Job_Session_Su
             try
             {
                 CCsvParser csv = new();
-                IEnumerable<CWaitsCsv> waitList = null;
+                IEnumerable<CWaitsCsv>? waitList = null;
                 var rawCsv = csv.WaitsCsvReader();
                 if (rawCsv != null) { waitList = rawCsv.ToList(); }
 
                 List<TimeSpan> tList = new();
 
-                foreach (var w in waitList)
+                foreach (var w in waitList ?? Enumerable.Empty<CWaitsCsv>())
                 {
                     string fixedName = jobName.Replace(" ", "_");
 

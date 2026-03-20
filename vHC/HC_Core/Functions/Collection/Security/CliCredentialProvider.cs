@@ -1,6 +1,7 @@
 // Copyright (c) 2021, Adam Congdon <adam.congdon2@gmail.com>
 // MIT License
 using System;
+using System.Runtime.Versioning;
 using System.Text;
 using VeeamHealthCheck.Shared;
 using VeeamHealthCheck.Startup;
@@ -12,6 +13,7 @@ namespace VeeamHealthCheck.Functions.Collection.Security
     /// Used when running headless or without a WPF application context.
     /// The WPF shell (HC_Reporting) registers its own GUI-capable provider at startup.
     /// </summary>
+    [SupportedOSPlatform("windows")]
     internal class CliCredentialProvider : ICredentialProvider
     {
         public (string Username, string Password)? GetCreds()

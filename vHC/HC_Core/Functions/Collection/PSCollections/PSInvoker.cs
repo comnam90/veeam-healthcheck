@@ -100,7 +100,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
             return null;
         }
 
-        private string GetPowerShellExecutable(PowerShellVersion version)
+        private string? GetPowerShellExecutable(PowerShellVersion version)
         {
             return version == PowerShellVersion.PowerShell7 ? this.pwshPath : this.powershellPath;
         }
@@ -242,7 +242,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
 
             try
             {
-                var creds = CGlobals.CredentialProvider.GetCreds();
+                var creds = CGlobals.CredentialProvider!.GetCreds();
 
                 // Properly escape the password
                 string escapedPassword = CredentialHelper.EscapePasswordForPowerShell(creds!.Value.Password);
@@ -290,7 +290,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
                     List<string> errorarray = new();
 
                     bool mfaFound = true;
-                    string errString = string.Empty;
+                    string? errString;
                     while ((errString = res.StandardError.ReadLine()) != null)
                     {
                         var errResults = this.ParseErrors(errString);
@@ -484,7 +484,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
             string safeArgString = argString; // For logging without sensitive data
             if (needsCredentials)
             {
-                var creds = CGlobals.CredentialProvider.GetCreds();
+                var creds = CGlobals.CredentialProvider!.GetCreds();
                 if (creds != null)
                 {
                     byte[] passwordBytes = System.Text.Encoding.UTF8.GetBytes(creds.Value.Password);
@@ -546,7 +546,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
         public void RunServerDump()
         {
             ProcessStartInfo p = this.DumpServersStartInfo();
-            var result = Process.Start(p);
+            var result = Process.Start(p)!;
             this.log.Info("Starting PowerShell Server Dump. Process ID: " + result.Id.ToString(), false);
             result.WaitForExit();
             this.log.Info("Powershell server dump complete.", false);
@@ -557,7 +557,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
             ProcessStartInfo p = this.ExportLogsStartInfo(path, server);
 
             // log.Debug(p., false);
-            var res1 = Process.Start(p);
+            var res1 = Process.Start(p)!;
             this.log.Info(CMessages.PsVbrConfigProcId + res1.Id.ToString(), false);
             this.log.Info("\tPS Window is minimized by default. Progress indicators can be found there.", false);
 
@@ -645,7 +645,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
                 }
                 if (needsCredentials)
                 {
-                    var creds = CGlobals.CredentialProvider.GetCreds();
+                    var creds = CGlobals.CredentialProvider!.GetCreds();
                     if (creds != null)
                     {
                         // Encode password in Base64 for secure transmission
@@ -669,7 +669,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
                 }
                 if (needsCredentials)
                 {
-                    var creds = CGlobals.CredentialProvider.GetCreds();
+                    var creds = CGlobals.CredentialProvider!.GetCreds();
                     if (creds != null)
                     {
                         // Encode password in Base64 for secure transmission
@@ -721,7 +721,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
         {
             this.log.Info("[PS] Enter VB365 collection invoker...", false);
 
-            string scriptContent = this.GetEmbeddedScript("VeeamHealthCheck.Functions.Collection.PSCollections.Scripts.Collect-VB365Data.ps1");
+            string? scriptContent = this.GetEmbeddedScript("VeeamHealthCheck.Functions.Collection.PSCollections.Scripts.Collect-VB365Data.ps1");
 
             if (string.IsNullOrEmpty(scriptContent))
             {
@@ -764,7 +764,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
             }
         }
 
-        private string GetEmbeddedScript(string resourceName)
+        private string? GetEmbeddedScript(string resourceName)
         {
             var assembly = Assembly.GetExecutingAssembly();
             using (var stream = assembly.GetManifestResourceStream(resourceName))
@@ -797,7 +797,7 @@ namespace VeeamHealthCheck.Functions.Collection.PSCollections
             };
             this.log.Info("[PS] Starting VB365 Collection Powershell process", false);
             this.log.Info("[PS] [ARGS]: " + startInfo.Arguments, false);
-            var result = Process.Start(startInfo);
+            var result = Process.Start(startInfo)!;
             this.log.Info("[PS] Process started with ID: " + result.Id.ToString(), false);
             result.WaitForExit();
             this.log.Info("[PS] VB365 collection complete!", false);

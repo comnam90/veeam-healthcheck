@@ -26,17 +26,17 @@ namespace VeeamHealthCheck.Functions.Reporting.CsvHandlers
             // _outPath = vbrOrVboPath;
         }
 
-        public CsvReader VbrCsvReader(string file)
+        public CsvReader? VbrCsvReader(string file)
         {
             return this.FileFinder(file, CVariables.vbrDir);
         }
 
-        public CsvReader VboCsvReader(string file)
+        public CsvReader? VboCsvReader(string file)
         {
             return this.FileFinder(file, CVariables.vb365dir);
         }
 
-        public CsvReader FileFinder(string token, string outpath)
+        public CsvReader? FileFinder(string token, string outpath)
         {
             try
             {

@@ -63,7 +63,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR.VbrTables.Job_Session_Su
                 }
         }
 
-        private List<string> ReturnJobSessionsNamesList()
+        private List<string>? ReturnJobSessionsNamesList()
         {
             var targetDate = CGlobals.GetToolStart.AddDays(-CGlobals.ReportDays);
 
@@ -96,7 +96,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR.VbrTables.Job_Session_Su
             var namesList = this.ReturnJobSessionsNamesList();
             var totalSessions = this.ReturnJobSessionsList().Count();
 
-            foreach (var name in namesList)
+            foreach (var name in namesList ?? Enumerable.Empty<string>())
             {
               try
               {
@@ -120,7 +120,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR.VbrTables.Job_Session_Su
                 string mainString = this.ReturnTableHeaderString(jName);
                 File.WriteAllText(mainDir, mainString);
 
-                string scrubString = this.ReturnTableHeaderString(jName);
+                string? scrubString = this.ReturnTableHeaderString(jName);
                 File.WriteAllText(scrubDir, scrubString);
 
                 int counter = 1;

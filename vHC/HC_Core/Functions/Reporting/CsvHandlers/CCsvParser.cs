@@ -132,7 +132,7 @@ namespace VeeamHealthCheck.Functions.Reporting.CsvHandlers
             this.Start(csvRepo);
         }
 
-        private void Start(string csvRepo)
+        private void Start(string? csvRepo)
         {
             if (string.IsNullOrEmpty(csvRepo))
             {
@@ -1008,7 +1008,7 @@ namespace VeeamHealthCheck.Functions.Reporting.CsvHandlers
         #region localFunctions
         public void Dispose() { }
 
-        private CsvReader VbrFileReader(string file)
+        private CsvReader? VbrFileReader(string file)
         {
             var fileResult = this.vbrReader.FileFinder(file, this.outPath);
             if (fileResult != null)
@@ -1022,7 +1022,7 @@ namespace VeeamHealthCheck.Functions.Reporting.CsvHandlers
             }
         }
 
-        private static CsvReader VbrFileReaderStatic(string file)
+        private static CsvReader? VbrFileReaderStatic(string file)
         {
             var fileResult = vbrReaderStatic.VbrCsvReader(file);
             if (fileResult != null)
@@ -1036,7 +1036,7 @@ namespace VeeamHealthCheck.Functions.Reporting.CsvHandlers
             }
         }
 
-        private CsvReader VboFileReader(string file)
+        private CsvReader? VboFileReader(string file)
         {
             var fileResult = this.vbrReader.VboCsvReader(file);
             if (fileResult != null)

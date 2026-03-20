@@ -1,7 +1,10 @@
 ﻿// Copyright (c) 2021, Adam Congdon <adam.congdon2@gmail.com>
 // MIT License
+using System.Runtime.Versioning;
+
 namespace VeeamHealthCheck.Functions.Collection.LogParser
 {
+    [SupportedOSPlatform("windows")]
     class CLogOptions
     {
         public static readonly string VMCLOG = "\\Utils\\VMC.log";

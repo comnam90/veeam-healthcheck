@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.Versioning;
 using VeeamHealthCheck.Functions.Collection;
 using VeeamHealthCheck.Functions.Collection.LogParser;
 using VeeamHealthCheck.Functions.Collection.PSCollections;
@@ -13,6 +14,7 @@ using VeeamHealthCheck.Shared.Logging;
 
 namespace VeeamHealthCheck.Startup
 {
+    [SupportedOSPlatform("windows")]
     internal class CHotfixDetector
     {
         private readonly CLogger LOG = CGlobals.Logger;

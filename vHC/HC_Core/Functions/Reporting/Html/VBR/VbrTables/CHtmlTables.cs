@@ -140,7 +140,7 @@ namespace VeeamHealthCheck.Html.VBR
         public string LicTable(bool scrub)
         {
             string s = this.form.SectionStart("license", VbrLocalizationHelper.LicTableHeader);
-            string summary = this.sum.LicSum();
+            string? summary = this.sum.LicSum();
 
             s += this.form.TableHeader(VbrLocalizationHelper.LicTblLicTo, string.Empty) +
             this.form.TableHeader(VbrLocalizationHelper.LicTblEdition, VbrLocalizationHelper.LtEdTT) +
@@ -235,7 +235,7 @@ namespace VeeamHealthCheck.Html.VBR
                 this.log.Error("\t" + e.Message);
             }
 
-            s += this.form.SectionEnd(summary);
+            s += this.form.SectionEnd(summary ?? string.Empty);
             return s;
         }
 
@@ -3282,7 +3282,7 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
                     try
                     {
                         CEntraJobsTable entraTable = new();
-                        string et = entraTable.Table();
+                        string? et = entraTable.Table();
                         if (et != null && et.Length > 0)
                         {
                             // debug

@@ -80,7 +80,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                 var configBackupCsv = config.ConfigBackupCsvParser();
                 cv = configBackupCsv.FirstOrDefault() ?? cv;
 
-                this.backupServer.ConfigBackupEnabled = CObjectHelpers.ParseBool(cv?.Enabled!);
+                this.backupServer.ConfigBackupEnabled = CObjectHelpers.ParseBool(cv.Enabled!);
                 if (this.backupServer.ConfigBackupEnabled == true)
                 {
                     this.backupServer.ConfigBackupTarget = cv.Target;
@@ -260,7 +260,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
                 // Try to find the Version key, with or without quotes
                 var dict = res[0];
-                string versionStr = null;
+                string? versionStr = null;
                 if (dict.TryGetValue("Version", out versionStr) && !string.IsNullOrWhiteSpace(versionStr))
                 {
                     // found as Version

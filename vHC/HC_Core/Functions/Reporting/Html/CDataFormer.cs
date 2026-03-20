@@ -249,8 +249,8 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
 
                 if (HvProtectedVms != null || HvUnProtectedVms != null)
                 {
-                    HvProtectedVms = HvProtectedVms.ToList();
-                    HvUnProtectedVms = HvUnProtectedVms.ToList();
+                    HvProtectedVms = HvProtectedVms?.ToList() ?? new List<CViProtected>();
+                    HvUnProtectedVms = HvUnProtectedVms?.ToList() ?? new List<CViProtected>();
                     foreach (var p in HvProtectedVms)
                     {
                         hvNames.Add(p.Name);
@@ -762,7 +762,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
             CCsvParser csvp = new();
 
             // Cache the requirements CSV once instead of re-reading per server
-            List<CRequirementsCsvInfo> cachedReqRows = null;
+            List<CRequirementsCsvInfo>? cachedReqRows = null;
             try
             {
                 cachedReqRows = csvp.ServersRequirementsCsvParser()?.ToList();
@@ -966,15 +966,18 @@ namespace VeeamHealthCheck.Functions.Reporting.Html
                 {
                     var values = r.Value as IEnumerable;
                     List<string> valueArray = new();
-                    foreach (var v in values)
+                    if (values != null)
                     {
-                        valueArray.Add(v.ToString());
+                        foreach (var v in values)
+                        {
+                            valueArray.Add(v?.ToString() ?? string.Empty);
+                        }
                     }
 
                     workingValue = string.Join("<br>", valueArray);
                 }
                 else
-                    workingValue = r.Value.ToString();
+                    workingValue = r.Value.ToString() ?? string.Empty;
 
                 if (defaults.defaultKeys.ContainsKey(r.Key))
                 {

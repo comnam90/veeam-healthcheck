@@ -89,10 +89,10 @@ namespace VeeamHealthCheck.Shared
         public static Action<string>? GuiImportErrorNotify;
 
         /// <summary>
-        /// Active credential provider. Defaults to CLI (console) prompting.
+        /// Active credential provider. Defaults to CLI (console) prompting on Windows.
         /// The WPF shell overrides this at startup with a GUI dialog provider.
         /// </summary>
-        public static ICredentialProvider CredentialProvider = new CliCredentialProvider();
+        public static ICredentialProvider? CredentialProvider = OperatingSystem.IsWindows() ? new CliCredentialProvider() : null;
 
         /// <summary>
         /// Registered by the GUI shell to show a non-blocking warning dialog when import

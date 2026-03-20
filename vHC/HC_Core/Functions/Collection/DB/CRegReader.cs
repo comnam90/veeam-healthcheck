@@ -189,7 +189,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
 
         private void GetVbrElevenDbInfoRemote()
         {
-            using (RegistryKey key =
+            using (RegistryKey? key =
                 RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, CGlobals.REMOTEHOST).OpenSubKey("Software\\Veeam\\Veeam Backup and Replication"))
             {
                 this.SetSqlInfo(key);
@@ -200,7 +200,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
         {
             try
             {
-                using (RegistryKey key =
+                using (RegistryKey? key =
                     Registry.LocalMachine.OpenSubKey("Software\\Veeam\\Veeam Backup and Replication"))
                 {
                     this.SetSqlInfo(key);
@@ -230,7 +230,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
             }
         }
 
-        private void SetSqlInfo(RegistryKey key)
+        private void SetSqlInfo(RegistryKey? key)
         {
             if (key != null)
             {
@@ -238,7 +238,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
                 string instance = string.Empty;
                 if (value != null)
                 {
-                    instance = value.ToString();
+                    instance = value.ToString() ?? string.Empty;
                 }
 
                 // var instance = key.GetValue("SqlInstanceName").ToString();
@@ -246,7 +246,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
                 string host = string.Empty;
                 if(hostValue != null)
                 {
-                    host = hostValue.ToString();
+                    host = hostValue.ToString() ?? string.Empty;
                 }
 
                 // var host = key.GetValue("SqlServerName").ToString();
@@ -254,21 +254,21 @@ namespace VeeamHealthCheck.Functions.Collection.DB
                 string database = string.Empty;
                 if (db != null)
                 {
-                    database = db.ToString();
+                    database = db.ToString() ?? string.Empty;
                 }
 
                 // var database =key.GetValue("SqlDatabaseName").ToString();
                 var userName = key.GetValue("SqlLogin");
                 if (userName != null)
                 {
-                    user = userName.ToString();
+                    user = userName.ToString() ?? string.Empty;
                 }
 
                 // _user = key.GetValue("SqlLogin").ToString();
                 var password = key.GetValue("SqlSecuredPassword");
                 if (password != null)
                 {
-                    passString = password.ToString();
+                    passString = password.ToString() ?? string.Empty;
                 }
 
                 // _passString = key.GetValue("SqlSecuredPassword").ToString();
@@ -285,7 +285,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
             }
         }
 
-        private string SetDbServerName(string input)
+        private string? SetDbServerName(string input)
         {
             if (!string.IsNullOrEmpty(input))
             {
@@ -297,24 +297,24 @@ namespace VeeamHealthCheck.Functions.Collection.DB
 
         private void GetRemoteVbrTwelveDbInfo()
         {
-            using (RegistryKey key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, CGlobals.REMOTEHOST).OpenSubKey("Software\\Veeam\\Veeam Backup and Replication\\DatabaseConfigurations"))
+            using (RegistryKey? key = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, CGlobals.REMOTEHOST).OpenSubKey("Software\\Veeam\\Veeam Backup and Replication\\DatabaseConfigurations"))
             {
                 string host = string.Empty;
 
                 if (key != null)
                 {
-                    var dbType = key.GetValue("SqlActiveConfiguration").ToString();
+                    var dbType = key.GetValue("SqlActiveConfiguration")?.ToString();
                     this.log.Info(this.logStart + "DB Type = " + dbType);
                     if (dbType == "MsSql")
                     {
                         CGlobals.DBTYPE = CGlobals.SqlTypeName;
 
                         // using (RegistryKey sqlKey = Registry.LocalMachine.OpenSubKey("Software\\Veeam\\Veeam Backup and Replication\\DatabaseConfigurations\\MsSql"))
-                        using (RegistryKey sqlKey = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, CGlobals.REMOTEHOST).OpenSubKey("Software\\Veeam\\Veeam Backup and Replication\\DatabaseConfigurations\\MsSql"))
+                        using (RegistryKey? sqlKey = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, CGlobals.REMOTEHOST).OpenSubKey("Software\\Veeam\\Veeam Backup and Replication\\DatabaseConfigurations\\MsSql"))
                         {
                             this.SetSqlInfo(sqlKey);
 
-                            host = sqlKey.GetValue("SqlServerName").ToString();
+                            host = sqlKey?.GetValue("SqlServerName")?.ToString() ?? string.Empty;
                             if (host == "localhost")
                             {
                                 CGlobals.ISDBLOCAL = "True";
@@ -332,9 +332,9 @@ namespace VeeamHealthCheck.Functions.Collection.DB
                     else if (dbType == "PostgreSql")
                     {
                         CGlobals.DBTYPE = CGlobals.PgTypeName;
-                        using (RegistryKey pgKey = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, CGlobals.REMOTEHOST).OpenSubKey("Software\\Veeam\\Veeam Backup and Replication\\DatabaseConfigurations\\PostgreSql"))
+                        using (RegistryKey? pgKey = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, CGlobals.REMOTEHOST).OpenSubKey("Software\\Veeam\\Veeam Backup and Replication\\DatabaseConfigurations\\PostgreSql"))
                         {
-                            host = pgKey.GetValue("SqlHostName").ToString();
+                            host = pgKey?.GetValue("SqlHostName")?.ToString() ?? string.Empty;
                             if (host == "localhost")
                             {
                                 CGlobals.ISDBLOCAL = "True";
@@ -367,25 +367,25 @@ namespace VeeamHealthCheck.Functions.Collection.DB
         {
             try
             {
-                using (RegistryKey key = Registry.LocalMachine.OpenSubKey("Software\\Veeam\\Veeam Backup and Replication\\DatabaseConfigurations"))
+                using (RegistryKey? key = Registry.LocalMachine.OpenSubKey("Software\\Veeam\\Veeam Backup and Replication\\DatabaseConfigurations"))
                 {
                     string host = string.Empty;
 
                     if (key != null)
                     {
-                        var dbType = key.GetValue("SqlActiveConfiguration").ToString();
+                        var dbType = key.GetValue("SqlActiveConfiguration")?.ToString();
                         this.log.Info(this.logStart + "DB Type = " + dbType);
                         if (dbType == "MsSql")
                         {
                             CGlobals.DBTYPE = CGlobals.SqlTypeName;
 
-                            using (RegistryKey sqlKey = Registry.LocalMachine.OpenSubKey("Software\\Veeam\\Veeam Backup and Replication\\DatabaseConfigurations\\MsSql"))
+                            using (RegistryKey? sqlKey = Registry.LocalMachine.OpenSubKey("Software\\Veeam\\Veeam Backup and Replication\\DatabaseConfigurations\\MsSql"))
 
                             // using (RegistryKey sqlKey = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, CGlobals.REMOTEHOST).OpenSubKey("Software\\Veeam\\Veeam Backup and Replication\\DatabaseConfigurations\\MsSql"))
                             {
                                 this.SetSqlInfo(sqlKey);
 
-                                host = sqlKey.GetValue("SqlServerName").ToString();
+                                host = sqlKey?.GetValue("SqlServerName")?.ToString() ?? string.Empty;
                                 if (host == "localhost")
                                 {
                                     CGlobals.ISDBLOCAL = "True";
@@ -403,9 +403,9 @@ namespace VeeamHealthCheck.Functions.Collection.DB
                         else if (dbType == "PostgreSql")
                         {
                             CGlobals.DBTYPE = CGlobals.PgTypeName;
-                            using (RegistryKey pgKey = Registry.LocalMachine.OpenSubKey("Software\\Veeam\\Veeam Backup and Replication\\DatabaseConfigurations\\PostgreSql"))
+                            using (RegistryKey? pgKey = Registry.LocalMachine.OpenSubKey("Software\\Veeam\\Veeam Backup and Replication\\DatabaseConfigurations\\PostgreSql"))
                             {
-                                host = pgKey.GetValue("SqlHostName").ToString();
+                                host = pgKey?.GetValue("SqlHostName")?.ToString() ?? string.Empty;
                                 if (host == "localhost")
                                 {
                                     CGlobals.ISDBLOCAL = "True";
@@ -460,7 +460,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
         public Dictionary<string, Object> DefaultVbrKeysRemote()
         {
             Dictionary<string, Object> keys = new();
-            using (RegistryKey key =
+            using (RegistryKey? key =
                 RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, CGlobals.REMOTEHOST).OpenSubKey("Software\\Veeam\\Veeam Backup and Replication"))
             {
                 if (key != null)
@@ -468,7 +468,9 @@ namespace VeeamHealthCheck.Functions.Collection.DB
                     string[] values = key.GetValueNames();
                     foreach (var name in values)
                     {
-                        keys.Add(name, key.GetValue(name)) ;
+                        object? val = key.GetValue(name);
+                        if (val != null)
+                            keys.Add(name, val);
 
                         // var vTest = key.GetValue(name);
                     }
@@ -483,7 +485,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
             Dictionary<string, Object> keys = new();
             try
             {
-                using (RegistryKey key =
+                using (RegistryKey? key =
                     Registry.LocalMachine.OpenSubKey("Software\\Veeam\\Veeam Backup and Replication"))
                 {
                     if (key != null)
@@ -491,7 +493,9 @@ namespace VeeamHealthCheck.Functions.Collection.DB
                         string[] values = key.GetValueNames();
                         foreach (var name in values)
                         {
-                            keys.Add(name, key.GetValue(name));
+                            object? val = key.GetValue(name);
+                            if (val != null)
+                                keys.Add(name, val);
 
                             // var vTest = key.GetValue(name);
                         }

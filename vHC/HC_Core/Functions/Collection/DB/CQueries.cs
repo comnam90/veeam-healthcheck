@@ -18,21 +18,21 @@ namespace VeeamHealthCheck.Functions.Collection.DB
         private readonly CLogger log = CGlobals.Logger;
         private readonly string cString;
 
-        private DataTable sqlInfo;
+        private DataTable? sqlInfo;
         private string sqlEdition;
         private string sqlVersion;
-        private DataTable jobInfo;
-        private DataTable jobTypes;
+        private DataTable? jobInfo;
+        private DataTable? jobTypes;
 
-        public DataTable SqlServerInfo { get { return this.sqlInfo; } }
+        public DataTable? SqlServerInfo { get { return this.sqlInfo; } }
 
         public string SqlEdition { get { return this.sqlEdition; } }
 
         public string SqlVerion { get { return this.sqlVersion; } }
 
-        public DataTable JobInfo { get { return this.jobInfo; } }
+        public DataTable? JobInfo { get { return this.jobInfo; } }
 
-        public DataTable JobTypes { get { return this.jobTypes; } }
+        public DataTable? JobTypes { get { return this.jobTypes; } }
 
         public CQueries()
         {
@@ -84,7 +84,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
                     {
                         if (!Convert.IsDBNull(dr[i]))
                         {
-                            string value = dr[i].ToString();
+                            string value = dr[i].ToString() ?? string.Empty;
                             if (value.Contains(','))
                             {
                                 value = string.Format("\"{0}\"", value);
@@ -128,7 +128,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
             this.log.Info("getting sql server version");
 
             // CDbWorker d = new();
-            DataTable dt = this.FetchSqlServerVersion();
+            DataTable? dt = this.FetchSqlServerVersion();
 
             if (dt == null)
             {
@@ -141,7 +141,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
                 {
                     foreach (DataRow r in dt.Rows)
                     {
-                        string s = r[0].ToString();
+                        string s = r[0].ToString() ?? string.Empty;
                         string[] s2 = s.Split();
 
                         this.sqlVersion = s2[0] + " " + s2[1] + " " + s2[2] + " " + s2[3];
@@ -174,7 +174,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
             this.log.Info("getting sql server version..done!");
         }
 
-        private DataTable FetchSqlServerVersion()
+        private DataTable? FetchSqlServerVersion()
         {
             try
             {
@@ -204,7 +204,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
             this.log.Info("getting sql server info..done!");
         }
 
-        private DataTable FetchSqlServerInfo()
+        private DataTable? FetchSqlServerInfo()
         {
             try
             {
@@ -233,11 +233,11 @@ namespace VeeamHealthCheck.Functions.Collection.DB
         {
             this.jobInfo = this.FetchBJobInfo();
 
-            try { this.DumpDataToCsv(this.jobInfo); }
+            try { if (this.jobInfo != null) this.DumpDataToCsv(this.jobInfo); }
             catch(Exception e){ this.log.Error("Failed to dump bjobs to csv.."); this.log.Error(e.Message); }
         }
 
-        private DataTable FetchBJobInfo()
+        private DataTable? FetchBJobInfo()
         {
             try
             {
@@ -269,7 +269,7 @@ namespace VeeamHealthCheck.Functions.Collection.DB
             this.log.Info("getting job summary info..ok!");
         }
 
-        private DataTable FetchJobSummaryInfo()
+        private DataTable? FetchJobSummaryInfo()
         {
             try
             {

@@ -14,7 +14,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR.VbrTables.Jobs_Info
     {
         private readonly CHtmlFormatting form = new();
 
-        public string Table()
+        public string? Table()
         {
             string t = string.Empty;
             try

@@ -47,7 +47,7 @@ Write-Output ""Checking Veeam on $VeeamServer""
                 CreateNoWindow = true
             };
 
-            using var process = Process.Start(psi);
+            using var process = Process.Start(psi)!;
             process.WaitForExit();
             return process.ExitCode == 0;
         }
@@ -76,7 +76,7 @@ Write-Output ""Checking Veeam on $VeeamServer""
                 CreateNoWindow = true
             };
 
-            using var process = Process.Start(psi);
+            using var process = Process.Start(psi)!;
             string output = process.StandardOutput.ReadToEnd();
             string error = process.StandardError.ReadToEnd();
             process.WaitForExit();
@@ -174,7 +174,7 @@ Write-Output ""Checking Veeam on $VeeamServer""
                 CreateNoWindow = true
             };
 
-            using var process = Process.Start(psi);
+            using var process = Process.Start(psi)!;
             string output = process.StandardOutput.ReadToEnd();
             string error = process.StandardError.ReadToEnd();
             process.WaitForExit();

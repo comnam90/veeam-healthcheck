@@ -38,7 +38,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR
             return s;
         }
 
-        public string LicSum()
+        public string? LicSum()
         {
             string s = this.form.AddA("hdr", VbrLocalizationHelper.GeneralSummaryHeader) +// _form.LineBreak() +
                 this.form.AddA("i2", string.Empty) +
