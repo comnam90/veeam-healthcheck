@@ -45,7 +45,7 @@ namespace VeeamHealthCheck.Tests.Security
             }
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void StoredCredentials_ShouldBeEncrypted()
         {
             // Arrange
@@ -78,7 +78,7 @@ namespace VeeamHealthCheck.Tests.Security
             CredentialStore.Clear();
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void StoredCredentials_ShouldNotContainPlaintextPassword()
         {
             // Arrange
@@ -114,7 +114,7 @@ namespace VeeamHealthCheck.Tests.Security
             CredentialStore.Clear();
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void Get_ShouldDecryptPasswordCorrectly()
         {
             // Arrange
@@ -135,7 +135,7 @@ namespace VeeamHealthCheck.Tests.Security
             CredentialStore.Clear();
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void Set_WithComplexPassword_ShouldEncryptAndDecryptCorrectly()
         {
             // Arrange - Test various special characters
@@ -163,7 +163,7 @@ namespace VeeamHealthCheck.Tests.Security
             CredentialStore.Clear();
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("")]
         [InlineData(" ")]
         [InlineData("   ")]
@@ -190,7 +190,7 @@ namespace VeeamHealthCheck.Tests.Security
             CredentialStore.Clear();
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void Remove_ShouldCompletelyRemoveCredentials()
         {
             // Arrange
@@ -223,7 +223,7 @@ namespace VeeamHealthCheck.Tests.Security
             CredentialStore.Clear();
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void Clear_ShouldRemoveAllCredentialsAndFile()
         {
             // Arrange
@@ -248,7 +248,7 @@ namespace VeeamHealthCheck.Tests.Security
             Assert.False(CredentialStore.HasStoredCredentials());
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void MultipleServers_ShouldStoreSeparateEncryptedCredentials()
         {
             // Arrange
@@ -290,7 +290,7 @@ namespace VeeamHealthCheck.Tests.Security
             CredentialStore.Clear();
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void PasswordEncryption_ShouldBeUniquePerPassword()
         {
             // Arrange
@@ -334,7 +334,7 @@ namespace VeeamHealthCheck.Tests.Security
             CredentialStore.Clear();
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void Get_NonExistentServer_ShouldReturnNull()
         {
             // Act
@@ -344,7 +344,7 @@ namespace VeeamHealthCheck.Tests.Security
             Assert.Null(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void Remove_NonExistentServer_ShouldReturnFalse()
         {
             // Act
@@ -354,7 +354,7 @@ namespace VeeamHealthCheck.Tests.Security
             Assert.False(removed);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void CredentialFile_ShouldBeInUserProfile()
         {
             // Arrange
@@ -378,7 +378,7 @@ namespace VeeamHealthCheck.Tests.Security
             CredentialStore.Clear();
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void GetAllServers_ShouldReturnStoredServerNames()
         {
             // Arrange
@@ -403,7 +403,7 @@ namespace VeeamHealthCheck.Tests.Security
             CredentialStore.Clear();
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void HasStoredCredentials_ShouldReflectCurrentState()
         {
             // Arrange - Start clean
@@ -421,7 +421,7 @@ namespace VeeamHealthCheck.Tests.Security
             Assert.False(CredentialStore.HasStoredCredentials());
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void Update_ExistingCredentials_ShouldOverwrite()
         {
             // Arrange

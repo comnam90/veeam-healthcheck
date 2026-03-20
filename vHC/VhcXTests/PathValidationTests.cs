@@ -36,7 +36,7 @@ namespace VhcXTests
             }
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_NullPath_ReturnsFalse()
         {
             // Arrange
@@ -49,7 +49,7 @@ namespace VhcXTests
             Assert.False(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_EmptyPath_ReturnsFalse()
         {
             // Arrange
@@ -62,7 +62,7 @@ namespace VhcXTests
             Assert.False(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_WhitespacePath_ReturnsFalse()
         {
             // Arrange
@@ -75,7 +75,7 @@ namespace VhcXTests
             Assert.False(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_UncPath_ReturnsFalse()
         {
             // Arrange
@@ -88,7 +88,7 @@ namespace VhcXTests
             Assert.False(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_ExistingDirectory_ReturnsTrue()
         {
             // Arrange
@@ -101,7 +101,7 @@ namespace VhcXTests
             Assert.True(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_NewValidPath_CreatesDirectoryAndReturnsTrue()
         {
             // Arrange
@@ -115,7 +115,7 @@ namespace VhcXTests
             Assert.True(Directory.Exists(path));
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_NestedNewPath_CreatesDirectoriesAndReturnsTrue()
         {
             // Arrange
@@ -129,7 +129,7 @@ namespace VhcXTests
             Assert.True(Directory.Exists(path));
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_PathWithSpaces_CreatesDirectoryAndReturnsTrue()
         {
             // Arrange
@@ -143,7 +143,7 @@ namespace VhcXTests
             Assert.True(Directory.Exists(path));
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_InvalidCharacters_ReturnsFalse()
         {
             // Arrange
@@ -156,7 +156,7 @@ namespace VhcXTests
             Assert.False(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_PathTooLong_ReturnsFalse()
         {
             // Arrange
@@ -171,7 +171,7 @@ namespace VhcXTests
             Assert.False(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_DefaultVhcPath_CreatesDirectoryAndReturnsTrue()
         {
             // Arrange
@@ -186,7 +186,7 @@ namespace VhcXTests
             // permissions to create in C:\temp in all test environments
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData(@"C:\temp\VHC")]
         [InlineData(@"C:\temp\VHC\Reports")]
         [InlineData(@"C:\Users\Public\VHC")]
@@ -199,7 +199,7 @@ namespace VhcXTests
             Assert.True(result);
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData(@"\\network\share")]
         [InlineData(@"\\?\UNC\server\share")]
         public void VerifyPath_NetworkPaths_ReturnsFalse(string path)
@@ -211,7 +211,7 @@ namespace VhcXTests
             Assert.False(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_DriveRoot_ReturnsTrue()
         {
             // Arrange
@@ -224,7 +224,7 @@ namespace VhcXTests
             Assert.True(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_PathWithTrailingBackslash_CreatesDirectoryAndReturnsTrue()
         {
             // Arrange
@@ -238,7 +238,7 @@ namespace VhcXTests
             Assert.True(Directory.Exists(path));
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_ConsecutiveCalls_ReturnsTrueForSamePath()
         {
             // Arrange
@@ -254,7 +254,7 @@ namespace VhcXTests
             Assert.True(Directory.Exists(path));
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_RelativePath_ReturnsFalseOrHandlesAppropriately()
         {
             // Arrange
@@ -269,7 +269,7 @@ namespace VhcXTests
             Assert.NotNull(result.ToString());
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_SpecialCharactersInName_HandlesAppropriately()
         {
             // Arrange
