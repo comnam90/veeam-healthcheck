@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using VeeamHealthCheck.Functions.CredsWindow;
 using VeeamHealthCheck.Resources.Localization;
 using VeeamHealthCheck.Shared;
 using VeeamHealthCheck.Startup;
@@ -19,6 +20,7 @@ namespace VeeamHealthCheck
 
         public VhcGui()
         {
+            CGlobals.CredentialProvider = new CredsHandler();
             CGlobals.GuiAdminContinuePrompt = CGuiBridge.ConfirmContinueWithoutAdmin;
             CGlobals.GuiImportErrorNotify = CGuiBridge.NotifyImportError;
             CGlobals.GuiImportWarningNotify = CGuiBridge.NotifyImportWarning;

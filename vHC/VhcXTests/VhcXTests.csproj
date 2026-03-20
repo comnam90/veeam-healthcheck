@@ -29,7 +29,13 @@
     <ProjectReference Include="..\HC_Core\HC_Core.csproj" />
   </ItemGroup>
 
-  <!-- CArgsParser lives in the WPF shell (DllImport + Application); exclude its test file on Linux -->
+  <!-- CArgsParser lives in the WPF shell (DllImport + Application).
+       On Windows: reference the shell so CArgsParserTEST.cs can compile.
+       On Linux: exclude the file; the shell uses net8.0-windows7.0 which
+       cannot be resolved without the Windows SDK. -->
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <ProjectReference Include="..\HC_Reporting\VeeamHealthCheck.csproj" />
+  </ItemGroup>
   <ItemGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
     <Compile Remove="CArgsParserTEST.cs" />
   </ItemGroup>
