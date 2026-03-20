@@ -29,6 +29,13 @@
     <ProjectReference Include="..\HC_Core\HC_Core.csproj" />
   </ItemGroup>
 
+  <!-- Workaround: .NET SDK 10 on Linux runners does not create satellite assembly
+       subdirectories before copying project reference outputs (MSB3027).
+       Pre-create the culture directories that HC_Core produces so the copy succeeds. -->
+  <Target Name="EnsureHcCoreSatelliteOutputDirs" BeforeTargets="Build">
+    <MakeDir Directories="$(OutDir)fr-FR;$(OutDir)ja;$(OutDir)zh-cn;$(OutDir)zh-tw" />
+  </Target>
+
   <!-- CArgsParser lives in the WPF shell (DllImport + Application).
        On Windows: reference the shell so CArgsParserTEST.cs can compile.
        On Linux: exclude the file; the shell uses net8.0-windows7.0 which
