@@ -46,14 +46,14 @@ namespace VhcXTests.Integration
             return process.ExitCode;
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void GetVBRConfig_ScriptExists()
         {
             var scriptPath = Path.Combine(_scriptsPath, "HealthCheck", "VBR", "Get-VBRConfig.ps1");
             Assert.True(File.Exists(scriptPath), $"Get-VBRConfig.ps1 not found at: {scriptPath}");
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void GetVBRConfig_ValidPowerShellSyntax()
         {
             var scriptPath = Path.Combine(_scriptsPath, "HealthCheck", "VBR", "Get-VBRConfig.ps1");
@@ -78,7 +78,7 @@ namespace VhcXTests.Integration
             Assert.True(rc == 0, $"PowerShell syntax validation failed. See TestResults/pwsh-logs/GetVBRConfig_ValidPowerShellSyntax.txt (exit {rc})");
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void GetVhcSessionReport_ValidPowerShellSyntax()
         {
             var scriptPath = Path.Combine(_scriptsPath, "HealthCheck", "VBR", "vHC-VbrConfig", "Public", "Get-VhcSessionReport.ps1");
@@ -102,7 +102,7 @@ namespace VhcXTests.Integration
             Assert.True(rc == 0, "Get-VhcSessionReport.ps1 has syntax errors");
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void CollectVB365Data_ValidPowerShellSyntax()
         {
             var scriptPath = Path.Combine(_scriptsPath, "HealthCheck", "VB365", "Collect-VB365Data.ps1");
@@ -126,7 +126,7 @@ namespace VhcXTests.Integration
             Assert.True(rc == 0, "Collect-VB365Data.ps1 has syntax errors");
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void AllHotfixScripts_ValidPowerShellSyntax()
         {
             var hotfixPath = Path.Combine(_scriptsPath, "HotfixDetection");
@@ -157,7 +157,7 @@ namespace VhcXTests.Integration
             }
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VhcVbrConfigModule_AllFilesValidPowerShellSyntax()
         {
             var modulePath = Path.Combine(_scriptsPath, "HealthCheck", "VBR", "vHC-VbrConfig");
@@ -190,7 +190,7 @@ namespace VhcXTests.Integration
             }
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void IncrementVersionScript_ExecutesSuccessfully()
         {
             var scriptPath = Path.Combine(_projectRoot, "increment_version.ps1");

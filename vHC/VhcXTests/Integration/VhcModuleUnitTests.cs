@@ -34,7 +34,7 @@ namespace VhcXTests.Integration
         /// A known object is piped through the function and the resulting CSV header row
         /// is asserted to be an exact string match.
         /// </summary>
-        [Fact]
+        [WindowsOnlyFact]
         public void ExportVhcCsv_ColumnOrder_IsPreserved()
         {
             if (!File.Exists(_exportCsvScriptPath))
@@ -120,7 +120,7 @@ exit 0
         /// Verifies that Export-VhciCsv propagates file I/O failures rather than swallowing them.
         /// A non-existent output directory is used to trigger Export-Csv failure reliably.
         /// </summary>
-        [Fact]
+        [WindowsOnlyFact]
         public void ExportVhcCsv_IoFailure_ThrowsException()
         {
             var projectRoot = Path.GetFullPath(Path.Combine(
@@ -192,7 +192,7 @@ try {{
         /// Regression guard: Invoke-VhcCollector must never throw, even when the wrapped
         /// scriptblock throws. It must return Success=false and Error set to the exception message.
         /// </summary>
-        [Fact]
+        [WindowsOnlyFact]
         public void InvokeVhcCollector_ScriptblockThrows_ReturnsFailedResultWithoutThrowing()
         {
             var projectRoot = Path.GetFullPath(Path.Combine(
@@ -269,7 +269,7 @@ exit 0
         /// $script:AllBackupSessions is null (i.e. Get-VhcBackupSessions was never called or failed).
         /// When wrapped by Invoke-VhcCollector this produces a FAIL entry, not a silent empty CSV.
         /// </summary>
-        [Fact]
+        [WindowsOnlyFact]
         public void GetVhcSessionReport_NullSessions_ThrowsDescriptiveError()
         {
             var projectRoot = Path.GetFullPath(Path.Combine(
@@ -348,7 +348,7 @@ try {{
         /// Called without any $script: state; the expected failure is VBR-not-available,
         /// not a missing-variable error — which proves the parameter is used.
         /// </summary>
-        [Fact]
+        [WindowsOnlyFact]
         public void GetVhcBackupSessions_AcceptsReportIntervalParameter_NotScriptVar()
         {
             var projectRoot = Path.GetFullPath(Path.Combine(
@@ -424,7 +424,7 @@ exit 0
         /// ADR 0010: a multi-role server runs one OS instance; the overhead floor is the
         /// largest single-role value, not an additive stack.
         /// </summary>
-        [Fact]
+        [WindowsOnlyFact]
         public void GetVhciServerOsOverhead_MultiRole_ReturnsMaxNotSum()
         {
             var projectRoot = Path.GetFullPath(Path.Combine(
@@ -507,7 +507,7 @@ exit 0
         /// Verifies that a single-role server returns that role's overhead values exactly
         /// (max of one value == that value).
         /// </summary>
-        [Fact]
+        [WindowsOnlyFact]
         public void GetVhciServerOsOverhead_SingleRole_ReturnsRoleOverhead()
         {
             var projectRoot = Path.GetFullPath(Path.Combine(
@@ -586,7 +586,7 @@ exit 0
         /// <summary>
         /// Verifies that a server with no active role tasks returns zero overhead.
         /// </summary>
-        [Fact]
+        [WindowsOnlyFact]
         public void GetVhciServerOsOverhead_NoRoles_ReturnsZero()
         {
             var projectRoot = Path.GetFullPath(Path.Combine(
@@ -667,7 +667,7 @@ exit 0
         /// Get-VBRComputerBackupJobSession and includes them in the returned array alongside
         /// VM and Backup Copy sessions from Get-VBRBackupSession. See ADR 0012.
         /// </summary>
-        [Fact]
+        [WindowsOnlyFact]
         public void GetVhcBackupSessions_IncludesAgentSessions_CallsComputerBackupJobSession()
         {
             var projectRoot = Path.GetFullPath(Path.Combine(
@@ -744,7 +744,7 @@ exit 0
         /// task sessions, not the machine-suffixed $task.JobName that Veeam produces.
         /// Stubs Get-VBRTaskSession and provides a mock session with a known Name. See ADR 0012.
         /// </summary>
-        [Fact]
+        [WindowsOnlyFact]
         public void GetVhcSessionReport_AgentSession_UsesParentSessionNameAsJobName()
         {
             var projectRoot  = Path.GetFullPath(Path.Combine(
@@ -844,7 +844,7 @@ exit 0
         /// from $task.JobSess.Progress.BottleneckInfo for agent sessions that produce no
         /// log records post-completion. See ADR 0013.
         /// </summary>
-        [Fact]
+        [WindowsOnlyFact]
         public void GetVhcSessionReport_AgentSession_PopulatesBottleneckFromStructuredProperty()
         {
             var projectRoot  = Path.GetFullPath(Path.Combine(
@@ -949,7 +949,7 @@ exit 0
         /// component when EBottleneck is NotDefined (integer 0), as is always the case on VBR v12.
         /// Source/Proxy/Network/Target percentages are still populated on v12. See ADR 0013.
         /// </summary>
-        [Fact]
+        [WindowsOnlyFact]
         public void GetVhcSessionReport_V12NotDefinedBottleneck_DerivesPrimaryFromHighestPercentage()
         {
             var projectRoot  = Path.GetFullPath(Path.Combine(
@@ -1054,7 +1054,7 @@ exit 0
         /// Verifies the orchestrator throws a clear error when VbrConfig.json is missing
         /// a required threshold key, rather than silently using $null.
         /// </summary>
-        [Fact]
+        [WindowsOnlyFact]
         public void GetVBRConfig_MissingThresholdKey_ThrowsDescriptiveError()
         {
             var projectRoot = Path.GetFullPath(Path.Combine(

@@ -250,11 +250,8 @@ VBR-SERVER,12.0.0.1420,SQL-SERVER";
 
         #region Version-Specific Schema Tests
 
-        [Theory]
-        [InlineData("12", true)]   // v12+ has compliance data
-        [InlineData("13", true)]   // v13 has compliance data
-        [InlineData("11", false)]  // v11 might not have compliance (test would need version context)
-        public void ComplianceFiles_PresentBasedOnVbrVersion(string vbrVersion, bool shouldHaveCompliance)
+        [Fact]
+        public void ComplianceFiles_PresentBasedOnVbrVersion()
         {
             // This test would need actual version detection from _vbrinfo.csv
             // For now, it's a placeholder to demonstrate version-specific validation

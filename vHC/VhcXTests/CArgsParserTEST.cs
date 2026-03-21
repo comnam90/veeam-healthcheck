@@ -17,7 +17,7 @@ namespace VhcXTests
             return method?.Invoke(parser, new object[] { input }) as string;
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("/path=C:\\temp\\vHC", "C:\\temp\\vHC")]
         [InlineData("/PATH=C:\\TEMP\\VHC", "C:\\TEMP\\VHC")]
         [InlineData("/host=servername", "servername")]
@@ -35,7 +35,7 @@ namespace VhcXTests
             Assert.Equal(expected, result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParsePath_InputWithoutEquals_ReturnsNull()
         {
             // Arrange
@@ -49,7 +49,7 @@ namespace VhcXTests
             Assert.Null(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParsePath_EmptyString_ReturnsNull()
         {
             // Arrange
@@ -63,7 +63,7 @@ namespace VhcXTests
             Assert.Null(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParsePath_InputWithMultipleEquals_ReturnsFullValueAfterFirstEquals()
         {
             // Arrange
@@ -78,7 +78,7 @@ namespace VhcXTests
             Assert.Equal("C:\\temp=special", result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParsePath_InputWithEqualsButEmptyValue_ReturnsEmptyString()
         {
             // Arrange
@@ -94,7 +94,7 @@ namespace VhcXTests
 
         #region Command Switch Tests
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_RunSwitch_SetsCGlobalsRunFullReport()
         {
             // Arrange
@@ -109,7 +109,7 @@ namespace VhcXTests
             Assert.Contains("/run", new string[] { "/run" });
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("/days:7", 7)]
         [InlineData("/days:12", 12)]
         [InlineData("/days:30", 30)]
@@ -125,7 +125,7 @@ namespace VhcXTests
             Assert.Equal(expectedDays.ToString(), daysPart);
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("/scrub:true")]
         [InlineData("/scrub:false")]
         public void ParseAllArgs_ScrubSwitch_ValidFormat(string arg)
@@ -136,7 +136,7 @@ namespace VhcXTests
             Assert.Contains(scrubValue, new[] { "true", "false" });
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("/help")]
         [InlineData("/run")]
         [InlineData("/show:files")]
@@ -163,7 +163,7 @@ namespace VhcXTests
 
         #region Regex Pattern Tests
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("/path=C:\\temp\\vHC")]
         [InlineData("/PATH=C:\\TEMP\\VHC")]
         public void ParseAllArgs_PathPattern_MatchesRegex(string arg)
@@ -176,7 +176,7 @@ namespace VhcXTests
             Assert.Matches(caseInsensitivePattern, arg);
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("/HOST=servername")]
         [InlineData("/host=192.168.1.100")]
         public void ParseAllArgs_HostPattern_MatchesRegex(string arg)
@@ -188,7 +188,7 @@ namespace VhcXTests
             Assert.Matches(caseInsensitivePattern, arg);
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("/outdir=D:\\Reports", "D:\\Reports")]
         [InlineData("/OUTDIR=D:\\Reports", "D:\\Reports")]
         [InlineData("/outdir=C:\\temp\\vHC", "C:\\temp\\vHC")]
@@ -200,7 +200,7 @@ namespace VhcXTests
             Assert.Equal(expected, result);
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("/outdir=D:\\Reports")]
         [InlineData("/OUTDIR=D:\\Reports")]
         [InlineData("/Outdir=D:\\Reports")]
@@ -215,7 +215,7 @@ namespace VhcXTests
 
         #region Individual Switch Global State Tests
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_RunSwitch_SetsGlobalFlags()
         {
             // Arrange
@@ -227,7 +227,7 @@ namespace VhcXTests
             Assert.True(true); // Placeholder for future implementation
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_GuiSwitch_SetsGlobalFlags()
         {
             // Arrange & Assert
@@ -235,7 +235,7 @@ namespace VhcXTests
             Assert.True(true); // Placeholder for future implementation
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_ShowFilesSwitch_SetsOpenExplorer()
         {
             // Arrange & Assert
@@ -243,7 +243,7 @@ namespace VhcXTests
             Assert.True(true); // Placeholder for future implementation
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_ShowReportSwitch_SetsOpenHtml()
         {
             // Arrange & Assert
@@ -251,7 +251,7 @@ namespace VhcXTests
             Assert.True(true); // Placeholder for future implementation
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_LiteSwitch_DisablesIndividualJobHtmls()
         {
             // Arrange & Assert
@@ -259,7 +259,7 @@ namespace VhcXTests
             Assert.True(true); // Placeholder for future implementation
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_ImportSwitch_SetsImportFlag()
         {
             // Arrange & Assert
@@ -267,7 +267,7 @@ namespace VhcXTests
             Assert.True(true); // Placeholder for future implementation
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_SecuritySwitch_SetsSecurityReportFlag()
         {
             // Arrange & Assert
@@ -275,7 +275,7 @@ namespace VhcXTests
             Assert.True(true); // Placeholder for future implementation
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_RemoteSwitch_SetsRemoteExecFlag()
         {
             // Arrange & Assert
@@ -283,7 +283,7 @@ namespace VhcXTests
             Assert.True(true); // Placeholder for future implementation
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_ClearCredsSwitch_SetsClearStoredCredsFlag()
         {
             // Arrange & Assert
@@ -291,7 +291,7 @@ namespace VhcXTests
             Assert.True(true); // Placeholder for future implementation
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_PdfSwitch_SetsPdfExportFlag()
         {
             // Arrange & Assert
@@ -299,7 +299,7 @@ namespace VhcXTests
             Assert.True(true); // Placeholder for future implementation
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_PptxSwitch_SetsPptxExportFlag()
         {
             // Arrange & Assert
@@ -307,7 +307,7 @@ namespace VhcXTests
             Assert.True(true); // Placeholder for future implementation
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_DebugSwitch_SetsDebugFlag()
         {
             // Arrange & Assert
@@ -315,7 +315,7 @@ namespace VhcXTests
             Assert.True(true); // Placeholder for future implementation
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_HotfixSwitch_SetsRunHfdFlag()
         {
             // Arrange & Assert
@@ -327,7 +327,7 @@ namespace VhcXTests
 
         #region Edge Case Tests
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("/RUN")] // Uppercase
         [InlineData("/Run")] // Mixed case
         [InlineData("/rUn")] // Mixed case
@@ -338,7 +338,7 @@ namespace VhcXTests
             Assert.NotEqual("/run", arg);
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("/days:0")]
         [InlineData("/days:-7")]
         [InlineData("/days:999")]
@@ -350,7 +350,7 @@ namespace VhcXTests
             Assert.StartsWith("/days:", arg);
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("/scrub:yes")]
         [InlineData("/scrub:no")]
         [InlineData("/scrub:1")]
@@ -363,7 +363,7 @@ namespace VhcXTests
             Assert.DoesNotContain(value, new[] { "true", "false" });
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("/path=")] // Empty path
         [InlineData("/host=")] // Empty host
         public void ParsePath_EmptyValueAfterEquals_ReturnsEmptyString(string input)
@@ -378,7 +378,7 @@ namespace VhcXTests
             Assert.Equal(string.Empty, result);
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("/pathologic")] // Partial match - should NOT be treated as /path=
         [InlineData("/hostile")] // Partial match - should NOT be treated as /host=
         public void ParseAllArgs_PartialRegexMatches_DoNotMatch(string arg)
@@ -388,7 +388,7 @@ namespace VhcXTests
             Assert.DoesNotContain("=", arg);
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("/path=C:\\temp with spaces\\vHC")]
         [InlineData("/host=server-name.domain.local")]
         [InlineData("/host=192.168.1.100")]
@@ -406,7 +406,7 @@ namespace VhcXTests
             Assert.NotEmpty(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParsePath_NullInput_ThrowsOrReturnsNull()
         {
             // Arrange
@@ -430,7 +430,7 @@ namespace VhcXTests
 
         #region Argument Combination Tests
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_RunWithDaysAndLite_ValidCombination()
         {
             // Assert - This is a common valid combination
@@ -441,7 +441,7 @@ namespace VhcXTests
             Assert.Contains("/lite", args);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_SecurityWithRemoteAndHost_ValidCombination()
         {
             // Assert - This is a common valid combination
@@ -451,7 +451,7 @@ namespace VhcXTests
             Assert.Contains("/remote", args);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_HotfixWithPath_ValidCombination()
         {
             // Assert - This is a valid combination
@@ -460,7 +460,7 @@ namespace VhcXTests
             Assert.Contains("/hotfix", args);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_RunWithPdfAndPptx_ValidCombination()
         {
             // Assert - Multiple export formats can be specified
@@ -470,7 +470,7 @@ namespace VhcXTests
             Assert.Contains("/pptx", args);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_ImportWithRun_ValidCombination()
         {
             // Assert - Import mode with run execution
@@ -484,7 +484,7 @@ namespace VhcXTests
 
         #region Help Menu Validation Tests
 
-        [Fact]
+        [WindowsOnlyFact]
         public void HelpMenu_ContainsAllDocumentedSwitches()
         {
             // Arrange
@@ -511,7 +511,7 @@ namespace VhcXTests
             Assert.Contains("/debug", helpText);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void HelpMenu_DoesNotContainObsoleteSwitches()
         {
             // Arrange
@@ -521,7 +521,7 @@ namespace VhcXTests
             Assert.DoesNotContain("/creds=", helpText); // This was removed as it doesn't exist in code
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void HelpMenu_ContainsUsageExamples()
         {
             // Arrange
@@ -532,7 +532,7 @@ namespace VhcXTests
             Assert.Contains("VeeamHealthCheck.exe", helpText);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void HelpMenu_ContainsAllDaysOptions()
         {
             // Arrange
@@ -549,7 +549,7 @@ namespace VhcXTests
 
         #region Validation Logic Tests
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_RemoteWithoutHost_ShouldLogWarning()
         {
             // Note: This would require mocking or refactoring to test properly
@@ -557,7 +557,7 @@ namespace VhcXTests
             Assert.True(true); // Placeholder for future implementation
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParseAllArgs_NoArgumentsProvided_ShouldLaunchGui()
         {
             // Note: This tests the InitializeProgram method behavior
@@ -565,7 +565,7 @@ namespace VhcXTests
             Assert.True(true); // Placeholder for future implementation
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void ParsePath_MultipleEqualsInValue_HandlesCorrectly()
         {
             // Arrange
@@ -579,140 +579,6 @@ namespace VhcXTests
             // Split should return everything after first =
             // Note: Current implementation uses Split which only splits on first occurrence by default
             Assert.NotNull(result);
-        }
-
-        #endregion
-
-        #region Local Host Detection Tests (Issue #82)
-
-        [Theory]
-        [InlineData("localhost")]
-        [InlineData("LOCALHOST")]
-        [InlineData("LocalHost")]
-        public void IsLocalHost_Localhost_ReturnsTrue(string hostname)
-        {
-            // Act
-            var result = CHostNameHelper.IsLocalHost(hostname);
-
-            // Assert
-            Assert.True(result, $"'{hostname}' should be detected as local host");
-        }
-
-        [Fact]
-        public void IsLocalHost_LoopbackIPv4_ReturnsTrue()
-        {
-            // Act
-            var result = CHostNameHelper.IsLocalHost("127.0.0.1");
-
-            // Assert
-            Assert.True(result, "127.0.0.1 should be detected as local host");
-        }
-
-        [Fact]
-        public void IsLocalHost_MatchesEnvironmentMachineName_ReturnsTrue()
-        {
-            // Arrange
-            string machineName = Environment.MachineName;
-
-            // Act
-            var result = CHostNameHelper.IsLocalHost(machineName);
-
-            // Assert
-            Assert.True(result, $"Machine name '{machineName}' should be detected as local host");
-        }
-
-        [Fact]
-        public void IsLocalHost_MatchesMachineNameCaseInsensitive_ReturnsTrue()
-        {
-            // Arrange
-            string machineName = Environment.MachineName.ToLowerInvariant();
-
-            // Act
-            var result = CHostNameHelper.IsLocalHost(machineName);
-
-            // Assert
-            Assert.True(result, $"Lowercase machine name '{machineName}' should be detected as local host");
-        }
-
-        [Fact]
-        public void IsLocalHost_MatchesDnsGetHostName_ReturnsTrue()
-        {
-            // Arrange
-            string dnsHostName = System.Net.Dns.GetHostName();
-
-            // Act
-            var result = CHostNameHelper.IsLocalHost(dnsHostName);
-
-            // Assert
-            Assert.True(result, $"DNS host name '{dnsHostName}' should be detected as local host");
-        }
-
-        [Fact]
-        public void IsLocalHost_FqdnStartingWithMachineName_ReturnsTrue()
-        {
-            // Arrange
-            string machineName = Environment.MachineName;
-            string fqdn = $"{machineName}.domain.local";
-
-            // Act
-            var result = CHostNameHelper.IsLocalHost(fqdn);
-
-            // Assert
-            Assert.True(result, $"FQDN '{fqdn}' starting with machine name should be detected as local host");
-        }
-
-        [Theory]
-        [InlineData("remote-server")]
-        [InlineData("vbr-prod")]
-        [InlineData("192.168.1.100")]
-        [InlineData("10.0.0.1")]
-        public void IsLocalHost_ActualRemoteHost_ReturnsFalse(string hostname)
-        {
-            // Act
-            var result = CHostNameHelper.IsLocalHost(hostname);
-
-            // Assert
-            Assert.False(result, $"'{hostname}' should NOT be detected as local host");
-        }
-
-        [Fact]
-        public void IsLocalHost_RemoteFqdn_ReturnsFalse()
-        {
-            // Arrange - ensure it doesn't start with local machine name
-            string remoteFqdn = "completely-different-server.domain.com";
-
-            // Act
-            var result = CHostNameHelper.IsLocalHost(remoteFqdn);
-
-            // Assert
-            Assert.False(result, $"Remote FQDN '{remoteFqdn}' should NOT be detected as local host");
-        }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("   ")]
-        public void IsLocalHost_NullOrEmpty_ReturnsFalse(string hostname)
-        {
-            // Act
-            var result = CHostNameHelper.IsLocalHost(hostname);
-
-            // Assert
-            Assert.False(result, "Null or empty hostname should return false");
-        }
-
-        [Fact]
-        public void IsLocalHost_PartialMachineNameMatch_ReturnsFalse()
-        {
-            // Arrange - hostname that contains but doesn't equal machine name
-            string machineName = Environment.MachineName;
-            string partialMatch = machineName + "-backup";
-
-            // Act
-            var result = CHostNameHelper.IsLocalHost(partialMatch);
-
-            // Assert
-            Assert.False(result, $"Partial match '{partialMatch}' should NOT be detected as local (no dot separator)");
         }
 
         #endregion

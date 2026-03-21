@@ -34,7 +34,7 @@ namespace VhcXTests.Functions.Reporting.Html.Shared
         [Fact]
         public void ParseBool_NullValue_ReturnsFalse()
         {
-            var result = CObjectHelpers.ParseBool(null);
+            var result = CObjectHelpers.ParseBool(null!);
             Assert.False(result);
         }
 
@@ -90,7 +90,7 @@ namespace VhcXTests.Functions.Reporting.Html.Shared
         [Fact]
         public void ParseInt_NullValue_ReturnsZero()
         {
-            var result = CObjectHelpers.ParseInt(null);
+            var result = CObjectHelpers.ParseInt(null!);
             Assert.Equal(0, result);
         }
 

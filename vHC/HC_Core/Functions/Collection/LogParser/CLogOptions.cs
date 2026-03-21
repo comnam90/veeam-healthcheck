@@ -1,0 +1,38 @@
+﻿// Copyright (c) 2021, Adam Congdon <adam.congdon2@gmail.com>
+// MIT License
+using System.Runtime.Versioning;
+
+namespace VeeamHealthCheck.Functions.Collection.LogParser
+{
+    [SupportedOSPlatform("windows")]
+    class CLogOptions
+    {
+        public static readonly string VMCLOG = "\\Utils\\VMC.log";
+        public static readonly string installIdLine = "InstallationId:";
+
+        private static string installId;
+
+        public CLogOptions(string mode)
+        {
+            CVmcReader vReader = new(mode);
+            vReader.PopulateVmc();
+            installId = vReader.INSTALLID;
+        }
+
+        public static string INSTALLID
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(installId))
+                {
+                    return installId;
+                }
+                else
+                {
+
+                    return string.Empty;
+                }
+            }
+        }
+    }
+}

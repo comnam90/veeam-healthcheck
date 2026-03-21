@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.Versioning;
 using VeeamHealthCheck;
 using VeeamHealthCheck.Functions.Reporting.Html;
 using VeeamHealthCheck.Shared;
@@ -13,6 +14,7 @@ namespace VhcXTests.Functions.Reporting.Html
     /// These tests focus on what can be tested without extensive mocking.
     /// </summary>
     [Trait("Category", "Unit")]
+    [SupportedOSPlatform("windows")]
     public class CHtmlExporterTEST : IDisposable
     {
         private readonly string _testOutputDir;
@@ -143,7 +145,7 @@ namespace VhcXTests.Functions.Reporting.Html
         // These tests actually export HTML and verify file creation
         // They depend on CGlobals being properly configured
 
-        [Fact]
+        [WindowsOnlyFact] // CVariables path suffixes use Windows backslash separators
         public void ExportVbrHtml_ValidHtml_CreatesFile()
         {
             // Arrange
@@ -181,7 +183,7 @@ namespace VhcXTests.Functions.Reporting.Html
             }
         }
 
-        [Fact]
+        [WindowsOnlyFact] // CVariables path suffixes use Windows backslash separators
         public void ExportVbrHtml_Scrubbed_CreatesFileInScrubbedDirectory()
         {
             // Arrange
@@ -217,7 +219,7 @@ namespace VhcXTests.Functions.Reporting.Html
             }
         }
 
-        [Fact]
+        [WindowsOnlyFact] // CVariables path suffixes use Windows backslash separators
         public void ExportVbrSecurityHtml_ValidHtml_CreatesFile()
         {
             // Arrange

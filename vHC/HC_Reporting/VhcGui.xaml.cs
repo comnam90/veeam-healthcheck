@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using VeeamHealthCheck.Functions.CredsWindow;
 using VeeamHealthCheck.Resources.Localization;
 using VeeamHealthCheck.Shared;
 using VeeamHealthCheck.Startup;
@@ -19,6 +20,11 @@ namespace VeeamHealthCheck
 
         public VhcGui()
         {
+            CGlobals.CredentialProvider = new CredsHandler();
+            CGlobals.GuiAdminContinuePrompt = CGuiBridge.ConfirmContinueWithoutAdmin;
+            CGlobals.GuiImportErrorNotify = CGuiBridge.NotifyImportError;
+            CGlobals.GuiImportWarningNotify = CGuiBridge.NotifyImportWarning;
+
             InitializeComponent();
 
             this.SetUi();
@@ -228,9 +234,21 @@ namespace VeeamHealthCheck
         {
             System.Threading.Tasks.Task.Factory.StartNew(() =>
             {
-                this.functions.StartPrimaryFunctions();
-                this.UpdateCollectionStatusText();
-                this.ShowCollectionWarningsIfAny();
+                int result = this.functions.StartPrimaryFunctions();
+                if (result != 0)
+                {
+                    this.Dispatcher.Invoke((Action)(() =>
+                    {
+                        progressText.Text = "Failed \u2014 see log for details";
+                        progressText.Foreground = new System.Windows.Media.SolidColorBrush(
+                            System.Windows.Media.Color.FromRgb(0xd9, 0x53, 0x4f));
+                    }));
+                }
+                else
+                {
+                    this.UpdateCollectionStatusText();
+                    this.ShowCollectionWarningsIfAny();
+                }
                 Environment.Exit(0);
             }).ContinueWith(t =>
             {
@@ -305,7 +323,7 @@ namespace VeeamHealthCheck
         private void AcceptButton_click(object sender, RoutedEventArgs e)
         {
             this.functions.LogUIAction("Accept");
-            run.IsEnabled = this.functions.AcceptTerms();
+            run.IsEnabled = CGuiBridge.AcceptTerms();
         }
 
         #endregion
@@ -406,7 +424,7 @@ namespace VeeamHealthCheck
         private void kbLink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
         {
             this.functions.LogUIAction("KB Link");
-            this.functions.KbLinkAction(e);
+            CGuiBridge.KbLinkAction(e);
         }
 
         private void pathBox_TextChanged(object sender, TextChangedEventArgs e)

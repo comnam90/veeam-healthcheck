@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VeeamHealthCheck.Functions.Collection.Security;
 using VeeamHealthCheck.Shared;
 using VeeamHealthCheck.Startup;
 
 namespace VeeamHealthCheck.Functions.CredsWindow
 {
-    public class CredsHandler
+    public class CredsHandler : ICredentialProvider
     {
         public (string Username, string Password)? GetCreds()
         {

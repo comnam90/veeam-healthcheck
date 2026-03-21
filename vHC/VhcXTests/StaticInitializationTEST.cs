@@ -2,6 +2,7 @@
 // MIT License
 using System;
 using System.Diagnostics;
+using System.IO;
 using VeeamHealthCheck;
 using VeeamHealthCheck.Shared;
 
@@ -58,14 +59,15 @@ namespace VhcXTests
             try
             {
                 var desiredPath = CGlobals.desiredPath;
-                CGlobals.desiredPath = @"C:\temp\test";
+                var testPath = Path.Combine(Path.GetTempPath(), "vhc-test");
+                CGlobals.desiredPath = testPath;
                 var modifiedPath = CGlobals.desiredPath;
 
                 stopwatch.Stop();
                 Assert.True(stopwatch.ElapsedMilliseconds < timeoutMs,
                     $"CGlobals.desiredPath access took {stopwatch.ElapsedMilliseconds}ms - possible recursion detected");
 
-                Assert.Equal(@"C:\temp\test", modifiedPath);
+                Assert.Equal(testPath, modifiedPath);
             }
             catch (StackOverflowException)
             {

@@ -2,11 +2,13 @@
 // MIT License
 using System;
 using System.IO;
+using System.Runtime.Versioning;
 using VeeamHealthCheck.Startup;
 using Xunit;
 
 namespace VhcXTests
 {
+    [SupportedOSPlatform("windows")]
     public class PathValidationTests : IDisposable
     {
         private readonly CClientFunctions _functions;
@@ -40,10 +42,10 @@ namespace VhcXTests
         public void VerifyPath_NullPath_ReturnsFalse()
         {
             // Arrange
-            string path = null;
+            string? path = null;
 
             // Act
-            bool result = _functions.VerifyPath(path);
+            bool result = _functions.VerifyPath(path!);
 
             // Assert
             Assert.False(result);
@@ -62,7 +64,7 @@ namespace VhcXTests
             Assert.False(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_WhitespacePath_ReturnsFalse()
         {
             // Arrange
@@ -75,7 +77,7 @@ namespace VhcXTests
             Assert.False(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_UncPath_ReturnsFalse()
         {
             // Arrange
@@ -143,7 +145,7 @@ namespace VhcXTests
             Assert.True(Directory.Exists(path));
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_InvalidCharacters_ReturnsFalse()
         {
             // Arrange
@@ -156,7 +158,7 @@ namespace VhcXTests
             Assert.False(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_PathTooLong_ReturnsFalse()
         {
             // Arrange
@@ -171,7 +173,7 @@ namespace VhcXTests
             Assert.False(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_DefaultVhcPath_CreatesDirectoryAndReturnsTrue()
         {
             // Arrange
@@ -186,7 +188,7 @@ namespace VhcXTests
             // permissions to create in C:\temp in all test environments
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData(@"C:\temp\VHC")]
         [InlineData(@"C:\temp\VHC\Reports")]
         [InlineData(@"C:\Users\Public\VHC")]
@@ -199,7 +201,7 @@ namespace VhcXTests
             Assert.True(result);
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData(@"\\network\share")]
         [InlineData(@"\\?\UNC\server\share")]
         public void VerifyPath_NetworkPaths_ReturnsFalse(string path)
@@ -211,7 +213,7 @@ namespace VhcXTests
             Assert.False(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_DriveRoot_ReturnsTrue()
         {
             // Arrange
@@ -224,7 +226,7 @@ namespace VhcXTests
             Assert.True(result);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public void VerifyPath_PathWithTrailingBackslash_CreatesDirectoryAndReturnsTrue()
         {
             // Arrange

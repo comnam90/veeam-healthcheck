@@ -46,7 +46,7 @@ namespace VeeamHealthCheck.Tests.Collection
         public void FindCsvDirectory_ReturnsNull_WhenPathIsNull()
         {
             // Act
-            var result = CImportPathResolver.FindCsvDirectory(null);
+            var result = CImportPathResolver.FindCsvDirectory(null!);
 
             // Assert
             Assert.Null(result);
@@ -188,7 +188,7 @@ namespace VeeamHealthCheck.Tests.Collection
         public void ValidateCsvFiles_ReturnsInvalid_WhenPathIsNull()
         {
             // Act
-            var result = CImportPathResolver.ValidateCsvFiles(null);
+            var result = CImportPathResolver.ValidateCsvFiles(null!);
 
             // Assert
             Assert.False(result.IsValid);
@@ -281,7 +281,7 @@ namespace VeeamHealthCheck.Tests.Collection
         public void ExtractTimestamps_ReturnsDefaults_WhenPathIsNull()
         {
             // Act
-            var (earliest, latest) = CImportPathResolver.ExtractTimestamps(null);
+            var (earliest, latest) = CImportPathResolver.ExtractTimestamps(null!);
 
             // Assert
             Assert.True(earliest < DateTime.Now);
