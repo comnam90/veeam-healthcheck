@@ -2,6 +2,7 @@
 // MIT License
 using System;
 using System.Diagnostics;
+using System.IO;
 using VeeamHealthCheck;
 using VeeamHealthCheck.Shared;
 
@@ -18,7 +19,7 @@ namespace VhcXTests
         /// Verifies that CVariables can be accessed without triggering stack overflow.
         /// This test guards against circular property dependencies during static initialization.
         /// </summary>
-        [WindowsOnlyFact]
+        [Fact]
         public void CVariables_InitializationCompletes_WithoutStackOverflow()
         {
             // Arrange
@@ -47,7 +48,7 @@ namespace VhcXTests
         /// Verifies that CGlobals can be accessed without triggering stack overflow.
         /// This test ensures desiredPath property doesn't recursively call itself.
         /// </summary>
-        [WindowsOnlyFact]
+        [Fact]
         public void CGlobals_DesiredPathAccess_WithoutStackOverflow()
         {
             // Arrange
@@ -58,14 +59,15 @@ namespace VhcXTests
             try
             {
                 var desiredPath = CGlobals.desiredPath;
-                CGlobals.desiredPath = @"C:\temp\test";
+                var testPath = Path.Combine(Path.GetTempPath(), "vhc-test");
+                CGlobals.desiredPath = testPath;
                 var modifiedPath = CGlobals.desiredPath;
 
                 stopwatch.Stop();
                 Assert.True(stopwatch.ElapsedMilliseconds < timeoutMs,
                     $"CGlobals.desiredPath access took {stopwatch.ElapsedMilliseconds}ms - possible recursion detected");
 
-                Assert.Equal(@"C:\temp\test", modifiedPath);
+                Assert.Equal(testPath, modifiedPath);
             }
             catch (StackOverflowException)
             {
@@ -77,7 +79,7 @@ namespace VhcXTests
         /// Verifies that GetCsvFileSizesToLog can be called without infinite recursion.
         /// This was the original entry point where the stack overflow manifested.
         /// </summary>
-        [WindowsOnlyFact]
+        [Fact]
         public void CVariables_NoCircularDependency_WithCGlobals()
         {
             // Arrange - ensure basic static properties are accessible
