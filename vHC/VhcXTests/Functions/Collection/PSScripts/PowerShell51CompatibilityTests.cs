@@ -33,21 +33,21 @@ public class PowerShell51CompatibilityTests
         (@"(?<!&)&&(?!&)(?!\s*$)", "Pipeline chain AND operator (&&)")
     };
 
-    [WindowsOnlyFact]
+    [Fact]
     public void GetVBRConfig_ShouldNotContain_TernaryOperator()
     {
         var scriptPath = GetScriptPath("Tools/Scripts/HealthCheck/VBR/Get-VBRConfig.ps1");
         AssertNoPs7Syntax(scriptPath, "ternary");
     }
 
-    [WindowsOnlyFact]
+    [Fact]
     public void GetNasInfo_ShouldNotContain_TernaryOperator()
     {
         var scriptPath = GetScriptPath("Tools/Scripts/HealthCheck/VBR/Get-NasInfo.ps1");
         AssertNoPs7Syntax(scriptPath, "ternary");
     }
 
-    [WindowsOnlyTheory]
+    [Theory]
     [MemberData(nameof(GetAllPs51Scripts))]
     public void AllPs51Scripts_ShouldNotContain_AnyPs7OnlySyntax(string relativePath)
     {
@@ -68,7 +68,7 @@ public class PowerShell51CompatibilityTests
     /// parse errors far from the actual offending character.
     /// All VBR scripts must therefore be pure ASCII.
     /// </summary>
-    [WindowsOnlyTheory]
+    [Theory]
     [MemberData(nameof(GetAllVbrScriptFiles))]
     public void AllVbrScripts_ShouldContainOnlyAsciiCharacters(string relativePath)
     {
