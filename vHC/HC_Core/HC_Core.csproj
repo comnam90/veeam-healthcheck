@@ -39,12 +39,31 @@
     <EmbeddedResource Include="..\HC_Reporting\Functions\Collection\PSCollections\Scripts\Collect-VB365Data.ps1">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <!-- Localization resources - physically in HC_Reporting, embedded into HC_Core for ResourceManager lookups -->
-    <EmbeddedResource Include="..\HC_Reporting\Resources\Localization\vhcres.resources" />
-    <EmbeddedResource Include="..\HC_Reporting\Resources\Localization\vhcres.FR-FR.resources" />
-    <EmbeddedResource Include="..\HC_Reporting\Resources\Localization\vhcres.ja.resources" />
-    <EmbeddedResource Include="..\HC_Reporting\Resources\Localization\vhcres.zh-cn.resources" />
-    <EmbeddedResource Include="..\HC_Reporting\Resources\Localization\vhcres.zh-tw.resources" />
-    <EmbeddedResource Include="..\HC_Reporting\Resources\Localization\VB365\vb365_vhcres.resources" />
+    <!-- Localization resources - physically in HC_Reporting, embedded into HC_Core for ResourceManager lookups.
+         LogicalName is required: files outside the project directory (via ..) produce names without the
+         subdirectory path (e.g. "VeeamHealthCheck.vhcres.resources"), but ResourceManager looks for the
+         path-based name "VeeamHealthCheck.Resources.Localization.vhcres.resources". LogicalName restores
+         the path that would have been derived automatically had the files been inside the project tree.
+         Culture-specific resources (FR-FR / ja / zh-cn / zh-tw) become satellite assemblies; their
+         LogicalName includes the culture code so the SDK strips it when building the satellite DLL,
+         leaving the same base name the ResourceManager uses for culture fallback. -->
+    <EmbeddedResource Include="..\HC_Reporting\Resources\Localization\vhcres.resources">
+      <LogicalName>VeeamHealthCheck.Resources.Localization.vhcres.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\HC_Reporting\Resources\Localization\vhcres.FR-FR.resources">
+      <LogicalName>VeeamHealthCheck.Resources.Localization.vhcres.FR-FR.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\HC_Reporting\Resources\Localization\vhcres.ja.resources">
+      <LogicalName>VeeamHealthCheck.Resources.Localization.vhcres.ja.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\HC_Reporting\Resources\Localization\vhcres.zh-cn.resources">
+      <LogicalName>VeeamHealthCheck.Resources.Localization.vhcres.zh-cn.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\HC_Reporting\Resources\Localization\vhcres.zh-tw.resources">
+      <LogicalName>VeeamHealthCheck.Resources.Localization.vhcres.zh-tw.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\HC_Reporting\Resources\Localization\VB365\vb365_vhcres.resources">
+      <LogicalName>VeeamHealthCheck.Resources.Localization.VB365.vb365_vhcres.resources</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>
