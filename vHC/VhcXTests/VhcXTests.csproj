@@ -32,14 +32,17 @@
   </ItemGroup>
 
   <!-- Workaround: .NET SDK on Linux does not create satellite assembly subdirectories
-       before copying project reference outputs (MSB3021/MSB3027).
-       Pre-create the exact culture directories HC_Core produces (casing from filenames):
-         vhcres.FR-FR.resources  → FR-FR/
-         vhcres.ja.resources     → ja/
-         vhcres.zh-cn.resources  → zh-cn/
-         vhcres.zh-tw.resources  → zh-tw/ -->
-  <Target Name="EnsureHcCoreSatelliteOutputDirs" BeforeTargets="Build">
-    <MakeDir Directories="$(OutDir)FR-FR;$(OutDir)ja;$(OutDir)zh-cn;$(OutDir)zh-tw" />
+       before copying project reference outputs (MSB3021/MSB3027). Pre-create the exact
+       culture directories HC_Core produces (casing from resource filenames):
+         vhcres.FR-FR.resources → FR-FR/   vhcres.ja.resources → ja/
+         vhcres.zh-cn.resources → zh-cn/   vhcres.zh-tw.resources → zh-tw/
+       Uses NormalizePath for absolute forward-slash paths ($(OutDir) has mixed
+       backslash/slash on Linux). Hook: BeforeTargets="CopyFilesToOutputDirectory" fires
+       AFTER that target's DependsOnTargets (too late); _CopyFilesMarkedCopyLocal is the
+       actual copy target, so we inject directly before it. -->
+  <Target Name="EnsureHcCoreSatelliteOutputDirs"
+          BeforeTargets="_CopyFilesMarkedCopyLocal">
+    <MakeDir Directories="$([MSBuild]::NormalizePath($(MSBuildProjectDirectory), $(OutputPath), 'FR-FR'));$([MSBuild]::NormalizePath($(MSBuildProjectDirectory), $(OutputPath), 'ja'));$([MSBuild]::NormalizePath($(MSBuildProjectDirectory), $(OutputPath), 'zh-cn'));$([MSBuild]::NormalizePath($(MSBuildProjectDirectory), $(OutputPath), 'zh-tw'))" />
   </Target>
 
   <!-- CArgsParser lives in the WPF shell (DllImport + Application).
