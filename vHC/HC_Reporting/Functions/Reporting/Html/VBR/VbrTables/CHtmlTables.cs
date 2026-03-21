@@ -3023,7 +3023,8 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
                         var res = source.Where(x => x.JobType == jType).ToList();
                         foreach (var job in res)
                         {
-                            // object x = null;
+                            try
+                            {
                             double onDiskGB = 0;
                             double sourceSizeGB = 0;
 
@@ -3218,6 +3219,11 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
                             row += "</tr>";
 
                             s += row;
+                            }
+                            catch (Exception e)
+                            {
+                                this.log.Error($"Failed to render job row for '{job.Name}': {e.Message}");
+                            }
                         }
 
                         // table summary/totals
