@@ -1150,7 +1150,7 @@ return proxyList;
         {
             try
             {
-                double.TryParse(input, out double i);
+                double.TryParse(input, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double i);
                 return i;
             }
             catch (Exception) { return 0; };

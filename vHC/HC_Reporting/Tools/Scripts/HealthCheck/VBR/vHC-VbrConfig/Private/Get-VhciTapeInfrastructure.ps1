@@ -23,11 +23,35 @@ function Get-VhciTapeInfrastructure {
     $tapeVaults = Get-VBRTapeVault
     Write-LogFile "Found $(@($tapeVaults).Count) tape vaults"
 
-    $tapeJob        | Export-VhciCsv -FileName '_TapeJobs.csv'
-    $tapeServers    | Export-VhciCsv -FileName '_TapeServers.csv'
-    $tapeLibraries  | Export-VhciCsv -FileName '_TapeLibraries.csv'
-    $tapeMediaPools | Export-VhciCsv -FileName '_TapeMediaPools.csv'
-    $tapeVaults     | Export-VhciCsv -FileName '_TapeVaults.csv'
+    $tapeJob | Select-Object Name, Type, Id, Description,
+        FullBackupMediaPool, IncrementalBackupMediaPool,
+        @{N='ProcessIncrementalBackup'; E={
+            if ($null -ne $_.ProcessIncrementalBackup) { $_.ProcessIncrementalBackup }
+            else { -not [string]::IsNullOrEmpty($_.IncrementalBackupPolicy) }
+        }},
+        @{N='Objects'; E={
+            ($_.Object | Where-Object {$_} | ForEach-Object {
+                if ($_ -is [string]) { $_ } elseif ($_.Name) { $_.Name } else { "$_" }
+            }) -join ', '
+        }},
+        UseHardwareCompression, EjectCurrentMedium, ExportCurrentMediaSet,
+        Enabled, NextRun, LastResult, LastState |
+        Export-VhciCsv -FileName '_TapeJobs.csv'
+
+    $tapeServers | Export-VhciCsv -FileName '_TapeServers.csv'
+
+    $tapeLibraries | Select-Object Name, State, Type, Enabled, Id, Description,
+        @{N='SlotsCount'; E={$_.Slots}},
+        @{N='DrivesCount'; E={@($_.Drives).Count}} |
+        Export-VhciCsv -FileName '_TapeLibraries.csv'
+
+    $tapeMediaPools | Select-Object Name, Type, Description, RetentionPolicy, Id,
+        @{N='MediaCount'; E={@($_.Medium).Count}},
+        @{N='Encryption'; E={$_.EncryptionOptions}},
+        @{N='IsWorm'; E={$_.Worm}} |
+        Export-VhciCsv -FileName '_TapeMediaPools.csv'
+
+    $tapeVaults | Export-VhciCsv -FileName '_TapeVaults.csv'
 
     Write-LogFile ($message + "DONE")
 }
