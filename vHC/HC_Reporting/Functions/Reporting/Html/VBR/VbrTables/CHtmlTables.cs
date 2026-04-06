@@ -3027,7 +3027,8 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
                         var res = source.Where(x => x.JobType == jType).ToList();
                         foreach (var job in res)
                         {
-                            // object x = null;
+                            try
+                            {
                             double onDiskGB = 0;
                             double sourceSizeGB = 0;
 
@@ -3044,14 +3045,18 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
                                 var diskGb = x.Where(x => x.name == job.Name)
                                     .Select(x => x.ondiskgb)
                                     .FirstOrDefault();
-                                double.TryParse(diskGb, out onDiskGB);
+                                string diskGbStr = diskGb?.ToString();
+                                this.log.Debug($"NasBackup '{job.Name}': diskGb raw='{diskGbStr}'");
+                                double.TryParse(diskGbStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out onDiskGB);
                                 onDiskGB = Math.Round(onDiskGB, 2);
                                 onDiskTotalGB += onDiskGB;
 
                                 var sourceGb = x.Where(x => x.name == job.Name)
                                     .Select(x => x.sourcegb)
                                     .FirstOrDefault();
-                                double.TryParse(sourceGb, out sourceSizeGB);
+                                string sourceGbStr = sourceGb?.ToString();
+                                this.log.Debug($"NasBackup '{job.Name}': sourceGb raw='{sourceGbStr}'");
+                                double.TryParse(sourceGbStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out sourceSizeGB);
                                 sourceSizeGB = Math.Round(sourceSizeGB, 2);
                             }
                             else
@@ -3218,6 +3223,11 @@ this.form.TableHeader(VbrLocalizationHelper.SbrExt15, VbrLocalizationHelper.SbrE
                             row += "</tr>";
 
                             s += row;
+                            }
+                            catch (Exception e)
+                            {
+                                this.log.Error($"Failed to render job row for '{job.Name}': {e.Message}");
+                            }
                         }
 
                         // table summary/totals

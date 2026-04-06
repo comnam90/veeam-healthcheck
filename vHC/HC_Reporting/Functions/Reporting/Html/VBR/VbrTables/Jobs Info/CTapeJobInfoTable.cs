@@ -42,6 +42,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR.VbrTables.Jobs_Info
                 t += this.form.TableHeader("Export Media Set", string.Empty);
                 t += this.form.TableHeader("Job Is Enabled", string.Empty);
                 t += this.form.TableHeader("Next Run", string.Empty);
+                t += this.form.TableHeader("Objects", string.Empty);
                 t += this.form.TableHeader("Last Result", string.Empty);
 
                 t += this.form.TableBodyStart();
@@ -67,6 +68,7 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VBR.VbrTables.Jobs_Info
                     t += this.form.TableData(tj.ExportCurrentMediaSet, string.Empty);
                     t += this.form.TableData(tj.Enabled, string.Empty);
                     t += this.form.TableData(tj.NextRun, string.Empty);
+                    t += this.form.TableData(tj.Objects ?? "", string.Empty);
                     t += this.form.TableData(tj.LastResult, string.Empty);
                     t += "</tr>";
                 }

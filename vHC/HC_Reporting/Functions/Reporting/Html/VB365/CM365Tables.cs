@@ -398,8 +398,8 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VB365
                     }
 
 
-                    double.TryParse(g.Free, out double freeSpace);
-                    double.TryParse(g.Capacity, out double capacity);
+                    double.TryParse(g.Free, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double freeSpace);
+                    double.TryParse(g.Capacity, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double capacity);
 
                     if (freeSpace / capacity * 100 < 10)
                     {
@@ -1283,10 +1283,10 @@ namespace VeeamHealthCheck.Functions.Reporting.Html.VB365
 
                     int freeSpaceShade = 0;
                     string[] sizeLimitArray = sizelimit.Split();
-                    double.TryParse(sizeLimitArray[0], out double sizeLimitNumber);
+                    double.TryParse(sizeLimitArray[0], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double sizeLimitNumber);
 
                     string[] freeSpaceArray = freespace.Split();
-                    double.TryParse(freeSpaceArray[0], out double freeSpaceNumber);
+                    double.TryParse(freeSpaceArray[0], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double freeSpaceNumber);
                     if (freeSpaceNumber / sizeLimitNumber * 100 < 10)
                     {
                         freeSpaceShade = 3;
